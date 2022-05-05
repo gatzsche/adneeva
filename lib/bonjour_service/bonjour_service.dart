@@ -8,11 +8,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bonsoir/bonsoir.dart';
+import 'package:flutter/material.dart';
 
 import '../connection.dart';
 import '../network_service.dart';
-import 'bonjour_service_core.dart';
 
+// #############################################################################
 class BonjourServiceDescription {
   BonjourServiceDescription({
     required this.serviceId,
@@ -28,18 +29,31 @@ class BonjourServiceDescription {
 }
 
 // #############################################################################
+
+class BonjourServiceDeps {
+  const BonjourServiceDeps();
+  final bonsoirBroadcast = BonsoirBroadcast.new;
+  final bonsoirDiscovery = BonsoirDiscovery.new;
+  final serverSocketBind = ServerSocket.bind;
+  final clientSocketConnect = Socket.connect;
+}
+
+// #############################################################################
 class BonjourService extends NetworkService<BonjourServiceDescription> {
   // ...........................................................................
   BonjourService({
     required BonjourServiceDescription description,
     required NetworkServiceMode mode,
-  })  : _bonsoirService = createBonsoirService(description),
+    BonjourServiceDeps dependencies = const BonjourServiceDeps(),
+  })  : _d = dependencies,
+        _bonsoirService = createBonsoirService(description),
         super(
           serviceDescription: description,
           mode: mode,
         ) {
-    _bonsoirBroadcast = BonsoirBroadcast(service: _bonsoirService);
-    _bonsoirDiscovery = BonsoirDiscovery(type: serviceDescription.serviceId);
+    _bonsoirBroadcast = _d.bonsoirBroadcast(service: _bonsoirService);
+    _bonsoirDiscovery = _d.bonsoirDiscovery(type: serviceDescription.serviceId);
+    _initTest();
   }
 
   // ######################
@@ -69,7 +83,7 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
       return;
     }
 
-    _serverSocket = await ServerSocket.bind(
+    _serverSocket = await _d.serverSocketBind(
       serviceDescription.ipAddress,
       serviceDescription.port,
       shared: true,
@@ -114,9 +128,8 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
           final service = (event.service as ResolvedBonsoirService);
           final ip = service.ip;
           if (ip == null) {
-            throw StateError(
-              'Service with name %{service.name} has no IP address',
-            );
+            log?.call('Service with name "${service.name}" has no IP address');
+            return;
           }
 
           final discoveredService = BonjourServiceDescription(
@@ -137,8 +150,6 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
   // ...........................................................................
   @override
   Future<void> stopDiscovery() async {
-    _discoverySubscription?.cancel();
-    _discoverySubscription = null;
     await _bonsoirDiscovery.stop();
   }
 
@@ -157,10 +168,25 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
   }
 
   // ######################
+  // Test
+  // ######################
+
+  @visibleForTesting
+  Object? test(String key) => _test[key]?.call();
+  final Map<String, dynamic Function()> _test = {};
+
+  void _initTest() {
+    _test['bonsoirDiscovery'] = () => _bonsoirDiscovery;
+    _test['bonsoirBroadcast'] = () => _bonsoirBroadcast;
+    _test['serverSocket'] = () => _serverSocket;
+  }
+
+  // ######################
   // Private
   // ######################
 
   final List<Function()> _dispose = [];
+  final BonjourServiceDeps _d;
 
   final BonsoirService _bonsoirService;
   late BonsoirBroadcast _bonsoirBroadcast;
@@ -177,42 +203,32 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
   }
 
   late BonsoirDiscovery _bonsoirDiscovery;
-  late StreamSubscription? _discoverySubscription;
+  StreamSubscription? _discoverySubscription;
   final _discoveredServices = StreamController<BonjourServiceDescription>();
 
   // ...........................................................................
   Future<Socket> _connectClientSocket(
       {required String ip, required int port}) async {
     try {
-      final socket = await Socket.connect(ip, port);
+      final socket = await _d.clientSocketConnect(ip, port);
       return socket;
-    } on SocketException {
-      throw StateError('Error while connecting to tcp client');
     }
+
+    // coverage:ignore-start
+    on SocketException catch (e) {
+      log?.call(e.toString());
+      rethrow;
+    }
+    // coverage:ignore-end
   }
 
   // ...........................................................................
   void _initConnection(Socket socket) {
     Connection(
       parentService: this,
-      sendString: (stringData) async => socket.write(stringData),
+      sendData: (data) async => socket.add(data),
       receiveData: socket,
       disconnect: socket.close,
     );
   }
-}
-
-// #############################################################################
-BonjourService exampleBonjourService(NetworkServiceMode mode) {
-  final description = BonjourServiceDescription(
-    ipAddress: '127.0.0.1',
-    name: 'Example Bonjour Service',
-    port: 12457,
-    serviceId: 'example.bonjour.service',
-  );
-
-  return BonjourService(
-    description: description,
-    mode: mode,
-  );
 }

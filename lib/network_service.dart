@@ -32,6 +32,9 @@ abstract class NetworkService<ServiceDescription> {
   }
 
   // ...........................................................................
+  Function(String)? log;
+
+  // ...........................................................................
   final ServiceDescription serviceDescription;
   final NetworkServiceMode mode;
 
@@ -125,6 +128,13 @@ abstract class NetworkService<ServiceDescription> {
   }
 
   // ...........................................................................
+  Future<void> _disconnectAll() async {
+    for (final c in [...connections]) {
+      await c.disconnect();
+    }
+  }
+
+  // ...........................................................................
   Future<void> _startSlave() async {
     await startDiscovery();
   }
@@ -138,11 +148,13 @@ abstract class NetworkService<ServiceDescription> {
   Future<void> _startMaster() async {
     await startListeningForConnections();
     await startAdvertizing();
+    await _disconnectAll();
   }
 
   // ...........................................................................
   Future<void> _stopMaster() async {
     await stopAdvertizing();
     await stopListeningForConnections();
+    await _disconnectAll();
   }
 }

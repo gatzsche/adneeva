@@ -5,7 +5,6 @@
 // found in the LICENSE file in the root of this package.
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -13,9 +12,11 @@ import 'package:gg_router/gg_router.dart';
 import 'package:gg_value/gg_value.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// coverage:ignore-start
 void main() {
   runApp(const GgRouterExample());
 }
+// coverage:ignore-end
 
 const debugShowCheckedModeBanner = false;
 
@@ -47,13 +48,11 @@ class GgRouterExample extends StatelessWidget {
   Widget get _appContent {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Konnet'),
+        title: const Text('GgRouter'),
         actions: <Widget>[
-          _routeButton('TCP', 'tcp'),
-          _routeButton('UDP', 'udp'),
-          _routeButton(
-              Platform.isAndroid ? 'WIFY DIRECT' : 'P2P WIFY', 'nearby'),
-          _routeButton('BTLE', 'btle'),
+          _routeButton('Sports', 'sports'),
+          _routeButton('Transportation', 'transportation'),
+          _routeButton('Places', 'places'),
           Container(
             width: debugShowCheckedModeBanner ? 50 : 0,
           ),
@@ -65,22 +64,19 @@ class GgRouterExample extends StatelessWidget {
           return GgRouter(
             {
               '_INDEX_': _indexPage,
-              'tcp': _tcpPage,
-              'udp': _udpPage,
-              'nearby': _nearbyPage,
-              'btle': _btlePage,
+              'sports': _sportsPage,
+              'transportation': _transportationPage,
+              'places': _placesPage,
               '*': _wildCardPage,
             },
             key: const ValueKey('mainRouter'),
             inAnimation: _zoomIn,
             outAnimation: _zoomOut,
-            semanticLabels: {
+            semanticLabels: const {
               '_INDEX_': 'Navigate to Index Page',
-              'tcp': 'Navigate to TCP Page',
-              'udp': 'Navigate to UDP Page',
-              'nearby':
-                  'Navigate to ${Platform.isAndroid ? "WIFY DIRECT" : "Peer to peer WIFY"} Page',
-              'btle': 'Navigate to Places Page',
+              'sports': 'Navigate to Sports Page',
+              'transportation': 'Navigate to Transportation Page',
+              'places': 'Navigate to Places Page',
               '*': 'Another Page',
             },
           );
@@ -186,7 +182,7 @@ class GgRouterExample extends StatelessWidget {
             Row(children: [
               TextButton(
                 child: const Text('Hello World'),
-                onPressed: () {},
+                onPressed: () {}, // coverage:ignore-line
               ),
               const Spacer(),
             ]),
@@ -297,7 +293,7 @@ class GgRouterExample extends StatelessWidget {
   }
 
   // ...........................................................................
-  Widget _tcpPage(BuildContext context) {
+  Widget _sportsPage(BuildContext context) {
     final router = GgRouter.of(context);
 
     return Scaffold(
@@ -372,82 +368,7 @@ class GgRouterExample extends StatelessWidget {
   }
 
   // ...........................................................................
-  Widget _udpPage(BuildContext context) {
-    final router = GgRouter.of(context);
-
-    return Scaffold(
-      key: const ValueKey('sportsPage'),
-      bottomNavigationBar: StreamBuilder(
-          stream: router.onActiveChildChange,
-          builder: (context, snapshot) {
-            final index = router.indexOfActiveChild ?? 0;
-
-            return BottomNavigationBar(
-              currentIndex: index,
-              items: const [
-                BottomNavigationBarItem(
-                  label: 'Basketball',
-                  icon: Icon(Icons.sports_basketball),
-                ),
-                BottomNavigationBarItem(
-                  label: 'Football',
-                  icon: Icon(Icons.sports_football),
-                ),
-                BottomNavigationBarItem(
-                  label: 'Handball',
-                  icon: Icon(Icons.sports_handball),
-                ),
-              ],
-              onTap: (index) {
-                switch (index) {
-                  case 0:
-                    router.navigateTo('basketball/_LAST_');
-                    break;
-                  case 1:
-                    router.navigateTo('football/_LAST_');
-                    break;
-                  case 2:
-                    router.navigateTo('handball/_LAST_');
-                    break;
-                }
-              },
-            );
-          }),
-      body: GgRouter(
-        {
-          'basketball': (context) {
-            return GgRouteParams(
-              params: {
-                'visit': GgRouteParam<bool>(seed: false),
-              },
-              child: GgPopoverRoute(
-                key: const ValueKey('dialog'),
-                name: 'popover',
-                semanticLabel: 'Popover Dialog Example',
-                base: Listener(
-                  child: _bigIcon(context, Icons.sports_basketball),
-                  onPointerUp: (_) =>
-                      GgRouter.of(context).navigateTo('./popover'),
-                ),
-                popover: _dialog,
-                inAnimation: _rotateIn,
-                outAnimation: _rotateOut,
-              ),
-            );
-          },
-          'football': (c) => _bigIcon(c, Icons.sports_football),
-          'handball': (c) => _bigIcon(c, Icons.sports_handball),
-        },
-        key: const ValueKey('sportsRouter'),
-        defaultRoute: 'basketball',
-        inAnimation: _moveIn,
-        outAnimation: _moveOut,
-      ),
-    );
-  }
-
-  // ...........................................................................
-  Widget _nearbyPage(BuildContext context) {
+  Widget _transportationPage(BuildContext context) {
     final router = GgRouter.of(context);
 
     return Scaffold(
@@ -503,7 +424,7 @@ class GgRouterExample extends StatelessWidget {
   }
 
 // ...........................................................................
-  Widget _btlePage(BuildContext context) {
+  Widget _placesPage(BuildContext context) {
     final router = GgRouter.of(context);
     // return Container(color: Colors.green);
 
@@ -560,7 +481,7 @@ class GgRouterExample extends StatelessWidget {
   }
 
   // ...........................................................................
-  void _saveState(String state) async {
+  Future<void> _saveState(String state) async {
     (await (SharedPreferences.getInstance()))
         .setString('lastApplicationState', state);
   }

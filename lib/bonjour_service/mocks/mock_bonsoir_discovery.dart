@@ -4,19 +4,23 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
+import 'dart:async';
+
 import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mocktail/mocktail.dart';
 
-class MockBonsoirBroadcast extends Mock implements BonsoirBroadcast {
-  MockBonsoirBroadcast({
+class MockBonsoirDiscovery extends Mock implements BonsoirDiscovery {
+  MockBonsoirDiscovery({
     bool printLogs = kDebugMode,
-    required this.service,
+    required this.type,
   });
 
-  /// The service to broadcast.
   @override
-  final BonsoirService service;
+  final String type;
+
+  @override
+  bool isReady = false;
 
   @override
   bool isStopped = true;
@@ -31,4 +35,9 @@ class MockBonsoirBroadcast extends Mock implements BonsoirBroadcast {
 
   @override
   Future<void> stop() async {}
+
+  // ...........................................................................
+  final eventStreamIn = StreamController<BonsoirDiscoveryEvent>();
+  @override
+  Stream<BonsoirDiscoveryEvent>? get eventStream => eventStreamIn.stream;
 }
