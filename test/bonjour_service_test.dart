@@ -24,14 +24,16 @@ void main() {
 
   // ...........................................................................
   void mockDiscovery(
-      {BonsoirDiscoveryEventType? type, bool noIpAddress = false}) {
+      {BonsoirDiscoveryEventType? type,
+      bool noIpAddress = false,
+      String ip = '123.456.789.123'}) {
     final description = master.serviceDescription;
 
     bonsoirDiscovery.eventStreamIn.add(
       BonsoirDiscoveryEvent(
         type: type ?? BonsoirDiscoveryEventType.DISCOVERY_SERVICE_RESOLVED,
         service: ResolvedBonsoirService(
-          ip: noIpAddress ? null : description.ipAddress,
+          ip: noIpAddress ? null : ip,
           name: description.name,
           port: description.port,
           type: description.serviceId,
@@ -41,7 +43,12 @@ void main() {
   }
 
   // ...........................................................................
-  void mockBroadcastWithoutIp() => mockDiscovery(noIpAddress: true);
+  void mockDiscoverOwnService() => mockDiscovery(
+        ip: master.serviceDescription.ipAddress,
+      );
+
+  // ...........................................................................
+  void mockDiscoverServicesWithoutIp() => mockDiscovery(noIpAddress: true);
 
   // ...........................................................................
   void mockDiscoveryLost() =>
@@ -173,6 +180,27 @@ void main() {
       });
     });
 
+    test('should not discover own server', () {
+      fakeAsync((fake) {
+        init();
+
+        // Slave discovers and connects a service
+        master.start();
+        slave.start();
+
+        // Slave should discover the service broadcasted by the server
+        mockDiscoverOwnService();
+        fake.flushMicrotasks();
+
+        // There should not be a discovery of the own service
+        expect(slave.connections.length, 0);
+        expect(master.connections.length, 0);
+
+        stopMasterAndSlave(fake);
+        dispose();
+      });
+    });
+
     test('should exchange data betwen master and slave correctly', () {
       fakeAsync((fake) {
         init();
@@ -230,7 +258,7 @@ void main() {
         fake.flushMicrotasks();
 
         // Broadcasting a service without an IP should create an error.
-        mockBroadcastWithoutIp();
+        mockDiscoverServicesWithoutIp();
         fake.flushMicrotasks();
         expect(slave.loggedData.last,
             'Service with name "Example Bonjour Service" has no IP address');

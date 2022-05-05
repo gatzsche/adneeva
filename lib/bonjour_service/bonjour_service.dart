@@ -36,6 +36,7 @@ class BonjourServiceDeps {
   final bonsoirDiscovery = BonsoirDiscovery.new;
   final serverSocketBind = ServerSocket.bind;
   final clientSocketConnect = Socket.connect;
+  final listNetworkInterface = NetworkInterface.list;
 }
 
 // #############################################################################
@@ -45,6 +46,7 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
     required BonjourServiceDescription description,
     required NetworkServiceMode mode,
     BonjourServiceDeps dependencies = const BonjourServiceDeps(),
+    Function(String)? log,
   })  : _d = dependencies,
         _bonsoirService = createBonsoirService(description),
         super(
@@ -52,7 +54,8 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
           mode: mode,
         ) {
     _bonsoirBroadcast = _d.bonsoirBroadcast(service: _bonsoirService);
-    _bonsoirDiscovery = _d.bonsoirDiscovery(type: serviceDescription.serviceId);
+    _bonsoirDiscovery = _d.bonsoirDiscovery(
+        type: '_mobile_network_evaluator._tcp'); // serviceDescription.serviceId
     _initTest();
   }
 
@@ -63,9 +66,12 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
   // ...........................................................................
   @override
   Future<void> startAdvertizing() async {
-    await _bonsoirBroadcast.ready;
+    bool needsStart = !_bonsoirBroadcast.isReady || _bonsoirBroadcast.isStopped;
 
-    if (_bonsoirBroadcast.isStopped) {
+    await _bonsoirBroadcast.ready;
+    log?.call('Broadcasting on port ${_bonsoirBroadcast.service.port}');
+
+    if (needsStart) {
       await _bonsoirBroadcast.start();
     }
   }
@@ -83,10 +89,12 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
       return;
     }
 
+    log?.call('Binding to port ${serviceDescription.port}');
+
     _serverSocket = await _d.serverSocketBind(
-      serviceDescription.ipAddress,
+      InternetAddress.anyIPv4,
       serviceDescription.port,
-      shared: true,
+      shared: false,
     );
 
     _serverSocketSubscription = _serverSocket!.listen(
@@ -112,11 +120,13 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
 
   @override
   Future<void> startDiscovery() async {
+    bool needsStart = !_bonsoirDiscovery.isReady || _bonsoirDiscovery.isStopped;
+
     if (!_bonsoirDiscovery.isReady) {
       await _bonsoirDiscovery.ready;
     }
 
-    if (_bonsoirDiscovery.isStopped) {
+    if (needsStart) {
       await _bonsoirDiscovery.start();
     }
 
@@ -131,6 +141,14 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
             log?.call('Service with name "${service.name}" has no IP address');
             return;
           }
+
+          // Ignore own service
+          bool isOwnIp = await isOwnIpAddress(ip);
+          if (isOwnIp && service.port == serviceDescription.port) {
+            return;
+          }
+
+          log?.call('Discovered service on port ${service.port}');
 
           final discoveredService = BonjourServiceDescription(
             ipAddress: ip,
@@ -165,6 +183,27 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
     final clientSocket =
         await _connectClientSocket(ip: service.ipAddress, port: service.port);
     _initConnection(clientSocket);
+  }
+
+  // ...........................................................................
+  Future<List<String>> ownIpAddresses() async {
+    final List<String> result = [];
+    for (var interface in await _d.listNetworkInterface()) {
+      for (var addr in interface.addresses) {
+        result.add(addr.address);
+      }
+    }
+    return result;
+  }
+
+  // ...........................................................................
+  Future<bool> isOwnIpAddress(String ipAddress) async {
+    if (ipAddress == '127.0.0.1' || ipAddress == 'localhost') {
+      return true;
+    }
+
+    final ipAddresses = await ownIpAddresses();
+    return ipAddresses.contains(ipAddress);
   }
 
   // ######################
@@ -210,6 +249,7 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
   Future<Socket> _connectClientSocket(
       {required String ip, required int port}) async {
     try {
+      log?.call('Client connects to port $port');
       final socket = await _d.clientSocketConnect(ip, port);
       return socket;
     }

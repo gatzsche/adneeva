@@ -10,6 +10,7 @@ import '../../network_service.dart';
 import '../bonjour_service.dart';
 import 'mock_bonsoir_broadcast.dart';
 import 'mock_bonsoir_discovery.dart';
+import 'mock_network_interface.dart';
 import 'mock_server_socket.dart';
 import 'mock_socket.dart';
 
@@ -28,6 +29,9 @@ class MockDependencies implements BonjourServiceDeps {
 
   @override
   final clientSocketConnect = MockSocket.connect;
+
+  @override
+  final listNetworkInterface = MockNetworkInterface.list;
 }
 
 // .............................................................................

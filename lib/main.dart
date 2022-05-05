@@ -12,6 +12,8 @@ import 'package:gg_router/gg_router.dart';
 import 'package:gg_value/gg_value.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'application.dart';
+
 // coverage:ignore-start
 void main() {
   runApp(const GgRouterExample());
@@ -21,8 +23,27 @@ void main() {
 const debugShowCheckedModeBanner = false;
 
 // .............................................................................
-class GgRouterExample extends StatelessWidget {
+class GgRouterExample extends StatefulWidget {
   const GgRouterExample({Key? key}) : super(key: key);
+
+  @override
+  State<GgRouterExample> createState() => _GgRouterExampleState();
+}
+
+class _GgRouterExampleState extends State<GgRouterExample> {
+  final _application = Application();
+
+  // ...........................................................................
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _application.dispose();
+    super.dispose();
+  }
 
   // ...........................................................................
   @override

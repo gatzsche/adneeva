@@ -22,6 +22,9 @@ class MockBonsoirBroadcast extends Mock implements BonsoirBroadcast {
   bool isStopped = true;
 
   @override
+  bool isReady = false;
+
+  @override
   Future<bool> get ready async {
     return true;
   }
