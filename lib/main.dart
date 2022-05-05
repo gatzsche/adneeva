@@ -27,7 +27,7 @@ class GgRouterExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: "GgRouterExample",
+      title: 'GgRouterExample',
       routerDelegate: GgRouterDelegate(
         child: _appContent,
         saveState: _saveState,
@@ -90,7 +90,7 @@ class GgRouterExample extends StatelessWidget {
   }
 
   // ...........................................................................
-  _initErrorHandler(BuildContext context) {
+  void _initErrorHandler(BuildContext context) {
     final node = GgRouter.of(context).node;
     node.errorHandler = null;
     node.errorHandler = (error) {
@@ -259,7 +259,7 @@ class GgRouterExample extends StatelessWidget {
             stream: param.stream,
             builder: (context, snapshot) {
               return CheckboxListTile(
-                title: const Text("Visit Event"),
+                title: const Text('Visit Event'),
                 value: param.value,
                 onChanged: (newValue) => param.value = newValue as bool,
               );
@@ -560,7 +560,7 @@ class GgRouterExample extends StatelessWidget {
   }
 
   // ...........................................................................
-  _saveState(String state) async {
+  void _saveState(String state) async {
     (await (SharedPreferences.getInstance()))
         .setString('lastApplicationState', state);
   }

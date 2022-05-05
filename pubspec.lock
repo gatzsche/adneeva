@@ -8,6 +8,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.9.0"
+  bonsoir:
+    dependency: "direct main"
+    description:
+      name: bonsoir
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1+2"
+  bonsoir_platform_interface:
+    dependency: transitive
+    description:
+      name: bonsoir_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.0+1"
   boolean_selector:
     dependency: transitive
     description:
@@ -51,7 +65,7 @@ packages:
     source: hosted
     version: "1.0.4"
   fake_async:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: fake_async
       url: "https://pub.dartlang.org"
