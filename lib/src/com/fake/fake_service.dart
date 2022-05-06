@@ -111,7 +111,8 @@ class FakeService
       parentService: service.masterService,
       disconnect: masterOutgoingDataStream.close,
       receiveData: slaveOutgoingDataStream.stream,
-      sendData: (data) async => masterOutgoingDataStream.add(data),
+      sendData: (data) => Future.delayed(const Duration(microseconds: 1))
+          .then((value) => masterOutgoingDataStream.add(data)),
       serviceInfo: service,
     );
 
@@ -122,7 +123,8 @@ class FakeService
       parentService: this,
       disconnect: slaveOutgoingDataStream.close,
       receiveData: masterOutgoingDataStream.stream,
-      sendData: (data) async => slaveOutgoingDataStream.add(data),
+      sendData: (data) => Future.delayed(const Duration(microseconds: 1))
+          .then((s) => slaveOutgoingDataStream.add(data)),
       serviceInfo: serviceInfo,
     );
   }

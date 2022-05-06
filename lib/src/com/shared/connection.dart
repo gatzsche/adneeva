@@ -23,6 +23,7 @@ class Connection<ServiceDescription> {
     required this.serviceInfo,
   }) : _disconnect = disconnect {
     parentService.addConnection(this);
+    _listenToReceiveData();
   }
 
   final SendDataFunction sendData;
@@ -43,6 +44,7 @@ class Connection<ServiceDescription> {
     }
     _isDisconnected = true;
     parentService.removeConnection(this);
+    _subscription?.cancel();
     await _disconnect();
   }
 
@@ -52,6 +54,20 @@ class Connection<ServiceDescription> {
 
   final DisconnectFunction _disconnect;
   bool _isDisconnected = false;
+
+  // ...........................................................................
+  StreamSubscription? _subscription;
+  void _listenToReceiveData() {
+    _subscription = receiveData.listen(
+      (_) {},
+      onDone: () {
+        disconnect();
+      },
+      onError: (_) {
+        disconnect();
+      },
+    );
+  }
 }
 
 // #############################################################################

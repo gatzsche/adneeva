@@ -10,6 +10,11 @@ import 'dart:typed_data';
 int randomPort() => 12345 + Random().nextInt(30000);
 
 // .............................................................................
+Future<void> flushMicroTasks() => Future.delayed(
+      const Duration(microseconds: 1),
+    );
+
+// .............................................................................
 extension StringConversion on Uint8List {
   String get string {
     return String.fromCharCodes(this);

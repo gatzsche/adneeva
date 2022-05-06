@@ -4,11 +4,11 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
-import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_network_evaluator/src/com/fake/fake_service.dart';
 import 'package:mobile_network_evaluator/src/measure/data_recorder.dart';
 import 'package:mobile_network_evaluator/src/measure/types.dart';
+import 'package:mobile_network_evaluator/src/utils/utils.dart';
 
 void main() {
   late DataRecorder masterDataRecorder;
@@ -16,11 +16,11 @@ void main() {
   late FakeService masterService;
   late FakeService slaveService;
 
-  void init(FakeAsync fake) {
+  Future<void> init() async {
     masterService = FakeService.master;
     slaveService = FakeService.slave;
     slaveService.connectTo(masterService);
-    fake.flushMicrotasks();
+    await flushMicroTasks();
 
     masterDataRecorder = exampleMasterDataRecorder(
       connection: masterService.connections.value.first,
@@ -30,26 +30,38 @@ void main() {
     );
   }
 
-  void dispose(FakeAsync fake) {
-    fake.flushMicrotasks();
+  void dispose() {
+    masterDataRecorder.dispose();
+    slaveDataRecorder.dispose();
   }
 
   group('DataRecorder', () {
     // #########################################################################
 
-    test('should send data packages as master and acknowledge as slave', () {
-      fakeAsync((fake) {
-        init(fake);
+    test('should send data packages as master and acknowledge as slave',
+        () async {
+      await init();
 
-        slaveDataRecorder.run();
-        fake.flushMicrotasks();
-        masterDataRecorder.run();
-        fake.flushMicrotasks();
+      slaveDataRecorder.run();
+      await masterDataRecorder.run();
 
-        expect(slaveDataRecorder.role, MeasurmentRole.slave);
+      expect(slaveDataRecorder.role, MeasurmentRole.slave);
 
-        dispose(fake);
-      });
+      const headerRow = 1;
+      final rows = masterDataRecorder.resultCsv!.split('\n');
+
+      const headerCol = 1;
+      final cols = rows.first.split(',');
+
+      expect(rows.length, masterDataRecorder.maxNumMeasurements + headerRow);
+      expect(cols.length, masterDataRecorder.packageSizes.length + headerCol);
+
+      dispose();
+    });
+
+    test('should complete code coverage', () {
+      exampleMasterDataRecorder();
+      exampleSlaveDataRecorder();
     });
   });
 }

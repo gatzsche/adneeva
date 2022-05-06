@@ -5,7 +5,6 @@
 // found in the LICENSE file in the root of this package.
 
 import 'dart:async';
-import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -57,7 +56,8 @@ class DataRecorder {
   void _initSlave() {
     final s = connection.receiveData.listen(
       (data) {
-        if (data.string == Messages.packetEnd) {
+        final str = data.string;
+        if (str.endsWith(Messages.packetEnd)) {
           connection.sendData(Messages.acknowledgment.uint8List);
         }
       },
@@ -77,14 +77,12 @@ class DataRecorder {
   final List<int> packageSizes;
 
   // ...........................................................................
-  Future<void> get _waitForAcknowledgement async {
-    await connection.receiveData.firstWhere((event) {
-      return event.string.startsWith(Messages.acknowledgment);
-    });
-  }
+  Future<void> get _waitForAcknowledgement => connection.receiveData.firstWhere(
+        (event) => event.string.startsWith(Messages.acknowledgment),
+      );
 
   // ...........................................................................
-  void run() async {
+  Future<void> run() async {
     if (role == MeasurmentRole.slave) {
       return;
     }
@@ -123,7 +121,9 @@ class DataRecorder {
     final fillBytes = packageSize - bufferStartMsg.length - bufferEndMsg.length;
 
     builder.add(bufferStartMsg);
-    builder.add(ByteData(fillBytes).buffer.asUint8List());
+
+    final payload = ''.padRight(fillBytes, ' ');
+    builder.add(payload.uint8List);
     builder.add(bufferEndMsg);
 
     _buffer = builder.takeBytes();
@@ -189,7 +189,10 @@ class DataRecorder {
     csv += ',';
     for (var packageSize in packageSizes) {
       csv += '$packageSize';
-      csv += ',';
+      final isLast = packageSize == packageSizes.last;
+      if (!isLast) {
+        csv += ',';
+      }
     }
     csv += '\n';
 
@@ -201,22 +204,29 @@ class DataRecorder {
       log?.call('Num: $numOfIterations');
 
       for (var packetSize in packageSizes) {
-        var size = packetSize;
-        var times = _measurementResults[packetSize]![i];
+        final size = packetSize;
+        final times = _measurementResults[packetSize]![i];
+        final isLast = packetSize == packageSizes.last;
 
         csv += '$times';
-        if (i <= maxNumMeasurements) {
+        if (!isLast) {
           csv += ',';
         }
 
         log?.call('$size: $times');
       }
-      csv += '\n';
+
+      final isLastRow = i == maxNumMeasurements - 1;
+      if (!isLastRow) {
+        csv += '\n';
+      }
     }
 
     if (!isTest) {
+      // coverage:ignore-start
       final prefs = await SharedPreferences.getInstance();
       prefs.setString('measurements.csv', csv);
+      // coverage:ignore-end
     }
 
     _resultCsv = csv;

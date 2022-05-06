@@ -102,6 +102,32 @@ void main() {
       });
     });
 
+    test('should disconnect if stream closes', () {
+      fakeAsync((fake) {
+        init(fake);
+        expect(connection.parentService.connections.value.first, connection);
+        receiveData.add('data'.uint8List);
+        receiveData.close();
+        fake.flushMicrotasks();
+        expect(connection.parentService.connections.value, isEmpty);
+        expect(isDisconnected, true);
+        dispose(fake);
+      });
+    });
+
+    test('should disconnect if stream yields an error', () {
+      fakeAsync((fake) {
+        init(fake);
+        expect(connection.parentService.connections.value.first, connection);
+        receiveData.add('data'.uint8List);
+        receiveData.addError('Stupid error');
+        fake.flushMicrotasks();
+        expect(connection.parentService.connections.value, isEmpty);
+        expect(isDisconnected, true);
+        dispose(fake);
+      });
+    });
+
     test('complete code coverage', () {
       final connection = exampleConnection();
       connection.sendData('Hey'.uint8List);

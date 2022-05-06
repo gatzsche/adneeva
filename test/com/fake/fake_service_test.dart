@@ -44,6 +44,7 @@ void main() {
     const sendData = 'Hello World';
     from.sendData(sendData.uint8List);
     fake.flushMicrotasks();
+    fake.flushTimers();
 
     expect(sendData, receivedData);
 
