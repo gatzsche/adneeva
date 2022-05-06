@@ -6,7 +6,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:mobile_network_evaluator/application.dart';
+import 'package:mobile_network_evaluator/src/application.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

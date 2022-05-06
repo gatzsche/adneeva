@@ -6,10 +6,11 @@
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobile_network_evaluator/application.dart';
-import 'package:mobile_network_evaluator/bonjour_service/mocks/mock_bonsoir_discovery.dart';
-import 'package:mobile_network_evaluator/bonjour_service/mocks/mock_server_socket.dart';
-import 'package:mobile_network_evaluator/bonjour_service/mocks/mock_socket.dart';
+import 'package:mobile_network_evaluator/src/application.dart';
+import 'package:mobile_network_evaluator/src/com/tcp/mocks/mock_bonsoir_discovery.dart';
+import 'package:mobile_network_evaluator/src/com/tcp/mocks/mock_server_socket.dart';
+import 'package:mobile_network_evaluator/src/com/tcp/mocks/mock_socket.dart';
+import 'package:mobile_network_evaluator/src/measure/types.dart';
 
 void main() {
   late Application appA;
@@ -126,8 +127,30 @@ void main() {
         expect(appB.measurmentMode.value, MeasurmentMode.tcp);
 
         // Start measurement
-        // appA.startMeasurements();
+        appA.startMeasurements();
         fake.flushMicrotasks();
+
+        // Download measurments
+        // expect(appA.measurements, '...');
+
+        dispose();
+      });
+    });
+
+    test('should allow to stop an ongoing measurments', () {
+      fakeAsync((fake) {
+        init(fake);
+        appBDiscoversAppA(fake);
+
+        // Set applications into TCP mode
+        appA.measurmentMode.value = MeasurmentMode.tcp;
+        fake.flushMicrotasks();
+        expect(appB.measurmentMode.value, MeasurmentMode.tcp);
+
+        // Start measurement
+        appA.startMeasurements();
+        fake.flushMicrotasks();
+        appA.stopMeasurments();
 
         // Download measurments
         // expect(appA.measurements, '...');

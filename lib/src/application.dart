@@ -11,18 +11,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:gg_value/gg_value.dart';
 
-import 'bonjour_service/bonjour_service.dart';
-import 'bonjour_service/mocks/mock_network_interface.dart';
-import 'network_service.dart';
-
-final isTest = Platform.environment.containsKey('FLUTTER_TEST');
-
-// #############################################################################
-enum MeasurmentMode {
-  tcp,
-  nearby,
-  btle,
-}
+import 'com/shared/network_service.dart';
+import 'com/tcp/bonjour_service.dart';
+import 'com/tcp/mocks/mock_network_interface.dart';
+import 'measure/measure.dart';
+import 'measure/tcp/measure_tcp.dart';
+import 'measure/types.dart';
+import 'utils/is_test.dart';
 
 // #############################################################################
 class ApplicationDeps {
@@ -52,6 +47,35 @@ class Application {
   Future<void> get waitUntilConnected => _waitUntilConnected.future;
 
   final measurmentMode = GgValue<MeasurmentMode>(seed: MeasurmentMode.tcp);
+
+  // ...........................................................................
+  Measure? _measure;
+
+  // ...........................................................................
+  Future<void> startMeasurements() async {
+    if (_measure?.isMeasuring.value == true) {
+      return;
+    }
+    isMeasuring.value = true;
+
+    if (measurmentMode.value == MeasurmentMode.tcp) {
+      _measure = MeasureTcp();
+    } else {
+      throw UnimplementedError;
+    }
+
+    await _measure!.start();
+  }
+
+  // ...........................................................................
+  Future<void> stopMeasurments() async {
+    await _measure?.stop();
+  }
+
+  final isMeasuring = GgValue<bool>(seed: false);
+  _initIsMeasuring() {
+    _dispose.add(isMeasuring.dispose);
+  }
 
   // ######################
   // Test
@@ -90,6 +114,7 @@ class Application {
 
   // ...........................................................................
   void _init() async {
+    _initIsMeasuring();
     await _initIpAddress();
     await _initRemoteControl();
     _isInitialized.complete();
@@ -114,6 +139,7 @@ class Application {
     );
 
     _remoteControlService.start();
+    _dispose.add(_remoteControlService.dispose);
   }
 
   // ...........................................................................

@@ -36,6 +36,13 @@ class MockSocket extends Mock implements Socket {
     dataIn.add(Uint8List.fromList(data));
   }
 
+  @override
+  Stream<Uint8List> asBroadcastStream(
+      {void Function(StreamSubscription<Uint8List> subscription)? onListen,
+      void Function(StreamSubscription<Uint8List> subscription)? onCancel}) {
+    return this;
+  }
+
   // ...........................................................................
   @override
   Future close() async {

@@ -10,10 +10,11 @@ import 'dart:io';
 import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/material.dart';
 
+import '../../utils/is_test.dart';
 import 'mocks/mock_bonjour_service.dart';
 
-import '../connection.dart';
-import '../network_service.dart';
+import '../shared/connection.dart';
+import '../shared/network_service.dart';
 
 // #############################################################################
 class BonjourServiceDescription {
@@ -40,8 +41,6 @@ class BonjourServiceDeps {
   final clientSocketConnect = Socket.connect;
   final listNetworkInterface = NetworkInterface.list;
 }
-
-final isTest = Platform.environment.containsKey('FLUTTER_TEST');
 
 // #############################################################################
 class BonjourService extends NetworkService<BonjourServiceDescription> {

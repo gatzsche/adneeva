@@ -12,7 +12,7 @@ import 'package:gg_router/gg_router.dart';
 import 'package:gg_value/gg_value.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'application.dart';
+import './src/application.dart';
 
 // coverage:ignore-start
 void main() {

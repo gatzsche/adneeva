@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:gg_value/gg_value.dart';
 
-import './connection.dart';
+import 'connection.dart';
 
 // #############################################################################
 enum NetworkServiceMode {
