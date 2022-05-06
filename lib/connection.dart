@@ -29,6 +29,12 @@ class Connection {
   final NetworkService parentService;
 
   // ...........................................................................
+  void sendString(String string) {
+    final uint8List = Uint8List.fromList(string.codeUnits);
+    sendData(uint8List);
+  }
+
+  // ...........................................................................
   Future<void> disconnect() async {
     if (_isDisconnected) {
       return;

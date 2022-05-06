@@ -15,8 +15,8 @@ import 'mock_server_socket.dart';
 import 'mock_socket.dart';
 
 // .............................................................................
-class MockDependencies implements BonjourServiceDeps {
-  const MockDependencies();
+class MockBonjourServiceDeps implements BonjourServiceDeps {
+  const MockBonjourServiceDeps();
 
   @override
   final bonsoirBroadcast = MockBonsoirBroadcast.new;
@@ -49,7 +49,6 @@ class MockBonjourService extends BonjourService {
   }) : super(
           description: description,
           mode: mode,
-          dependencies: const MockDependencies(),
         ) {
     log = (str) => loggedData.add(str);
   }

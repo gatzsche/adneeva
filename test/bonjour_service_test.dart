@@ -23,22 +23,20 @@ void main() {
   late MockBonsoirDiscovery bonsoirDiscovery;
 
   // ...........................................................................
-  void mockDiscovery(
-      {BonsoirDiscoveryEventType? type,
-      bool noIpAddress = false,
-      String ip = '123.456.789.123'}) {
+  void mockDiscovery({
+    BonsoirDiscoveryEventType? eventType,
+    bool noIpAddress = false,
+    String ip = '123.456.789.123',
+  }) {
     final description = master.serviceDescription;
 
-    bonsoirDiscovery.eventStreamIn.add(
-      BonsoirDiscoveryEvent(
-        type: type ?? BonsoirDiscoveryEventType.DISCOVERY_SERVICE_RESOLVED,
-        service: ResolvedBonsoirService(
-          ip: noIpAddress ? null : ip,
-          name: description.name,
-          port: description.port,
-          type: description.serviceId,
-        ),
-      ),
+    bonsoirDiscovery.mockDiscovery(
+      ip: ip,
+      eventType: eventType,
+      noIpAddress: noIpAddress,
+      name: description.name,
+      port: description.port,
+      serviceId: description.serviceId,
     );
   }
 
@@ -51,19 +49,18 @@ void main() {
   void mockDiscoverServicesWithoutIp() => mockDiscovery(noIpAddress: true);
 
   // ...........................................................................
-  void mockDiscoveryLost() =>
-      mockDiscovery(type: BonsoirDiscoveryEventType.DISCOVERY_SERVICE_LOST);
+  void mockDiscoveryLost() => mockDiscovery(
+      eventType: BonsoirDiscoveryEventType.DISCOVERY_SERVICE_LOST);
 
   // ...........................................................................
-  List<MockSocket> connectedClientSockets() => (slave.connections
+  List<MockSocket> connectedClientSockets() => (slave.connections.value
       .map(
         (e) => e.receiveData as MockSocket,
       )
       .toList());
 
   // ...........................................................................
-  MockServerSocket? serverSocket() =>
-      master.test('serverSocket') as MockServerSocket?;
+  MockServerSocket? serverSocket() => master.serverSocket as MockServerSocket?;
 
   // ...........................................................................
   void mockSlaveConnectsToMaster() {
@@ -80,7 +77,7 @@ void main() {
   void initMocks() {
     master = MockBonjourService(mode: NetworkServiceMode.master);
     slave = MockBonjourService(mode: NetworkServiceMode.slave);
-    bonsoirDiscovery = slave.test('bonsoirDiscovery') as MockBonsoirDiscovery;
+    bonsoirDiscovery = slave.bonsoirDiscovery as MockBonsoirDiscovery;
   }
 
   // ...........................................................................
@@ -128,8 +125,8 @@ void main() {
 
         // No connections are available at the beginning
         expect(connectedClientSockets(), isEmpty);
-        expect(slave.connections, isEmpty);
-        expect(master.connections, isEmpty);
+        expect(slave.connections.value, isEmpty);
+        expect(master.connections.value, isEmpty);
 
         // ............
         // Start master
@@ -166,13 +163,13 @@ void main() {
         fake.flushMicrotasks();
 
         // Slave should connect to the server and create a connection
-        expect(slave.connections.length, 1);
+        expect(slave.connections.value.length, 1);
         mockSlaveConnectsToMaster();
         fake.flushMicrotasks();
 
         // Master should accept the connection and create a connection
         // object also
-        expect(master.connections.length, 1);
+        expect(master.connections.value.length, 1);
 
         stopMasterAndSlave(fake);
 
@@ -193,8 +190,8 @@ void main() {
         fake.flushMicrotasks();
 
         // There should not be a discovery of the own service
-        expect(slave.connections.length, 0);
-        expect(master.connections.length, 0);
+        expect(slave.connections.value.length, 0);
+        expect(master.connections.value.length, 0);
 
         stopMasterAndSlave(fake);
         dispose();
@@ -208,8 +205,8 @@ void main() {
         // The connection object can be used to send data from slave to master
         startMasterAndSlave(fake);
 
-        final masterConnection = master.connections.first;
-        final slaveConnection = slave.connections.first;
+        final masterConnection = master.connections.value.first;
+        final slaveConnection = slave.connections.value.first;
 
         final dataIn1 = Uint8List.fromList([1, 2, 3]);
         final dataIn2 = Uint8List.fromList([4, 5, 6]);
@@ -276,20 +273,20 @@ void main() {
         init();
 
         startMasterAndSlave(fake);
-        expect(slave.connections.length, 1);
-        expect(master.connections.length, 1);
+        expect(slave.connections.value.length, 1);
+        expect(master.connections.value.length, 1);
 
         // ..............................
         // Slave disconnects a connection
 
-        slave.connections.first.disconnect();
+        slave.connections.value.first.disconnect();
         fake.flushMicrotasks();
 
         // The connection should be removed from the array of connections
-        expect(slave.connections, isEmpty);
+        expect(slave.connections.value, isEmpty);
 
         // Also on master the connection should be disconnected
-        expect(master.connections, isEmpty);
+        expect(master.connections.value, isEmpty);
 
         // ......................
         // Stop master and client
@@ -302,17 +299,17 @@ void main() {
         init();
 
         startMasterAndSlave(fake);
-        expect(slave.connections.length, 1);
-        expect(master.connections.length, 1);
+        expect(slave.connections.value.length, 1);
+        expect(master.connections.value.length, 1);
 
         // ...............................
         // Master disconnects a connection
-        master.connections.first.disconnect();
+        master.connections.value.first.disconnect();
         fake.flushMicrotasks();
 
         // On both sides: The connection should be removed
-        expect(slave.connections, isEmpty);
-        expect(master.connections, isEmpty);
+        expect(slave.connections.value, isEmpty);
+        expect(master.connections.value, isEmpty);
 
         // ......................
         // Stop master and client
@@ -327,26 +324,26 @@ void main() {
         // .....
         // Start
         startMasterAndSlave(fake);
-        expect(slave.connections.length, 1);
-        expect(master.connections.length, 1);
+        expect(slave.connections.value.length, 1);
+        expect(master.connections.value.length, 1);
 
         // ....
         // Stop
         stopMasterAndSlave(fake);
-        expect(slave.connections.length, 0);
-        expect(master.connections.length, 0);
+        expect(slave.connections.value.length, 0);
+        expect(master.connections.value.length, 0);
 
         // .....
         // Start
         startMasterAndSlave(fake);
-        expect(slave.connections.length, 1);
-        expect(master.connections.length, 1);
+        expect(slave.connections.value.length, 1);
+        expect(master.connections.value.length, 1);
 
         // ....
         // Stop
         stopMasterAndSlave(fake);
-        expect(slave.connections.length, 0);
-        expect(master.connections.length, 0);
+        expect(slave.connections.value.length, 0);
+        expect(master.connections.value.length, 0);
       });
     });
   });

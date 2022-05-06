@@ -40,4 +40,26 @@ class MockBonsoirDiscovery extends Mock implements BonsoirDiscovery {
   final eventStreamIn = StreamController<BonsoirDiscoveryEvent>();
   @override
   Stream<BonsoirDiscoveryEvent>? get eventStream => eventStreamIn.stream;
+
+  // ...........................................................................
+  void mockDiscovery({
+    BonsoirDiscoveryEventType? eventType,
+    bool noIpAddress = false,
+    String ip = '123.456.789.123',
+    String name = 'Mock Example Service',
+    int port = 12345,
+    String serviceId = '_mock_example_service._tcp',
+  }) {
+    eventStreamIn.add(
+      BonsoirDiscoveryEvent(
+        type: eventType ?? BonsoirDiscoveryEventType.DISCOVERY_SERVICE_RESOLVED,
+        service: ResolvedBonsoirService(
+          ip: noIpAddress ? null : ip,
+          name: name,
+          port: port,
+          type: serviceId,
+        ),
+      ),
+    );
+  }
 }

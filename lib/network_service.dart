@@ -6,6 +6,8 @@
 
 import 'dart:async';
 
+import 'package:gg_value/gg_value.dart';
+
 import './connection.dart';
 
 // #############################################################################
@@ -92,25 +94,25 @@ abstract class NetworkService<ServiceDescription> {
 
   // ...........................................................................
   void addConnection(Connection connection) {
-    assert(!_connections.contains(connection));
-    _connections.add(connection);
+    assert(!_connections.value.contains(connection));
+    _connections.value = [..._connections.value, connection];
   }
 
   // ...........................................................................
   void removeConnection(Connection connection) {
-    assert(_connections.contains(connection));
+    assert(_connections.value.contains(connection));
     connection.disconnect();
-    _connections.remove(connection);
+    _connections.value = [..._connections.value]..remove(connection);
   }
 
   // ...........................................................................
-  List<Connection> get connections => _connections;
+  GgValueStream<List<Connection>> get connections => _connections.stream;
 
   // ######################
   // Private
   // ######################
 
-  final List<Connection> _connections = [];
+  final _connections = GgValue<List<Connection>>(seed: []);
 
   final List<Function()> _dispose = [];
 
@@ -129,7 +131,7 @@ abstract class NetworkService<ServiceDescription> {
 
   // ...........................................................................
   Future<void> _disconnectAll() async {
-    for (final c in [...connections]) {
+    for (final c in [...connections.value]) {
       await c.disconnect();
     }
   }

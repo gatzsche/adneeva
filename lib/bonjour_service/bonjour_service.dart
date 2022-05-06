@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/material.dart';
 
+import 'mocks/mock_bonjour_service.dart';
+
 import '../connection.dart';
 import '../network_service.dart';
 
@@ -39,24 +41,24 @@ class BonjourServiceDeps {
   final listNetworkInterface = NetworkInterface.list;
 }
 
+final isTest = Platform.environment.containsKey('FLUTTER_TEST');
+
 // #############################################################################
 class BonjourService extends NetworkService<BonjourServiceDescription> {
   // ...........................................................................
   BonjourService({
     required BonjourServiceDescription description,
     required NetworkServiceMode mode,
-    BonjourServiceDeps dependencies = const BonjourServiceDeps(),
     Function(String)? log,
-  })  : _d = dependencies,
-        _bonsoirService = createBonsoirService(description),
+  })  : _bonsoirService = createBonsoirService(description),
         super(
           serviceDescription: description,
           mode: mode,
         ) {
+    _d = isTest ? const MockBonjourServiceDeps() : const BonjourServiceDeps();
     _bonsoirBroadcast = _d.bonsoirBroadcast(service: _bonsoirService);
     _bonsoirDiscovery = _d.bonsoirDiscovery(
         type: '_mobile_network_evaluator._tcp'); // serviceDescription.serviceId
-    _initTest();
   }
 
   // ######################
@@ -211,21 +213,20 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
   // ######################
 
   @visibleForTesting
-  Object? test(String key) => _test[key]?.call();
-  final Map<String, dynamic Function()> _test = {};
+  BonsoirDiscovery get bonsoirDiscovery => _bonsoirDiscovery;
 
-  void _initTest() {
-    _test['bonsoirDiscovery'] = () => _bonsoirDiscovery;
-    _test['bonsoirBroadcast'] = () => _bonsoirBroadcast;
-    _test['serverSocket'] = () => _serverSocket;
-  }
+  @visibleForTesting
+  BonsoirBroadcast get bonsoirBroadcast => _bonsoirBroadcast;
+
+  @visibleForTesting
+  ServerSocket? get serverSocket => _serverSocket;
 
   // ######################
   // Private
   // ######################
 
   final List<Function()> _dispose = [];
-  final BonjourServiceDeps _d;
+  late BonjourServiceDeps _d;
 
   final BonsoirService _bonsoirService;
   late BonsoirBroadcast _bonsoirBroadcast;
@@ -267,7 +268,7 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
     Connection(
       parentService: this,
       sendData: (data) async => socket.add(data),
-      receiveData: socket,
+      receiveData: socket.asBroadcastStream(),
       disconnect: socket.close,
     );
   }

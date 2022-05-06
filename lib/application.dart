@@ -4,15 +4,41 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/material.dart';
+import 'package:gg_value/gg_value.dart';
+
 import 'bonjour_service/bonjour_service.dart';
+import 'bonjour_service/mocks/mock_network_interface.dart';
 import 'network_service.dart';
 
+final isTest = Platform.environment.containsKey('FLUTTER_TEST');
+
+// #############################################################################
+enum MeasurmentMode {
+  tcp,
+  nearby,
+  btle,
+}
+
+// #############################################################################
+class ApplicationDeps {
+  final networkInterfaceList = NetworkInterface.list;
+}
+
+class MockApplicationDeps implements ApplicationDeps {
+  @override
+  final networkInterfaceList = MockNetworkInterface.list;
+}
+
+// #############################################################################
 class Application {
   Application() {
-    _initRemoteControl();
+    _d = isTest ? MockApplicationDeps() : ApplicationDeps();
+    _init();
   }
 
   // ...........................................................................
@@ -22,40 +48,114 @@ class Application {
     }
   }
 
+  // ...........................................................................
+  Future<void> get waitUntilConnected => _waitUntilConnected.future;
+
+  final measurmentMode = GgValue<MeasurmentMode>(seed: MeasurmentMode.tcp);
+
+  // ######################
+  // Test
+  // ######################
+
+  @visibleForTesting
+  BonjourService get remoteControlService => _remoteControlService;
+
+  @visibleForTesting
+  int get port => _port;
+  String get ip => _ipAddress;
+
   // ######################
   // Private
   // ######################
 
+  late ApplicationDeps _d;
+  final _isInitialized = Completer();
+
   final List<Function()> _dispose = [];
 
+  final int _port = 12345 + Random().nextInt(30000);
+  late String _ipAddress;
+  bool get isConnected => _remoteControlService.connections.value.isNotEmpty;
+
   // ...........................................................................
-  Future<String> get _ipAddress async {
-    for (var interface in await NetworkInterface.list()) {
+  Future<void> _initIpAddress() async {
+    _ipAddress = '127.0.0.1';
+    for (var interface in await _d.networkInterfaceList()) {
       for (var addr in interface.addresses) {
-        return addr.address;
+        _ipAddress = addr.address;
+        break;
       }
     }
-
-    return '127.0.0.1';
   }
 
   // ...........................................................................
-  late BonjourService _remoteControl;
-  void _initRemoteControl() async {
-    final ip = await _ipAddress;
+  void _init() async {
+    await _initIpAddress();
+    await _initRemoteControl();
+    _isInitialized.complete();
 
-    _remoteControl = BonjourService(
+    await _waitForFirstConnection();
+    _listenToMeasurmentMode();
+    _listenForCommands();
+  }
+
+  // ...........................................................................
+  late BonjourService _remoteControlService;
+  Future<void> _initRemoteControl() async {
+    final ip = _ipAddress;
+
+    _remoteControlService = BonjourService(
       mode: NetworkServiceMode.masterAndSlave,
       description: BonjourServiceDescription(
           ipAddress: ip,
           name: 'Mobile Network Evaluator',
-          port: 1234 + Random().nextInt(10000),
+          port: _port,
           serviceId: '_mobile_network_evaluator._tcp'),
     );
 
-    _remoteControl.start();
+    _remoteControlService.start();
+  }
+
+  // ...........................................................................
+  final _waitUntilConnected = Completer<void>();
+
+  // ...........................................................................
+  Future<void> _waitForFirstConnection() async {
+    await _remoteControlService.connections.first;
+    _waitUntilConnected.complete();
+  }
+
+  // ...........................................................................
+  void _sendCommand(String command) {
+    _remoteControlService.connections.value.first.sendString(command);
+  }
+
+  // ...........................................................................
+  void _listenForCommands() {
+    _remoteControlService.connections.value.first.receiveData.listen(
+      (uint8List) {
+        final string = String.fromCharCodes(uint8List);
+        if (string.startsWith('setMode:')) {
+          final modeStr = string.split(':').last;
+          final receivedMode =
+              MeasurmentMode.values.firstWhere((e) => e.toString() == modeStr);
+          measurmentMode.value = receivedMode;
+        }
+      },
+    );
+  }
+
+  // ...........................................................................
+  void _listenToMeasurmentMode() {
+    measurmentMode.stream.listen(
+      (value) {
+        _sendCommand('setMode:$value');
+      },
+    );
   }
 }
 
 // #############################################################################
-Application exampleApplication() => Application();
+Application exampleApplication() {
+  return Application();
+}
