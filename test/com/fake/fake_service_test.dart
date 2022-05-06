@@ -95,6 +95,46 @@ void main() {
       });
     });
 
+    test('allows to wait for first connections', () {
+      fakeAsync((fake) {
+        init(fake);
+
+        // Listen to firstConnection
+        Connection? firstSlaveConnection;
+        Connection? firstMasterConnection;
+        slaveFakeService0.firstConnection.then(
+          (c) => firstSlaveConnection = c,
+        );
+
+        masterFakeService.firstConnection.then(
+          (value) => firstMasterConnection = value,
+        );
+
+        // Initially it is still waiting
+        fake.flushMicrotasks();
+
+        expect(firstSlaveConnection, isNull);
+        expect(firstMasterConnection, isNull);
+
+        // Now let's connect
+        slaveFakeService0.connectTo(masterFakeService);
+        fake.flushMicrotasks();
+
+        expect(firstMasterConnection, isNotNull);
+        expect(firstSlaveConnection, isNotNull);
+
+        // Lets listen to first connection again
+        Connection? firstSlaveConnection2;
+        slaveFakeService0.firstConnection.then(
+          (c) => firstSlaveConnection2 = c,
+        );
+        fake.flushMicrotasks();
+        expect(firstSlaveConnection2, isNotNull);
+
+        dispose(fake);
+      });
+    });
+
     test('can exchange data between endpoints', () {
       fakeAsync((fake) {
         init(fake);

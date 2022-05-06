@@ -60,6 +60,12 @@ class Measure {
   @mustCallSuper
   Future<void> startMaster() async {
     log?.call(MeasureLogMessages.startMeasurementAsMaster);
+    // Wait for the first connection
+    final firstConnection = await networkService.firstConnection;
+
+    // Once connected initialize the measurement controller
+    // Run measurements
+    // Make results available
   }
 
   // ...........................................................................
@@ -75,6 +81,11 @@ class Measure {
   // ...........................................................................
   Future<void> startSlave() async {
     log?.call(MeasureLogMessages.startMeasurementAsSlave);
+    // Wait for the first connection
+    // await networkService.waitForFirstConnection;
+
+    // Listen to incoming data
+    // Send acknowledgement, once data has been received
   }
 
   // ...........................................................................
@@ -112,3 +123,4 @@ Measure exampleMeasureSlave({Log? log}) {
     networkService: FakeService.slave,
   );
 }
+//

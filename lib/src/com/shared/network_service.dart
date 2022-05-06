@@ -86,11 +86,18 @@ abstract class NetworkService<ServiceInfo,
   // ######################
 
   // ...........................................................................
+  Future<Connection> get firstConnection async => _connections.value.isNotEmpty
+      ? _connections.value.first
+      : await _newConnection.stream.first;
+
+  // ...........................................................................
+  @protected
   Future<void> connectToDiscoveredService(ResolvedServiceInfo service);
 
   // ...........................................................................
   void addConnection(Connection connection) {
     assert(!_connections.value.contains(connection));
+    _newConnection.add(connection);
     _connections.value = [..._connections.value, connection];
   }
 
@@ -123,9 +130,11 @@ abstract class NetworkService<ServiceInfo,
     _initConnections();
   }
 
+  final _newConnection = StreamController<Connection>.broadcast();
   final _connections = GgValue<List<Connection>>(seed: []);
   void _initConnections() {
     _dispose.add(_connections.dispose);
+    _dispose.add(_newConnection.close);
   }
 
   final List<Function()> _dispose = [];

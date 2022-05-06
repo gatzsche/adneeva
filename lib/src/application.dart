@@ -44,7 +44,7 @@ class Application {
   }
 
   // ...........................................................................
-  Future<void> get waitUntilConnected => _waitUntilConnected.future;
+  Future<void> get waitUntilConnected => _remoteControlService.firstConnection;
 
   final measurmentMode = GgValue<MeasurmentMode>(seed: MeasurmentMode.tcp);
 
@@ -53,7 +53,7 @@ class Application {
 
   // ...........................................................................
   void waitForConnections() async {
-    await _waitForFirstConnection();
+    await waitUntilConnected;
     _listenToMeasurmentMode();
     _listenForCommands();
   }
@@ -140,22 +140,6 @@ class Application {
 
     _remoteControlService.start();
     _dispose.add(_remoteControlService.dispose);
-  }
-
-  // ...........................................................................
-  final _waitUntilConnected = Completer<void>();
-
-  // ...........................................................................
-  Future<void> _waitForFirstConnection() async {
-    await _remoteControlService.connections
-        .where((p0) {
-          return p0.isNotEmpty;
-        })
-        .map(
-          (p0) => null,
-        )
-        .first;
-    _waitUntilConnected.complete();
   }
 
   // ...........................................................................

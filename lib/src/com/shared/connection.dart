@@ -7,22 +7,22 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import '../fake/fake_service.dart';
 import 'network_service.dart';
 
 typedef SendDataFunction = Future<void> Function(Uint8List);
 typedef ConnectFunction = Future<void> Function();
-typedef DisconnetFunction = Future<void> Function();
+typedef DisconnectFunction = Future<void> Function();
 
 class Connection<ServiceDescription> {
   Connection({
     required this.parentService,
     required this.sendData,
     required this.receiveData,
-    required DisconnetFunction disconnect,
+    required DisconnectFunction disconnect,
     required this.serviceInfo,
   }) : _disconnect = disconnect {
     parentService.addConnection(this);
-    _listenToReceiveData();
   }
 
   final SendDataFunction sendData;
@@ -43,7 +43,6 @@ class Connection<ServiceDescription> {
     }
     _isDisconnected = true;
     parentService.removeConnection(this);
-    _subscription?.cancel();
     await _disconnect();
   }
 
@@ -51,22 +50,26 @@ class Connection<ServiceDescription> {
   // Private
   // ######################
 
-  final DisconnetFunction _disconnect;
+  final DisconnectFunction _disconnect;
   bool _isDisconnected = false;
+}
 
-  // ...........................................................................
-  StreamSubscription? _subscription;
-  void _listenToReceiveData() {
-    _subscription = receiveData.listen(
-      (_) {},
-      onDone: () {
-        disconnect();
-      },
-      // coverage:ignore-start
-      onError: (_) {
-        disconnect();
-      },
-      // coverage:ignore-end
-    );
-  }
+// #############################################################################
+class ExampleServiceDescription {
+  const ExampleServiceDescription();
+}
+
+Connection exampleConnection({
+  NetworkService? parentService,
+  SendDataFunction? sendData,
+  Stream<Uint8List>? receiveData,
+  DisconnectFunction? disconnect,
+}) {
+  return Connection(
+    parentService: parentService ?? FakeService.master,
+    sendData: sendData ?? (data) async {},
+    receiveData: receiveData ?? StreamController<Uint8List>.broadcast().stream,
+    disconnect: disconnect ?? () async {},
+    serviceInfo: const ExampleServiceDescription(),
+  );
 }
