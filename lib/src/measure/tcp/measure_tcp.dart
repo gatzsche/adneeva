@@ -7,7 +7,7 @@
 import 'package:bonsoir/bonsoir.dart';
 
 import '../../com/tcp/bonjour_service.dart';
-import '../helpers.dart';
+import '../../utils/utils.dart';
 import '../measure.dart';
 import '../types.dart';
 

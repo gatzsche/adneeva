@@ -4,16 +4,31 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:gg_value/gg_value.dart';
 
 import '../../measure/types.dart';
+import '../shared/connection.dart';
 import '../shared/network_service.dart';
 
 // .............................................................................
 class FakeServiceInfo {}
 
 // .............................................................................
-class ResolvedFakeServiceInfo extends FakeServiceInfo {}
+class ResolvedFakeServiceInfo extends FakeServiceInfo {
+  ResolvedFakeServiceInfo({
+    required this.masterService,
+    required this.slaveService,
+  }) {
+    assert(masterService.mode == NetworkServiceMode.master);
+    assert(slaveService.mode == NetworkServiceMode.slave);
+  }
+
+  final FakeService masterService;
+  final FakeService slaveService;
+}
 
 class FakeService
     extends NetworkService<FakeServiceInfo, ResolvedFakeServiceInfo> {
@@ -36,51 +51,85 @@ class FakeService
     super.dispose();
   }
 
-  // ...........................................................................
-  static FakeService get master => exampleMasterFakeService();
-  static FakeService get slave => exampleSlaveFakeService();
+  // ...............................................
+  // Provide references to master and slave services
 
-  // ...........................................................................
+  static FakeService get master => FakeService(mode: NetworkServiceMode.master);
+  static FakeService get slave => FakeService(mode: NetworkServiceMode.slave);
+
+  // ..............................................
+  // Advertize - Not implemented for fake service
+
   @override
-  Future<void> connectToDiscoveredService(service) {
-    throw UnimplementedError();
+  Future<void> startAdvertizing() async {}
+
+  @override
+  Future<void> stopAdvertizing() async {}
+
+  @override
+  Future<void> startListeningForConnections() async {}
+
+  // ..............................................
+  // Discovery - Not implemented for fake service
+
+  @override
+  Future<void> startDiscovery() async {}
+
+  @override
+  Future<void> stopDiscovery() async {}
+
+  // ................
+  // Connect services
+  void connectTo(FakeService masterService) {
+    assert(mode == NetworkServiceMode.slave);
+    assert(masterService.mode == NetworkServiceMode.master);
+
+    onDiscoverService(
+      ResolvedFakeServiceInfo(
+        masterService: masterService,
+        slaveService: this,
+      ),
+    );
   }
 
   // ...........................................................................
   @override
-  Future<void> startAdvertizing() {
-    throw UnimplementedError();
+  Future<void> connectToDiscoveredService(service) async {
+    assert(service.slaveService == this);
+
+    // Create two outgoing data stream
+    // One for master
+    // One for slave
+    final masterOutgoingDataStream = StreamController<Uint8List>.broadcast();
+    final slaveOutgoingDataStream = StreamController<Uint8List>.broadcast();
+
+    // Create two connections
+    // master listens to the slaves outgoing data stream
+    // master sends to its own outgoing data stream
+    // ignore: unused_local_variable
+    final masterConnection = Connection(
+      parentService: service.masterService,
+      disconnect: masterOutgoingDataStream.close,
+      receiveData: slaveOutgoingDataStream.stream,
+      sendData: (data) async => masterOutgoingDataStream.add(data),
+      serviceInfo: service,
+    );
+
+    // slave listens to the master outgoing data stream
+    // slave sends to its own outgoing data stream
+    // ignore: unused_local_variable
+    final slaveConnection = Connection(
+      parentService: this,
+      disconnect: slaveOutgoingDataStream.close,
+      receiveData: masterOutgoingDataStream.stream,
+      sendData: (data) async => slaveOutgoingDataStream.add(data),
+      serviceInfo: serviceInfo,
+    );
   }
 
   // ...........................................................................
   @override
-  Future<void> startDiscovery() {
-    throw UnimplementedError();
-  }
-
-  // ...........................................................................
-  @override
-  Future<void> startListeningForConnections() {
-    throw UnimplementedError();
-  }
-
-  // ...........................................................................
-  @override
-  Future<void> stopAdvertizing() {
-    throw UnimplementedError();
-  }
-
-  // ...........................................................................
-  @override
-  Future<void> stopDiscovery() {
-    throw UnimplementedError();
-  }
-
-  // ...........................................................................
-  @override
-  Future<void> stopListeningForConnections() {
-    throw UnimplementedError();
-  }
+  Future<void> stopListeningForConnections() async {}
 
   // ######################
   // Private
@@ -100,10 +149,3 @@ class FakeService
     _dispose.add(_discoveredServices.dispose);
   }
 }
-
-// #############################################################################
-FakeService exampleMasterFakeService() =>
-    FakeService(mode: NetworkServiceMode.master);
-
-FakeService exampleSlaveFakeService() =>
-    FakeService(mode: NetworkServiceMode.slave);

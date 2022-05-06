@@ -154,11 +154,11 @@ class BonjourService
 
   // ...........................................................................
   @override
-  Future<void> connectToDiscoveredService(
+  Future<Connection> connectToDiscoveredService(
       ResolvedBonsoirService service) async {
     final clientSocket =
         await _connectClientSocket(ip: service.ip!, port: service.port);
-    _initConnection(clientSocket);
+    return _initConnection(clientSocket);
   }
 
   // ...........................................................................
@@ -228,8 +228,8 @@ class BonjourService
   }
 
   // ...........................................................................
-  void _initConnection(Socket socket) {
-    Connection(
+  Connection _initConnection(Socket socket) {
+    return Connection(
       parentService: this,
       sendData: (data) async => socket.add(data),
       receiveData: socket.asBroadcastStream(),
