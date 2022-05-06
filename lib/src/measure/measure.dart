@@ -61,7 +61,7 @@ class Measure {
   Future<void> startMaster() async {
     log?.call(MeasureLogMessages.startMeasurementAsMaster);
     // Wait for the first connection
-    final firstConnection = await networkService.firstConnection;
+    await networkService.firstConnection;
 
     // Once connected initialize the measurement controller
     // Run measurements
