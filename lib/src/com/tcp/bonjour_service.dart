@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/material.dart';
 
+import '../../measure/types.dart';
 import '../../utils/is_test.dart';
 import 'mocks/mock_bonjour_service.dart';
 

@@ -6,7 +6,7 @@
 
 // #############################################################################
 
-import '../../shared/network_service.dart';
+import '../../../measure/types.dart';
 import '../bonjour_service.dart';
 import 'mock_bonsoir_broadcast.dart';
 import 'mock_bonsoir_discovery.dart';

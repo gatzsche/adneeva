@@ -7,8 +7,12 @@
 import 'package:flutter/material.dart';
 import 'package:gg_value/gg_value.dart';
 
+import 'types.dart';
+
 class Measure {
-  Measure() {
+  Measure({
+    required this.role,
+  }) {
     _initIsMeasuring();
   }
 
@@ -19,6 +23,9 @@ class Measure {
       d();
     }
   }
+
+  // ...........................................................................
+  final MeasurmentRole role;
 
   // ...........................................................................
   @mustCallSuper
@@ -42,6 +49,8 @@ class Measure {
 
 // #############################################################################
 
-Measure exampleMeasure() {
-  return Measure();
+Measure exampleMeasure({
+  MeasurmentRole role = MeasurmentRole.master,
+}) {
+  return Measure(role: role);
 }

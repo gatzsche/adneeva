@@ -11,7 +11,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:gg_value/gg_value.dart';
 
-import 'com/shared/network_service.dart';
 import 'com/tcp/bonjour_service.dart';
 import 'com/tcp/mocks/mock_network_interface.dart';
 import 'measure/measure.dart';
@@ -59,7 +58,7 @@ class Application {
     isMeasuring.value = true;
 
     if (measurmentMode.value == MeasurmentMode.tcp) {
-      _measure = MeasureTcp();
+      _measure = MeasureTcp(role: MeasurmentRole.master);
     } else {
       throw UnimplementedError;
     }
@@ -73,7 +72,7 @@ class Application {
   }
 
   final isMeasuring = GgValue<bool>(seed: false);
-  _initIsMeasuring() {
+  void _initIsMeasuring() {
     _dispose.add(isMeasuring.dispose);
   }
 

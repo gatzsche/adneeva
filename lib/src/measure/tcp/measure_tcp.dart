@@ -5,9 +5,10 @@
 // found in the LICENSE file in the root of this package.
 
 import '../measure.dart';
+import '../types.dart';
 
 class MeasureTcp extends Measure {
-  MeasureTcp() {
+  MeasureTcp({required MeasurmentRole role}) : super(role: role) {
     _dispose.add(() {});
   }
 
@@ -21,6 +22,22 @@ class MeasureTcp extends Measure {
     super.dispose();
   }
 
+  // ...........................................................................
+  @override
+  Future<void> start() async {
+    // If master, then create a master bonjour service on the given port
+    // Wait for first connection
+    // If connection has arrived start the measurement
+
+    // If slave, then create a slave bonjour service on the given port
+    // Wait for first connection
+    // If connection is done wait for measurments
+    // On measurement received, acknowledge
+    print('x');
+
+    super.start();
+  }
+
   // ######################
   // Private
   // ######################
@@ -29,4 +46,7 @@ class MeasureTcp extends Measure {
 }
 
 // #############################################################################
-MeasureTcp exampleMeasureTcp() => MeasureTcp();
+MeasureTcp exampleMeasureTcp({
+  MeasurmentRole role = MeasurmentRole.master,
+}) =>
+    MeasureTcp(role: role);

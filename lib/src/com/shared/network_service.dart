@@ -8,14 +8,8 @@ import 'dart:async';
 
 import 'package:gg_value/gg_value.dart';
 
+import '../../measure/types.dart';
 import 'connection.dart';
-
-// #############################################################################
-enum NetworkServiceMode {
-  master,
-  slave,
-  masterAndSlave,
-}
 
 // #############################################################################
 abstract class NetworkService<ServiceDescription> {

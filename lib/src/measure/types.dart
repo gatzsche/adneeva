@@ -9,3 +9,14 @@ enum MeasurmentMode {
   nearby,
   btle,
 }
+
+enum MeasurmentRole {
+  master,
+  slave,
+}
+
+enum NetworkServiceMode {
+  master,
+  slave,
+  masterAndSlave,
+}
