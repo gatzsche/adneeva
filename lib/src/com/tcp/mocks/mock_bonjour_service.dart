@@ -6,6 +6,8 @@
 
 // #############################################################################
 
+import 'package:bonsoir/bonsoir.dart';
+
 import '../../../measure/types.dart';
 import '../bonjour_service.dart';
 import 'mock_bonsoir_broadcast.dart';
@@ -35,11 +37,10 @@ class MockBonjourServiceDeps implements BonjourServiceDeps {
 }
 
 // .............................................................................
-final description = BonjourServiceDescription(
-  ipAddress: '127.0.0.1',
+const description = BonsoirService(
   name: 'Example Bonjour Service',
   port: 12457,
-  serviceId: 'example.bonjour.service',
+  type: 'example.bonjour.service',
 );
 
 // .............................................................................
@@ -47,7 +48,7 @@ class MockBonjourService extends BonjourService {
   MockBonjourService({
     NetworkServiceMode mode = NetworkServiceMode.masterAndSlave,
   }) : super(
-          description: description,
+          service: description,
           mode: mode,
         ) {
     log = (str) => loggedData.add(str);

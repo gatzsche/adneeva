@@ -6,13 +6,14 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
+import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/material.dart';
 import 'package:gg_value/gg_value.dart';
 
 import 'com/tcp/bonjour_service.dart';
 import 'com/tcp/mocks/mock_network_interface.dart';
+import 'measure/helpers.dart';
 import 'measure/measure.dart';
 import 'measure/tcp/measure_tcp.dart';
 import 'measure/types.dart';
@@ -51,6 +52,13 @@ class Application {
   Measure? _measure;
 
   // ...........................................................................
+  void waitForConnections() async {
+    await _waitForFirstConnection();
+    _listenToMeasurmentMode();
+    _listenForCommands();
+  }
+
+  // ...........................................................................
   Future<void> startMeasurements() async {
     if (_measure?.isMeasuring.value == true) {
       return;
@@ -84,7 +92,7 @@ class Application {
   BonjourService get remoteControlService => _remoteControlService;
 
   @visibleForTesting
-  int get port => _port;
+  final int port = randomPort();
   String get ip => _ipAddress;
 
   // ######################
@@ -96,7 +104,6 @@ class Application {
 
   final List<Function()> _dispose = [];
 
-  final int _port = 12345 + Random().nextInt(30000);
   late String _ipAddress;
   bool get isConnected => _remoteControlService.connections.value.isNotEmpty;
 
@@ -117,24 +124,18 @@ class Application {
     await _initIpAddress();
     await _initRemoteControl();
     _isInitialized.complete();
-
-    await _waitForFirstConnection();
-    _listenToMeasurmentMode();
-    _listenForCommands();
   }
 
   // ...........................................................................
   late BonjourService _remoteControlService;
   Future<void> _initRemoteControl() async {
-    final ip = _ipAddress;
-
     _remoteControlService = BonjourService(
       mode: NetworkServiceMode.masterAndSlave,
-      description: BonjourServiceDescription(
-          ipAddress: ip,
-          name: 'Mobile Network Evaluator',
-          port: _port,
-          serviceId: '_mobile_network_evaluator._tcp'),
+      service: BonsoirService(
+        name: 'Mobile Network Evaluator',
+        port: port,
+        type: '_mobile_network_evaluator._tcp',
+      ),
     );
 
     _remoteControlService.start();
@@ -146,7 +147,14 @@ class Application {
 
   // ...........................................................................
   Future<void> _waitForFirstConnection() async {
-    await _remoteControlService.connections.first;
+    await _remoteControlService.connections
+        .where((p0) {
+          return p0.isNotEmpty;
+        })
+        .map(
+          (p0) => null,
+        )
+        .first;
     _waitUntilConnected.complete();
   }
 

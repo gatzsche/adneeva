@@ -4,6 +4,7 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
+import 'package:bonsoir/bonsoir.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_network_evaluator/src/application.dart';
@@ -27,6 +28,9 @@ void main() {
     appBDiscovery =
         appB.remoteControlService.bonsoirDiscovery as MockBonsoirDiscovery;
 
+    appA.waitForConnections();
+    appB.waitForConnections();
+
     fake.flushMicrotasks();
   }
 
@@ -38,7 +42,15 @@ void main() {
 
   // ...........................................................................
   void appBDiscoversAppA(FakeAsync fake) {
-    appBDiscovery.mockDiscovery(ip: appA.ip, port: appA.port);
+    appBDiscovery.mockDiscovery(
+      service: ResolvedBonsoirService(
+        ip: appA.ip,
+        port: appA.port,
+        type: '_application_test._tcp',
+        name: 'Mocked Resolved Bonjour Service',
+      ),
+    );
+
     fake.flushMicrotasks();
 
     final appBSocket = appB

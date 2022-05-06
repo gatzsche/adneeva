@@ -13,12 +13,13 @@ typedef SendDataFunction = Future<void> Function(Uint8List);
 typedef ConnectFunction = Future<void> Function();
 typedef DisconnetFunction = Future<void> Function();
 
-class Connection {
+class Connection<ServiceDescription> {
   Connection({
     required this.parentService,
     required this.sendData,
     required this.receiveData,
     required DisconnetFunction disconnect,
+    required this.serviceInfo,
   }) : _disconnect = disconnect {
     parentService.addConnection(this);
     _listenToReceiveData();
@@ -27,6 +28,7 @@ class Connection {
   final SendDataFunction sendData;
   final Stream<Uint8List> receiveData;
   final NetworkService parentService;
+  final ServiceDescription serviceInfo;
 
   // ...........................................................................
   void sendString(String string) {

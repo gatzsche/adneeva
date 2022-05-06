@@ -18,21 +18,6 @@ import '../shared/connection.dart';
 import '../shared/network_service.dart';
 
 // #############################################################################
-class BonjourServiceDescription {
-  BonjourServiceDescription({
-    required this.serviceId,
-    required this.ipAddress,
-    required this.port,
-    required this.name,
-  });
-
-  final String serviceId;
-  final String ipAddress;
-  final String name;
-  final int port;
-}
-
-// #############################################################################
 
 class BonjourServiceDeps {
   const BonjourServiceDeps();
@@ -44,21 +29,22 @@ class BonjourServiceDeps {
 }
 
 // #############################################################################
-class BonjourService extends NetworkService<BonjourServiceDescription> {
+class BonjourService
+    extends NetworkService<BonsoirService, ResolvedBonsoirService> {
   // ...........................................................................
   BonjourService({
-    required BonjourServiceDescription description,
+    required BonsoirService service,
     required NetworkServiceMode mode,
     Function(String)? log,
-  })  : _bonsoirService = createBonsoirService(description),
+  })  : _bonsoirService = service,
         super(
-          serviceDescription: description,
+          serviceInfo: service,
           mode: mode,
         ) {
     _d = isTest ? const MockBonjourServiceDeps() : const BonjourServiceDeps();
     _bonsoirBroadcast = _d.bonsoirBroadcast(service: _bonsoirService);
-    _bonsoirDiscovery = _d.bonsoirDiscovery(
-        type: '_mobile_network_evaluator._tcp'); // serviceDescription.serviceId
+    _bonsoirDiscovery =
+        _d.bonsoirDiscovery(type: '_mobile_network_evaluator._tcp');
   }
 
   // ######################
@@ -91,11 +77,11 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
       return;
     }
 
-    log?.call('Binding to port ${serviceDescription.port}');
+    log?.call('Binding to port ${serviceInfo.port}');
 
     _serverSocket = await _d.serverSocketBind(
       InternetAddress.anyIPv4,
-      serviceDescription.port,
+      serviceInfo.port,
       shared: false,
     );
 
@@ -146,20 +132,13 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
 
           // Ignore own service
           bool isOwnIp = await isOwnIpAddress(ip);
-          if (isOwnIp && service.port == serviceDescription.port) {
+          if (isOwnIp && service.port == serviceInfo.port) {
             return;
           }
 
           log?.call('Discovered service on port ${service.port}');
 
-          final discoveredService = BonjourServiceDescription(
-            ipAddress: ip,
-            serviceId: serviceDescription.serviceId,
-            name: service.name,
-            port: service.port,
-          );
-
-          _discoveredServices.add(discoveredService);
+          onDiscoverService(service);
         } else if (event.type ==
             BonsoirDiscoveryEventType.DISCOVERY_SERVICE_LOST) {}
       });
@@ -175,15 +154,10 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
 
   // ...........................................................................
   @override
-  Stream<BonjourServiceDescription> get discoveredServices =>
-      _discoveredServices.stream;
-
-  // ...........................................................................
-  @override
   Future<void> connectToDiscoveredService(
-      BonjourServiceDescription service) async {
+      ResolvedBonsoirService service) async {
     final clientSocket =
-        await _connectClientSocket(ip: service.ipAddress, port: service.port);
+        await _connectClientSocket(ip: service.ip!, port: service.port);
     _initConnection(clientSocket);
   }
 
@@ -233,18 +207,8 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
   ServerSocket? _serverSocket;
   StreamSubscription? _serverSocketSubscription;
 
-  // ...........................................................................
-  static BonsoirService createBonsoirService(BonjourServiceDescription d) {
-    return BonsoirService(
-      name: d.name,
-      port: d.port,
-      type: d.serviceId,
-    );
-  }
-
   late BonsoirDiscovery _bonsoirDiscovery;
   StreamSubscription? _discoverySubscription;
-  final _discoveredServices = StreamController<BonjourServiceDescription>();
 
   // ...........................................................................
   Future<Socket> _connectClientSocket(
@@ -270,6 +234,7 @@ class BonjourService extends NetworkService<BonjourServiceDescription> {
       sendData: (data) async => socket.add(data),
       receiveData: socket.asBroadcastStream(),
       disconnect: socket.close,
+      serviceInfo: serviceInfo,
     );
   }
 }

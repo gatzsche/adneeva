@@ -10,6 +10,7 @@ import 'package:bonsoir/bonsoir.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:mobile_network_evaluator/src/com/tcp/mocks/mock_bonjour_service.dart';
 import 'package:mobile_network_evaluator/src/com/tcp/mocks/mock_bonsoir_broadcast.dart';
 import 'package:mobile_network_evaluator/src/com/tcp/mocks/mock_bonsoir_discovery.dart';
@@ -30,22 +31,21 @@ void main() {
     bool noIpAddress = false,
     String ip = '123.456.789.123',
   }) {
-    final description = master.serviceDescription;
+    final description = master.serviceInfo;
 
     bonsoirDiscovery.mockDiscovery(
-      ip: ip,
       eventType: eventType,
-      noIpAddress: noIpAddress,
-      name: description.name,
-      port: description.port,
-      serviceId: description.serviceId,
+      service: ResolvedBonsoirService(
+        ip: noIpAddress ? null : ip,
+        name: description.name,
+        port: description.port,
+        type: description.type,
+      ),
     );
   }
 
   // ...........................................................................
-  void mockDiscoverOwnService() => mockDiscovery(
-        ip: master.serviceDescription.ipAddress,
-      );
+  void mockDiscoverOwnService() => mockDiscovery(ip: '127.0.0.1');
 
   // ...........................................................................
   void mockDiscoverServicesWithoutIp() => mockDiscovery(noIpAddress: true);
@@ -235,6 +235,12 @@ void main() {
         slaveConnection.sendData(dataIn2);
         fake.flushMicrotasks();
         expect(dataReceivedAtMaster, dataIn2);
+
+        // Make some additional checks
+        expect(
+          master.connectionForService(masterConnection.serviceInfo),
+          masterConnection,
+        );
 
         // ......................
         // Stop master and client

@@ -20,7 +20,7 @@ void main() {
 
   group('MeasureTcp', () {
     // #########################################################################
-    group('Constructor', () {
+    group('Master', () {
       test('should be instantiated', () {
         init();
         expect(measureTcp, isNotNull);

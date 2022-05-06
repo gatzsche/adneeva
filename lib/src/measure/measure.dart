@@ -7,11 +7,22 @@
 import 'package:flutter/material.dart';
 import 'package:gg_value/gg_value.dart';
 
+import '../com/fake/fake_service.dart';
+import '../com/shared/network_service.dart';
 import 'types.dart';
+
+class MeasureLogMessages {
+  static const startMeasurementAsMaster = 'Start measurement as master';
+  static const stopMeasurementAsMaster = 'Stop measurement as master';
+  static const startMeasurementAsSlave = 'Start measurement as slave';
+  static const stopMeasurementAsSlave = 'Stop measurement as slave';
+}
 
 class Measure {
   Measure({
     required this.role,
+    this.log,
+    required this.networkService,
   }) {
     _initIsMeasuring();
   }
@@ -25,14 +36,51 @@ class Measure {
   }
 
   // ...........................................................................
+  final Log? log;
+  final NetworkService networkService;
+
+  // ...........................................................................
   final MeasurmentRole role;
 
   // ...........................................................................
   @mustCallSuper
-  Future<void> start() async {}
+  Future<void> start() =>
+      role == MeasurmentRole.master ? startMaster() : startSlave();
 
+  // ...........................................................................
   @mustCallSuper
-  Future<void> stop() async {}
+  Future<void> stop() =>
+      role == MeasurmentRole.master ? stopMaster() : stopSlave();
+
+  // ######################
+  // Master
+  // ######################
+
+  // ...........................................................................
+  @mustCallSuper
+  Future<void> startMaster() async {
+    log?.call(MeasureLogMessages.startMeasurementAsMaster);
+  }
+
+  // ...........................................................................
+  @mustCallSuper
+  Future<void> stopMaster() async {
+    log?.call(MeasureLogMessages.stopMeasurementAsMaster);
+  }
+
+  // ######################
+  // Slave
+  // ######################
+
+  // ...........................................................................
+  Future<void> startSlave() async {
+    log?.call(MeasureLogMessages.startMeasurementAsSlave);
+  }
+
+  // ...........................................................................
+  Future<void> stopSlave() async {
+    log?.call(MeasureLogMessages.stopMeasurementAsSlave);
+  }
 
   // ...........................................................................
   final isMeasuring = GgValue<bool>(seed: false);
@@ -49,8 +97,18 @@ class Measure {
 
 // #############################################################################
 
-Measure exampleMeasure({
-  MeasurmentRole role = MeasurmentRole.master,
-}) {
-  return Measure(role: role);
+Measure exampleMeasureMaster({Log? log}) {
+  return Measure(
+    role: MeasurmentRole.master,
+    log: log,
+    networkService: FakeService.master,
+  );
+}
+
+Measure exampleMeasureSlave({Log? log}) {
+  return Measure(
+    role: MeasurmentRole.slave,
+    log: log,
+    networkService: FakeService.slave,
+  );
 }

@@ -6,21 +6,24 @@
 
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:gg_value/gg_value.dart';
 
 import '../../measure/types.dart';
 import 'connection.dart';
 
 // #############################################################################
-abstract class NetworkService<ServiceDescription> {
+abstract class NetworkService<ServiceInfo,
+    ResolvedServiceInfo extends ServiceInfo> {
   NetworkService({
-    required this.serviceDescription,
+    required this.serviceInfo,
     required this.mode,
   }) {
-    _listenToDiscoveredServices();
+    _init();
   }
 
   // ...........................................................................
+  @mustCallSuper
   void dispose() {
     for (final d in _dispose.reversed) {
       d();
@@ -31,7 +34,7 @@ abstract class NetworkService<ServiceDescription> {
   Function(String)? log;
 
   // ...........................................................................
-  final ServiceDescription serviceDescription;
+  final ServiceInfo serviceInfo;
   final NetworkServiceMode mode;
 
   // ...........................................................................
@@ -76,7 +79,6 @@ abstract class NetworkService<ServiceDescription> {
 
   // ...........................................................................
   Future<void> startDiscovery();
-  Stream<ServiceDescription> get discoveredServices;
   Future<void> stopDiscovery();
 
   // ######################
@@ -84,7 +86,7 @@ abstract class NetworkService<ServiceDescription> {
   // ######################
 
   // ...........................................................................
-  Future<void> connectToDiscoveredService(ServiceDescription service);
+  Future<void> connectToDiscoveredService(ResolvedServiceInfo service);
 
   // ...........................................................................
   void addConnection(Connection connection) {
@@ -102,25 +104,40 @@ abstract class NetworkService<ServiceDescription> {
   // ...........................................................................
   GgValueStream<List<Connection>> get connections => _connections.stream;
 
+  // ...........................................................................
+  Connection? connectionForService(ServiceInfo serviceInfo) {
+    for (final c in connections.value) {
+      if (c.serviceInfo == serviceInfo) {
+        return c;
+      }
+    }
+
+    return null;
+  }
+
   // ######################
   // Private
   // ######################
 
+  void _init() {
+    _initConnections();
+  }
+
   final _connections = GgValue<List<Connection>>(seed: []);
+  void _initConnections() {
+    _dispose.add(_connections.dispose);
+  }
 
   final List<Function()> _dispose = [];
 
   // ...........................................................................
-  void _listenToDiscoveredServices() {
-    scheduleMicrotask(
-      () {
-        final s = discoveredServices.listen(
-          (service) => connectToDiscoveredService(service),
-        );
-
-        _dispose.add(s.cancel);
-      },
-    );
+  @protected
+  void onDiscoverService(ResolvedServiceInfo serviceInfo) {
+    final c = connectionForService(serviceInfo);
+    assert(c == null);
+    if (c == null) {
+      connectToDiscoveredService(serviceInfo);
+    }
   }
 
   // ...........................................................................

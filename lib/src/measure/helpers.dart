@@ -4,21 +4,6 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
-enum MeasurmentMode {
-  tcp,
-  nearby,
-  btle,
-}
+import 'dart:math';
 
-enum MeasurmentRole {
-  master,
-  slave,
-}
-
-enum NetworkServiceMode {
-  master,
-  slave,
-  masterAndSlave,
-}
-
-typedef Log = Function(String);
+int randomPort() => 12345 + Random().nextInt(30000);
