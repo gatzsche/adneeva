@@ -128,7 +128,7 @@ void main() {
       });
     });
 
-    test('complete code coverage', () {
+    test('should complete code coverage', () {
       final connection = exampleConnection();
       connection.sendData('Hey'.uint8List);
       connection.disconnect();

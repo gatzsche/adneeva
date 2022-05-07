@@ -17,8 +17,8 @@ void main() {
 
       // ..........................
       // Create AppA and AppB
-      final appA = Application();
-      final appB = Application();
+      final appA = Application(name: 'appA');
+      final appB = Application(name: 'appB');
       await appA.waitUntilConnected;
       await appB.waitUntilConnected;
 

@@ -72,7 +72,7 @@ void main() {
     expect(clntSockets.length, 1);
     expect(srvSocket, isNotNull);
     final clientSocket = clntSockets.first;
-    srvSocket!.connectedSocketsIn.add(clientSocket);
+    srvSocket!.connectedSocketsIn.add(clientSocket.otherEndpoint);
   }
 
   // ...........................................................................

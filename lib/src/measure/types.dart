@@ -5,6 +5,7 @@
 // found in the LICENSE file in the root of this package.
 
 enum MeasurmentMode {
+  idle,
   tcp,
   nearby,
   btle,

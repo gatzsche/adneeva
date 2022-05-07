@@ -5,12 +5,15 @@
 // found in the LICENSE file in the root of this package.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/material.dart';
 import 'package:gg_value/gg_value.dart';
+import 'package:async/async.dart';
 
+import 'com/shared/commands.dart';
 import 'com/tcp/bonjour_service.dart';
 import 'com/tcp/mocks/mock_network_interface.dart';
 import 'measure/measure.dart';
@@ -31,7 +34,7 @@ class MockApplicationDeps implements ApplicationDeps {
 
 // #############################################################################
 class Application {
-  Application() {
+  Application({required this.name}) {
     _d = isTest ? MockApplicationDeps() : ApplicationDeps();
     _init();
   }
@@ -44,9 +47,13 @@ class Application {
   }
 
   // ...........................................................................
+  final String name;
+
+  // ...........................................................................
   Future<void> get waitUntilConnected => _remoteControlService.firstConnection;
 
-  final measurmentMode = GgValue<MeasurmentMode>(seed: MeasurmentMode.tcp);
+  final measurmentMode = GgValue<MeasurmentMode>(seed: MeasurmentMode.idle);
+  final measurmentRole = GgValue<MeasurmentRole>(seed: MeasurmentRole.master);
 
   // ...........................................................................
   Measure? _measure;
@@ -130,6 +137,7 @@ class Application {
   late BonjourService _remoteControlService;
   Future<void> _initRemoteControl() async {
     _remoteControlService = BonjourService(
+      name: name,
       mode: NetworkServiceMode.masterAndSlave,
       service: BonsoirService(
         name: 'Mobile Network Evaluator',
@@ -143,8 +151,10 @@ class Application {
   }
 
   // ...........................................................................
-  void _sendCommand(String command) {
-    _remoteControlService.connections.value.first.sendString(command);
+  void _sendCommand(Command command) {
+    _remoteControlService.connections.value.first.sendString(
+      command.toJsonString(),
+    );
   }
 
   // ...........................................................................
@@ -152,11 +162,12 @@ class Application {
     _remoteControlService.connections.value.first.receiveData.listen(
       (uint8List) {
         final string = String.fromCharCodes(uint8List);
-        if (string.startsWith('setMode:')) {
-          final modeStr = string.split(':').last;
-          final receivedMode =
-              MeasurmentMode.values.firstWhere((e) => e.toString() == modeStr);
-          measurmentMode.value = receivedMode;
+        final command = json.decode(string);
+
+        if (command['id'] == 'MeasurmentModeCmd') {
+          final cmd = MeasurmentModeCmd.fromJson(command);
+          measurmentRole.value = cmd.role;
+          measurmentMode.value = cmd.mode;
         }
       },
     );
@@ -164,15 +175,20 @@ class Application {
 
   // ...........................................................................
   void _listenToMeasurmentMode() {
-    measurmentMode.stream.listen(
+    StreamGroup.merge([measurmentMode.stream, measurmentRole.stream]).listen(
       (value) {
-        _sendCommand('setMode:$value');
+        if (measurmentRole.value == MeasurmentRole.master) {
+          _sendCommand(MeasurmentModeCmd(
+            mode: measurmentMode.value,
+            role: MeasurmentRole.slave,
+          ));
+        }
       },
     );
   }
 }
 
 // #############################################################################
-Application exampleApplication() {
-  return Application();
+Application exampleApplication({String name = 'Application'}) {
+  return Application(name: name);
 }

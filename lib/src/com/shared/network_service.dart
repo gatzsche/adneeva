@@ -15,12 +15,15 @@ import 'connection.dart';
 // #############################################################################
 abstract class NetworkService<ServiceInfo,
     ResolvedServiceInfo extends ServiceInfo> {
-  NetworkService({
-    required this.serviceInfo,
-    required this.mode,
-  }) {
+  NetworkService(
+      {required this.serviceInfo,
+      required this.mode,
+      this.name = 'NetworkService'}) {
     _init();
   }
+
+  // ...........................................................................
+  final String name;
 
   // ...........................................................................
   @mustCallSuper
@@ -164,6 +167,7 @@ abstract class NetworkService<ServiceInfo,
   // ...........................................................................
   Future<void> _stopSlave() async {
     await stopDiscovery();
+    await _disconnectAll();
   }
 
   // ...........................................................................

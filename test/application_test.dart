@@ -21,8 +21,8 @@ void main() {
 
   // ...........................................................................
   void init(FakeAsync fake) {
-    appA = exampleApplication();
-    appB = exampleApplication();
+    appA = exampleApplication(name: 'appA');
+    appB = exampleApplication(name: 'appB');
     fake.flushMicrotasks();
 
     appBDiscovery =
@@ -55,10 +55,10 @@ void main() {
 
     final appBSocket = appB
         .remoteControlService.connections.value.first.receiveData as MockSocket;
-    final appASocket =
+    final appAServerSocket =
         appA.remoteControlService.serverSocket as MockServerSocket;
 
-    appASocket.connectedSocketsIn.add(appBSocket);
+    appAServerSocket.connectedSocketsIn.add(appBSocket.otherEndpoint);
     fake.flushMicrotasks();
   }
 
@@ -104,25 +104,39 @@ void main() {
         init(fake);
         appBDiscoversAppA(fake);
 
-        // Set applications into TCP mode
+        // Initially AppA and AppB are in idle mode
+        expect(appA.measurmentMode.value, MeasurmentMode.idle);
+        expect(appB.measurmentMode.value, MeasurmentMode.idle);
+
+        // Set AppA into TCP master mode
+        // AppB will be set into TCP slave mode
+        appA.measurmentRole.value = MeasurmentRole.master;
         appA.measurmentMode.value = MeasurmentMode.tcp;
         fake.flushMicrotasks();
         expect(appB.measurmentMode.value, MeasurmentMode.tcp);
+        expect(appB.measurmentRole.value, MeasurmentRole.slave);
 
-        // Set applications into Nearby mode
-        appA.measurmentMode.value = MeasurmentMode.nearby;
-        fake.flushMicrotasks();
-        expect(appB.measurmentMode.value, MeasurmentMode.nearby);
-
-        // Set applications into BTLE mode
-        appA.measurmentMode.value = MeasurmentMode.btle;
-        fake.flushMicrotasks();
-        expect(appB.measurmentMode.value, MeasurmentMode.btle);
-
-        // Set applications into TCP mode
-        appB.measurmentMode.value = MeasurmentMode.tcp;
+        // AppB is in TCP slave mode.
+        // Somebody sets the application to btle mode.
+        // This will not change AppA, because a slave will not control master.
+        expect(appB.measurmentRole.value, MeasurmentRole.slave);
+        expect(appB.measurmentMode.value, MeasurmentMode.tcp);
+        appB.measurmentMode.value = MeasurmentMode.btle;
         fake.flushMicrotasks();
         expect(appA.measurmentMode.value, MeasurmentMode.tcp);
+        expect(appA.measurmentRole.value, MeasurmentRole.master);
+
+        // Now AppB is set to master mode.
+        // Set applications into Nearby mode.
+        // This will also change the other side because AppB is master now.
+        expect(appA.measurmentRole.value, MeasurmentRole.master);
+        expect(appA.measurmentMode.value, MeasurmentMode.tcp);
+        expect(appB.measurmentRole.value, MeasurmentRole.slave);
+        expect(appB.measurmentMode.value, MeasurmentMode.btle);
+        appB.measurmentRole.value = MeasurmentRole.master;
+        fake.flushMicrotasks();
+        expect(appA.measurmentRole.value, MeasurmentRole.slave);
+        expect(appA.measurmentMode.value, MeasurmentMode.btle);
 
         dispose();
       });

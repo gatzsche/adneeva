@@ -36,10 +36,12 @@ class BonjourService
     required BonsoirService service,
     required NetworkServiceMode mode,
     Function(String)? log,
+    String? name,
   })  : _bonsoirService = service,
         super(
           serviceInfo: service,
           mode: mode,
+          name: name ?? 'BonjourService',
         ) {
     _d = isTest ? const MockBonjourServiceDeps() : const BonjourServiceDeps();
     _bonsoirBroadcast = _d.bonsoirBroadcast(service: _bonsoirService);

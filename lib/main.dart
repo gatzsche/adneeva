@@ -31,7 +31,7 @@ class GgRouterExample extends StatefulWidget {
 }
 
 class _GgRouterExampleState extends State<GgRouterExample> {
-  final _application = Application();
+  final _application = Application(name: 'application');
 
   // ...........................................................................
   @override
