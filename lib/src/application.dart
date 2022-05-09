@@ -15,6 +15,7 @@ import 'package:async/async.dart';
 
 import 'com/shared/bipolar_service.dart';
 import 'com/shared/commands.dart';
+import 'com/shared/network_service.dart';
 import 'com/tcp/bonjour_service.dart';
 import 'com/tcp/mocks/mock_network_interface.dart';
 import 'measure/measure.dart';
@@ -54,12 +55,12 @@ class Application {
     await _remoteControlService.slave.firstConnection;
   }
 
-  final mode = GgValue<MeasurementMode>(seed: MeasurementMode.idle);
+  final mode = GgValue<MeasurementMode>(seed: MeasurementMode.tcp);
   final role = GgValue<EndpointRole>(seed: EndpointRole.master);
 
   // ...........................................................................
-  Measure? get measure => _measure;
-  Measure? _measure;
+  Measure get measure => _measure;
+  late Measure _measure;
 
   // ...........................................................................
   void waitForConnections() async {
@@ -69,35 +70,73 @@ class Application {
   }
 
   // ...........................................................................
-  Future<void> startMeasurements() async {
-    if (_measure?.isMeasuring.value == true) {
+  Future<void> _startMeasurements() async {
+    if (_measure.isMeasuring.value == true) {
       return;
     }
     _startMeasurementOnOtherSide();
     _initMeasurement();
-    await _measure!.connect();
-    await _measure!.measure();
+    await _measure.connect();
+    await _measure.measure();
+  }
+
+  // ...........................................................................
+  Future<void> startMeasurements() async {
+    role.value = EndpointRole.master;
+    await _startMeasurements();
   }
 
   // ...........................................................................
   void stopMeasurements() async {
-    _measure?.disconnect();
+    _measure.disconnect();
     _stopMeasurementOnOtherSide();
   }
 
   // ...........................................................................
-  List<String>? get measurementResults => _measure?.measurmentResults;
+  GgValueStream<bool> get isMeasuring => _isMeasuring.stream;
+
+  // ...........................................................................
+  GgValueStream<List<String>> get measurementResults =>
+      _measurementResult.stream;
+
+  final _measurementResult = GgValue<List<String>>(seed: []);
+
+  // ...........................................................................
+  @visibleForTesting
+  BipolarService<BonjourService> get remoteControlService =>
+      _remoteControlService;
+
+  // ...........................................................................
+  @visibleForTesting
+  final int port = randomPort();
 
   // ######################
   // Test
   // ######################
 
-  @visibleForTesting
-  BipolarService<BonjourService> get remoteControlService =>
-      _remoteControlService;
+  // ...........................................................................
+  static void fakeConnect(Application appA, Application appB) {
+    NetworkService.fakeConnect(
+      appA.remoteControlService.master,
+      appB.remoteControlService.slave,
+    );
 
-  @visibleForTesting
-  final int port = randomPort();
+    NetworkService.fakeConnect(
+      appB.remoteControlService.master,
+      appA.remoteControlService.slave,
+    );
+
+    appA.waitForConnections();
+    appB.waitForConnections();
+  }
+
+  // ...........................................................................
+  static void fakeConnectMeasurmentCore(Application appA, Application appB) {
+    NetworkService.fakeConnect(
+      appA.measure.networkService,
+      appB.measure.networkService,
+    );
+  }
 
   // ######################
   // Private
@@ -107,12 +146,32 @@ class Application {
 
   final List<Function()> _dispose = [];
 
-  bool get isConnected =>
-      remoteControlService.service(role.value).connections.value.isNotEmpty;
+  // ...........................................................................
+  GgValueStream<bool> get isConnected =>
+      remoteControlService.service(role.value).connections.map(
+            (p0) => p0.isNotEmpty,
+          );
+
+  // ...........................................................................
+  void _initIsConnected() {
+    final s = isConnected.listen(
+      (isConnected) {
+        if (isConnected) {
+          _updateModeAtOtherSide();
+        }
+      },
+    );
+    _dispose.add(s.cancel);
+  }
+
+  // ...........................................................................
+  final _isMeasuring = GgValue<bool>(seed: false);
 
   // ...........................................................................
   void _init() async {
     await _initRemoteControlService();
+    _initMeasurement();
+    _initIsConnected();
     _isInitialized.complete();
   }
 
@@ -169,7 +228,7 @@ class Application {
           role.value = cmd.role;
           mode.value = cmd.mode;
         } else if (id == 'StartMeasurementCmd') {
-          startMeasurements();
+          _startMeasurements();
         } else if (id == 'StopMeasurementCmd') {
           stopMeasurements();
         }
@@ -181,19 +240,42 @@ class Application {
   void _listenToEndpointRole() {
     StreamGroup.merge([mode.stream, role.stream]).listen(
       (value) {
-        if (role.value == EndpointRole.master) {
-          _sendCommand(EndpointRoleCmd(
-            mode: mode.value,
-            role: EndpointRole.slave,
-          ));
-        }
+        _updateModeAtOtherSide();
       },
     );
   }
 
   // ...........................................................................
+  void _updateModeAtOtherSide() {
+    if (role.value == EndpointRole.master) {
+      _sendCommand(EndpointRoleCmd(
+        mode: mode.value,
+        role: EndpointRole.slave,
+      ));
+    }
+  }
+
+  // ...........................................................................
+  StreamSubscription? _measureStreamSubscription;
+  StreamSubscription? _measurmentResultSubscription;
   void _initMeasurement() {
+    _measureStreamSubscription?.cancel();
+    _measureStreamSubscription?.cancel();
     _measure = MeasureTcp(role: role.value);
+
+    _measureStreamSubscription = _measure.isMeasuring.listen(
+      (value) => _isMeasuring.value = value,
+      // coverage:ignore-start
+      onDone: () => _isMeasuring.value = false,
+      onError: (_) => _isMeasuring.value = false,
+      // coverage:ignore-end
+    );
+    _dispose.add(_measureStreamSubscription!.cancel);
+
+    _measurmentResultSubscription = _measure.measurmentResults.listen(
+      (event) => _measurementResult.value = event,
+    );
+    _dispose.add(_measurmentResultSubscription!.cancel);
   }
 
   // ...........................................................................

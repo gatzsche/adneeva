@@ -7,7 +7,6 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_network_evaluator/src/application.dart';
-import 'package:mobile_network_evaluator/src/com/shared/network_service.dart';
 import 'package:mobile_network_evaluator/src/measure/types.dart';
 
 void main() {
@@ -28,29 +27,14 @@ void main() {
   }
 
   // ...........................................................................
-  void appBDiscoversAppA(FakeAsync fake) {
-    NetworkService.fakeConnect(
-      appA.remoteControlService.master,
-      appB.remoteControlService.slave,
-    );
-
-    NetworkService.fakeConnect(
-      appB.remoteControlService.master,
-      appA.remoteControlService.slave,
-    );
-
-    appA.waitForConnections();
-    appB.waitForConnections();
-
+  void fakeConnect(FakeAsync fake) {
+    Application.fakeConnect(appA, appB);
     fake.flushMicrotasks();
   }
 
   // ...........................................................................
   void connectMeasurmentCore(FakeAsync fake) {
-    NetworkService.fakeConnect(
-      appA.measure!.networkService,
-      appB.measure!.networkService,
-    );
+    Application.fakeConnectMeasurmentCore(appA, appB);
     fake.flushMicrotasks();
   }
 
@@ -71,17 +55,17 @@ void main() {
         );
 
         // Initially there is no connection between appA and appB
-        expect(appA.isConnected, isFalse);
-        expect(appB.isConnected, isFalse);
+        expect(appA.isConnected.value, isFalse);
+        expect(appB.isConnected.value, isFalse);
         expect(finishedWaitingAppA, isFalse);
         expect(finishedWaitingAppB, isFalse);
 
         // Let appA discover appB
-        appBDiscoversAppA(fake);
+        fakeConnect(fake);
 
         // Connected should be true
-        expect(appA.isConnected, isTrue);
-        expect(appB.isConnected, isTrue);
+        expect(appA.isConnected.value, isTrue);
+        expect(appB.isConnected.value, isTrue);
 
         // Waiting should be over
         expect(finishedWaitingAppA, isTrue);
@@ -94,11 +78,11 @@ void main() {
     test('should turn each other into tpc, nearby or btle mode ', () {
       fakeAsync((fake) {
         init(fake);
-        appBDiscoversAppA(fake);
+        fakeConnect(fake);
 
-        // Initially AppA and AppB are in idle mode
-        expect(appA.mode.value, MeasurementMode.idle);
-        expect(appB.mode.value, MeasurementMode.idle);
+        // Initially AppA and AppB are in tcp mode
+        expect(appA.mode.value, MeasurementMode.tcp);
+        expect(appB.mode.value, MeasurementMode.tcp);
 
         // Set AppA into TCP master mode.
         // AppB will be set into TCP slave mode.
@@ -134,10 +118,15 @@ void main() {
       });
     });
 
-    test('should allow to make measurments on both sides', () {
+    test('should allow to make measurements on both sides', () {
       fakeAsync((fake) {
         init(fake);
-        appBDiscoversAppA(fake);
+        fakeConnect(fake);
+
+        List<bool> receivedIsMeasuring = [];
+        appA.isMeasuring.listen(
+          (event) => receivedIsMeasuring.add(event),
+        );
 
         // Make measurements on AppA first
         appA.mode.value = MeasurementMode.tcp;
@@ -148,12 +137,12 @@ void main() {
         fake.flushMicrotasks();
         appA.stopMeasurements();
         fake.flushMicrotasks();
-        expect(appA.measurementResults, isNotEmpty);
-        expect(appB.measurementResults, isEmpty);
+        expect(appA.measurementResults.value, isNotEmpty);
+        expect(appB.measurementResults.value, isEmpty);
+        expect(receivedIsMeasuring, [true, false]);
 
         // Now let's make the measurements on AppA too
         appB.mode.value = MeasurementMode.tcp;
-        appB.role.value = EndpointRole.master;
         fake.flushMicrotasks();
         appB.startMeasurements();
         fake.flushMicrotasks();
@@ -161,9 +150,14 @@ void main() {
         fake.flushMicrotasks();
         appB.stopMeasurements();
         fake.flushMicrotasks();
-        expect(appB.measurementResults, isNotEmpty);
+        expect(appB.measurementResults.value, isNotEmpty);
         dispose();
       });
+    });
+
+    test('should automatically reconnect', () {
+      // Disconnect remote control connection
+      // Connection should automatically be reconnected
     });
   });
 }

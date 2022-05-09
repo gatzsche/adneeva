@@ -19,7 +19,6 @@ Map<String, dynamic> _$EndpointRoleCmdToJson(EndpointRoleCmd instance) =>
     };
 
 const _$MeasurementModeEnumMap = {
-  MeasurementMode.idle: 'idle',
   MeasurementMode.tcp: 'tcp',
   MeasurementMode.nearby: 'nearby',
   MeasurementMode.btle: 'btle',

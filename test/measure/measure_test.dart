@@ -70,8 +70,8 @@ void main() {
         expect(logs.last, MeasureLogMessages.stop(EndpointRole.slave));
 
         // Get measurment results
-        expect(measureMaster.measurmentResults, isNotEmpty);
-        expect(measureSlave.measurmentResults, isEmpty);
+        expect(measureMaster.measurmentResults.value, isNotEmpty);
+        expect(measureSlave.measurmentResults.value, isEmpty);
 
         dispose(fake);
       });

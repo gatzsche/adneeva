@@ -18,7 +18,6 @@ void main() {
   group('EndpointRole', () {
     test('.string should return the mode as string', () {
       expect(MeasurementMode.btle.string, 'btle');
-      expect(MeasurementMode.idle.string, 'idle');
     });
   });
 }

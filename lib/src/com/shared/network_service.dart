@@ -142,7 +142,6 @@ abstract class NetworkService<ServiceInfo,
   // ...........................................................................
   /// Implement this function to directly connect a master service to a
   /// client service. This is needed for test purposes
-  @visibleForTesting
   static Future<void> fakeConnect(
     NetworkService endpointA,
     NetworkService endpointB,

@@ -35,6 +35,8 @@ class DataRecorder {
     _initMeasurementCycles();
   }
 
+  static bool delayMeasurements = false;
+
   // ...........................................................................
   void dispose() {
     for (final d in _dispose.reversed) {
@@ -115,6 +117,10 @@ class DataRecorder {
         await _waitForAcknowledgement;
         _stopTimeMeasurement();
         _writeMeasuredTimes(packageSize);
+
+        if (delayMeasurements) {
+          await Future.delayed(const Duration(milliseconds: 100));
+        }
       }
     }
 

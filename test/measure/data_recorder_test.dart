@@ -74,6 +74,8 @@ void main() {
     test('should allow to interrupt measurements with stop', () async {
       await init();
 
+      DataRecorder.delayMeasurements = true;
+
       // Listen to measurment cycles and
       // stop after second measurment cycle
       masterDataRecorder.measurmentCycles.listen(
@@ -93,6 +95,8 @@ void main() {
       // Expect it is stopped and no data have been written
       expect(masterDataRecorder.isRunning, false);
       expect(masterDataRecorder.resultCsv, null);
+
+      DataRecorder.delayMeasurements = false;
 
       dispose();
     });

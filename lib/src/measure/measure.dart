@@ -52,11 +52,11 @@ class Measure {
 
   // ...........................................................................
   Future<void> measure() async {
-    assert(!_isMeasuring);
+    assert(!_isMeasuring.value);
     assert(_connection != null);
 
     _logMeasure();
-    _isMeasuring = true;
+    _isMeasuring.value = true;
 
     _dataRecorder = DataRecorder(
       connection: _connection!,
@@ -67,9 +67,12 @@ class Measure {
     await _dataRecorder!.record();
 
     if (_dataRecorder?.resultCsv != null) {
-      _measurmentResults.add(_dataRecorder!.resultCsv!);
+      _measurementResults.value = [
+        ..._measurementResults.value,
+        _dataRecorder!.resultCsv!
+      ];
     }
-    _isMeasuring = false;
+    _isMeasuring.value = false;
   }
 
   // ...........................................................................
@@ -86,21 +89,23 @@ class Measure {
   }
 
   // ...........................................................................
-  List<String> get measurmentResults => _measurmentResults;
+  GgValueStream<List<String>> get measurmentResults =>
+      _measurementResults.stream;
 
   // ...........................................................................
-  final isMeasuring = GgValue<bool>(seed: false);
-  void _initIsMeasuring() {
-    _dispose.add(isMeasuring.dispose);
-  }
+  GgValueStream<bool> get isMeasuring => _isMeasuring.stream;
 
   // ######################
   // Private
   // ######################
 
   final List<Function()> _dispose = [];
-  final List<String> _measurmentResults = [];
-  var _isMeasuring = false;
+  final _measurementResults = GgValue<List<String>>(seed: []);
+  final _isMeasuring = GgValue<bool>(seed: false);
+  void _initIsMeasuring() {
+    _dispose.add(_isMeasuring.dispose);
+  }
+
   Connection? _connection;
 
   // ...........................................................................
