@@ -89,7 +89,7 @@ class Measure {
   }
 
   // ...........................................................................
-  GgValueStream<List<String>> get measurmentResults =>
+  GgValueStream<List<String>> get measurementResults =>
       _measurementResults.stream;
 
   // ...........................................................................

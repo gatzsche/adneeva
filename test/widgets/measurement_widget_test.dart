@@ -22,7 +22,9 @@ void main() {
     // ...........................................................................
     Finder startButton() => find.byKey(const Key('startButton'));
     Finder stopButton() => find.byKey(const Key('stopButton'));
-    Finder measurementResults() => find.byKey(const Key('measurmentResults'));
+    Finder measurementResults() => find.byKey(const Key('measurementResults'));
+    Finder slaveIsMeasuringWidget() =>
+        find.byKey(const Key('slaveIsMeasuringWidget'));
 
     // .........................................................................
     Future<void> setUp(WidgetTester tester) async {
@@ -45,7 +47,8 @@ void main() {
     }
 
     // .........................................................................
-    testWidgets('should work correctly', (WidgetTester tester) async {
+    testWidgets('should work correctly on master side',
+        (WidgetTester tester) async {
       await setUp(tester);
 
       // .....................................
@@ -69,13 +72,13 @@ void main() {
       await tester.tap(startButton());
 
       // Let's connect the measurement core
-      Application.fakeConnectMeasurmentCore(localApp, remoteApp);
+      Application.fakeConnectMeasurementCore(localApp, remoteApp);
       await tester.pump(const Duration(milliseconds: 50));
 
       // The start button turns into a stop button
       expect(stopButton(), findsOneWidget);
 
-      // After the measurments are done, the stop button goes back
+      // After the measurements are done, the stop button goes back
       // to a start button
       await tester.pumpAndSettle(const Duration(seconds: 5));
       expect(stopButton(), findsNothing);
@@ -89,6 +92,36 @@ void main() {
 
       // ........
       // Cleanup
+      await tearDown(tester);
+    });
+
+    // .........................................................................
+    testWidgets('should work correctly on slave side',
+        (WidgetTester tester) async {
+      await setUp(tester);
+
+      // At the beginning we show an indicator
+      // showing that the apps are not connected
+      expect(find.byKey(const Key('waitingForRemoteWidget')), findsOneWidget);
+
+      // Now let's connect the apps.
+      Application.fakeConnect(localApp, remoteApp);
+      await tester.pump();
+
+      // Let's start the measurement on the remote app, not on the local one
+      remoteApp.startMeasurements();
+      await tester.pump();
+
+      // Let's connect the measurement core
+      Application.fakeConnectMeasurementCore(localApp, remoteApp);
+      await tester.pump(const Duration(milliseconds: 50));
+
+      // Now the local app should show an hint that currently recordings are made
+      expect(slaveIsMeasuringWidget(), findsOneWidget);
+
+      // Cleanup
+      remoteApp.stopMeasurements();
+      await tester.pumpAndSettle();
       await tearDown(tester);
     });
   });

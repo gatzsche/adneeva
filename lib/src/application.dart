@@ -131,7 +131,7 @@ class Application {
   }
 
   // ...........................................................................
-  static void fakeConnectMeasurmentCore(Application appA, Application appB) {
+  static void fakeConnectMeasurementCore(Application appA, Application appB) {
     NetworkService.fakeConnect(
       appA.measure.networkService,
       appB.measure.networkService,
@@ -257,7 +257,7 @@ class Application {
 
   // ...........................................................................
   StreamSubscription? _measureStreamSubscription;
-  StreamSubscription? _measurmentResultSubscription;
+  StreamSubscription? _measurementResultSubscription;
   void _initMeasurement() {
     _measureStreamSubscription?.cancel();
     _measureStreamSubscription?.cancel();
@@ -272,10 +272,10 @@ class Application {
     );
     _dispose.add(_measureStreamSubscription!.cancel);
 
-    _measurmentResultSubscription = _measure.measurmentResults.listen(
+    _measurementResultSubscription = _measure.measurementResults.listen(
       (event) => _measurementResult.value = event,
     );
-    _dispose.add(_measurmentResultSubscription!.cancel);
+    _dispose.add(_measurementResultSubscription!.cancel);
   }
 
   // ...........................................................................

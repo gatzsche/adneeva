@@ -61,7 +61,7 @@ class DataRecorder {
   final Log? log;
   final List<int> packageSizes;
 
-  Stream<int> get measurmentCycles => _measurmentCycles.stream;
+  Stream<int> get measurementCycles => _measurementCycles.stream;
 
   // ...........................................................................
   Future<void> get _waitForAcknowledgement => connection.receiveData.firstWhere(
@@ -80,8 +80,12 @@ class DataRecorder {
   }
 
   // ...........................................................................
-  Future<void> _listenToDataFromMasterAndAcknowledge() async {
-    final s = connection.receiveData.listen(
+  StreamSubscription? _listenToDataFromMasterSubscription;
+  Completer? _listenToDataCompleter;
+  Future<void> _listenToDataFromMasterAndAcknowledge() {
+    _listenToDataCompleter = Completer();
+
+    _listenToDataFromMasterSubscription = connection.receiveData.listen(
       (data) {
         final str = data.string;
         if (str.endsWith(Messages.packetEnd)) {
@@ -90,7 +94,9 @@ class DataRecorder {
       },
     );
 
-    _dispose.add(s.cancel);
+    _dispose.add(() => _listenToDataFromMasterSubscription?.cancel);
+
+    return _listenToDataCompleter!.future;
   }
 
   // ...........................................................................
@@ -106,11 +112,11 @@ class DataRecorder {
 
       for (var iteration = 0; iteration < maxNumMeasurements; iteration++) {
         if (_stop) {
-          log?.call('Stopping measurment');
+          log?.call('Stopping measurement');
           break;
         }
 
-        _measurmentCycles.add(iteration);
+        _measurementCycles.add(iteration);
         _initBuffer(packageSize);
         _startTimeMeasurement();
         _sendDataToSlave();
@@ -137,6 +143,10 @@ class DataRecorder {
   // ...........................................................................
   void stop() {
     _stop = true;
+    _listenToDataFromMasterSubscription?.cancel();
+    _listenToDataFromMasterSubscription = null;
+    _listenToDataCompleter?.complete();
+    _listenToDataCompleter = null;
   }
 
   // ...........................................................................
@@ -283,9 +293,9 @@ class DataRecorder {
 
   bool _stop = false;
   bool _isRunning = false;
-  final _measurmentCycles = StreamController<int>();
+  final _measurementCycles = StreamController<int>();
   void _initMeasurementCycles() {
-    _dispose.add(_measurmentCycles.close);
+    _dispose.add(_measurementCycles.close);
   }
 }
 

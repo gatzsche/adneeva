@@ -4,8 +4,10 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
+import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import '../application.dart';
+import '../measure/types.dart';
 
 class MeasurementWidget extends StatelessWidget {
   const MeasurementWidget({
@@ -15,24 +17,43 @@ class MeasurementWidget extends StatelessWidget {
 
   final Application application;
 
+  // ...........................................................................
   @override
   Widget build(BuildContext context) {
+    final needsRebuild = StreamGroup.merge<dynamic>([
+      application.isConnected,
+      application.role.stream,
+      application.isMeasuring,
+      application.measurementResults,
+    ]);
+
     return StreamBuilder(
-      stream: application.isConnected,
-      builder: (context, snapshot) {
-        return application.isConnected.value
-            ? _contentWidget
-            : _waitingForRemoteWidget;
+      stream: needsRebuild,
+      builder: (context, _) {
+        return _showSlaveMeasuringWidget
+            ? _slaveIsMeasuringWidget
+            : _isConnected
+                ? _contentWidget
+                : _waitingForRemoteWidget;
       },
     );
   }
+
+  // ...........................................................................
+  bool get _showSlaveMeasuringWidget {
+    return application.role.value == EndpointRole.slave &&
+        application.isMeasuring.value;
+  }
+
+  // ...........................................................................
+  bool get _isConnected => application.isConnected.value;
 
   // ...........................................................................
   Widget get _contentWidget {
     return Column(
       children: [
         _controlButton,
-        _measurmentResults,
+        _measurementResults,
       ],
     );
   }
@@ -49,6 +70,17 @@ class MeasurementWidget extends StatelessWidget {
   }
 
   // ...........................................................................
+  Widget get _slaveIsMeasuringWidget {
+    return Center(
+      key: const Key('slaveIsMeasuringWidget'),
+      child: Column(children: const [
+        CircularProgressIndicator(),
+        Text('Recording measurements ...')
+      ]),
+    );
+  }
+
+  // ...........................................................................
   Widget get _controlButton {
     return StreamBuilder(
       stream: application.isMeasuring,
@@ -59,13 +91,17 @@ class MeasurementWidget extends StatelessWidget {
   }
 
   // ...........................................................................
-  Widget get _measurmentResults {
+  Widget get _measurementResults {
     return StreamBuilder(
       stream: application.measurementResults,
       builder: (context, snapshot) {
         return application.measurementResults.value.isNotEmpty
-            ? Text(
-                key: Key('measurmentResults'),
+            ?
+            // ignore: prefer_const_constructors
+            Text(
+                key:
+                    // ignore: prefer_const_constructors
+                    Key('measurementResults'),
                 'Download measurement results',
               )
             : const SizedBox();

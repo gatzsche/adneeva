@@ -33,8 +33,8 @@ void main() {
   }
 
   // ...........................................................................
-  void connectMeasurmentCore(FakeAsync fake) {
-    Application.fakeConnectMeasurmentCore(appA, appB);
+  void connectMeasurementCore(FakeAsync fake) {
+    Application.fakeConnectMeasurementCore(appA, appB);
     fake.flushMicrotasks();
   }
 
@@ -133,7 +133,7 @@ void main() {
         fake.flushMicrotasks();
         appA.startMeasurements();
         fake.flushMicrotasks();
-        connectMeasurmentCore(fake);
+        connectMeasurementCore(fake);
         fake.flushMicrotasks();
         appA.stopMeasurements();
         fake.flushMicrotasks();
@@ -146,7 +146,7 @@ void main() {
         fake.flushMicrotasks();
         appB.startMeasurements();
         fake.flushMicrotasks();
-        connectMeasurmentCore(fake);
+        connectMeasurementCore(fake);
         fake.flushMicrotasks();
         appB.stopMeasurements();
         fake.flushMicrotasks();

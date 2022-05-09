@@ -25,11 +25,11 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>$(PRODUCT_COPYRIGHT)</string>
     <key>NSLocalNetworkUsageDescription</key>
-    <string>We are using the local network to connect measurment devices.</string>
+    <string>We are using the local network to connect measurement devices.</string>
     <key>NSBonjourServices</key>
     <array>
         <string>_mobile_network_evaluator._tcp</string>
-    </array>	
+    </array>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>

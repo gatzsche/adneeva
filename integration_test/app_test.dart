@@ -49,7 +49,7 @@ void main() {
 
       // AppB should connect to nearby mode
 
-      // AppB should have told AppA that it is ready for measurment
+      // AppB should have told AppA that it is ready for measurement
 
       // AppA should start the measurements
 

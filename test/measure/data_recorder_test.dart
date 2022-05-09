@@ -76,9 +76,9 @@ void main() {
 
       DataRecorder.delayMeasurements = true;
 
-      // Listen to measurment cycles and
-      // stop after second measurment cycle
-      masterDataRecorder.measurmentCycles.listen(
+      // Listen to measurement cycles and
+      // stop after second measurement cycle
+      masterDataRecorder.measurementCycles.listen(
         (event) {
           // Assume master data recorder is running
           expect(masterDataRecorder.isRunning, true);
@@ -97,6 +97,30 @@ void main() {
       expect(masterDataRecorder.resultCsv, null);
 
       DataRecorder.delayMeasurements = false;
+
+      dispose();
+    });
+
+    test('should record on slave side until stop is received', () async {
+      await init();
+
+      // Listen until recording was stopped
+      bool isRecording = true;
+      slaveDataRecorder.record().then(
+            (_) => isRecording = false,
+          );
+
+      await flushMicroTasks();
+
+      // Should still recording
+      expect(isRecording, true);
+
+      // Now let's stop the recording
+      slaveDataRecorder.stop();
+      await flushMicroTasks();
+
+      // The record future should have completed
+      expect(isRecording, false);
 
       dispose();
     });
