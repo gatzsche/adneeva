@@ -8,14 +8,15 @@ import 'package:flutter/material.dart';
 import 'package:gg_value/gg_value.dart';
 
 import '../com/fake/fake_service.dart';
+import '../com/shared/connection.dart';
 import '../com/shared/network_service.dart';
+import 'data_recorder.dart';
 import 'types.dart';
 
 class MeasureLogMessages {
-  static const startMeasurementAsMaster = 'Start measurement as master';
-  static const stopMeasurementAsMaster = 'Stop measurement as master';
-  static const startMeasurementAsSlave = 'Start measurement as slave';
-  static const stopMeasurementAsSlave = 'Stop measurement as slave';
+  static String start(MeasurmentRole role) => 'Start measurement as $role';
+  static String measure(MeasurmentRole role) => 'Measure as $role';
+  static String stop(MeasurmentRole role) => 'Stop measurement as $role';
 }
 
 class Measure {
@@ -38,60 +39,54 @@ class Measure {
   // ...........................................................................
   final Log? log;
   final NetworkService networkService;
-
-  // ...........................................................................
   final MeasurmentRole role;
 
   // ...........................................................................
-  @mustCallSuper
-  Future<void> start() =>
-      role == MeasurmentRole.master ? startMaster() : startSlave();
-
-  // ...........................................................................
-  @mustCallSuper
-  Future<void> stop() =>
-      role == MeasurmentRole.master ? stopMaster() : stopSlave();
-
-  // ######################
-  // Master
-  // ######################
-
-  // ...........................................................................
-  @mustCallSuper
-  Future<void> startMaster() async {
-    log?.call(MeasureLogMessages.startMeasurementAsMaster);
-    // Wait for the first connection
-    await networkService.firstConnection;
-
-    // Once connected initialize the measurement controller
-    // Run measurements
-    // Make results available
+  Future<void> start() async {
+    if (_connection != null) {
+      return;
+    }
+    _logStart();
+    await _connect();
   }
 
   // ...........................................................................
-  @mustCallSuper
-  Future<void> stopMaster() async {
-    log?.call(MeasureLogMessages.stopMeasurementAsMaster);
-  }
+  Future<void> measure() async {
+    assert(!_isMeasuring);
+    assert(_connection != null);
 
-  // ######################
-  // Slave
-  // ######################
+    _logMeasure();
+    _isMeasuring = true;
+
+    _dataRecorder = DataRecorder(
+      connection: _connection!,
+      role: role,
+      log: log,
+    );
+
+    await _dataRecorder!.record();
+
+    if (_dataRecorder?.resultCsv != null) {
+      _measurmentResults.add(_dataRecorder!.resultCsv!);
+    }
+    _isMeasuring = false;
+  }
 
   // ...........................................................................
-  Future<void> startSlave() async {
-    log?.call(MeasureLogMessages.startMeasurementAsSlave);
-    // Wait for the first connection
-    // await networkService.waitForFirstConnection;
+  Future<void> stop() async {
+    assert(_connection != null);
 
-    // Listen to incoming data
-    // Send acknowledgement, once data has been received
+    _logStop();
+
+    _dataRecorder?.stop();
+    _dataRecorder = null;
+
+    await _disconnect();
+    _connection = null;
   }
 
   // ...........................................................................
-  Future<void> stopSlave() async {
-    log?.call(MeasureLogMessages.stopMeasurementAsSlave);
-  }
+  List<String> get measurmentResults => _measurmentResults;
 
   // ...........................................................................
   final isMeasuring = GgValue<bool>(seed: false);
@@ -104,6 +99,29 @@ class Measure {
   // ######################
 
   final List<Function()> _dispose = [];
+  final List<String> _measurmentResults = [];
+  var _isMeasuring = false;
+  Connection? _connection;
+
+  // ...........................................................................
+  DataRecorder? _dataRecorder;
+
+  // ...........................................................................
+  Future<void> _connect() async {
+    await networkService.start();
+    final connection = await networkService.firstConnection;
+    _connection = connection;
+  }
+
+  // ...........................................................................
+  Future<void> _disconnect() async {
+    await networkService.stop();
+  }
+
+  // ...........................................................................
+  void _logStart() => log?.call(MeasureLogMessages.start(role));
+  void _logStop() => log?.call(MeasureLogMessages.stop(role));
+  void _logMeasure() => log?.call(MeasureLogMessages.measure(role));
 }
 
 // #############################################################################

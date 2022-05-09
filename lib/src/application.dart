@@ -82,8 +82,8 @@ class Application {
   }
 
   // ...........................................................................
-  Future<void> stopMeasurments() async {
-    await _measure?.stop();
+  void stopMeasurments() async {
+    _measure?.stop();
   }
 
   final isMeasuring = GgValue<bool>(seed: false);

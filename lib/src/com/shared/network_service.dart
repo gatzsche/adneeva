@@ -41,7 +41,13 @@ abstract class NetworkService<ServiceInfo,
   final NetworkServiceMode mode;
 
   // ...........................................................................
+  bool get isStarted => _isStarted;
+
+  // ...........................................................................
   Future<void> start() async {
+    assert(!_isStarted);
+    _isStarted = true;
+
     if (mode == NetworkServiceMode.master ||
         mode == NetworkServiceMode.masterAndSlave) {
       await _startMaster();
@@ -55,6 +61,8 @@ abstract class NetworkService<ServiceInfo,
 
   // ...........................................................................
   Future<void> stop() async {
+    assert(_isStarted);
+
     if (mode == NetworkServiceMode.master ||
         mode == NetworkServiceMode.masterAndSlave) {
       await _stopMaster();
@@ -64,6 +72,8 @@ abstract class NetworkService<ServiceInfo,
         mode == NetworkServiceMode.masterAndSlave) {
       await _stopSlave();
     }
+
+    _isStarted = false;
   }
 
   // ######################
@@ -141,6 +151,7 @@ abstract class NetworkService<ServiceInfo,
   }
 
   final List<Function()> _dispose = [];
+  bool _isStarted = false;
 
   // ...........................................................................
   @protected
@@ -174,7 +185,6 @@ abstract class NetworkService<ServiceInfo,
   Future<void> _startMaster() async {
     await startListeningForConnections();
     await startAdvertizing();
-    await _disconnectAll();
   }
 
   // ...........................................................................

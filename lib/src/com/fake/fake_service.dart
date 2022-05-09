@@ -37,6 +37,9 @@ class FakeService
       : super(
           serviceInfo: FakeServiceInfo(),
           mode: mode,
+          name: mode == NetworkServiceMode.master
+              ? 'MasterFakeService'
+              : 'SlaveFakeService',
         ) {
     _init();
   }
@@ -80,7 +83,8 @@ class FakeService
 
   // ................
   // Connect services
-  void connectTo(FakeService masterService) {
+  Future<void> connectTo(FakeService masterService) async {
+    assert(isStarted);
     assert(mode == NetworkServiceMode.slave);
     assert(masterService.mode == NetworkServiceMode.master);
 
@@ -111,8 +115,11 @@ class FakeService
       parentService: service.masterService,
       disconnect: masterOutgoingDataStream.close,
       receiveData: slaveOutgoingDataStream.stream,
-      sendData: (data) => Future.delayed(const Duration(microseconds: 1))
-          .then((value) => masterOutgoingDataStream.add(data)),
+      sendData: (data) async {
+        scheduleMicrotask(() {
+          masterOutgoingDataStream.add(data);
+        });
+      },
       serviceInfo: service,
     );
 
@@ -123,8 +130,11 @@ class FakeService
       parentService: this,
       disconnect: slaveOutgoingDataStream.close,
       receiveData: masterOutgoingDataStream.stream,
-      sendData: (data) => Future.delayed(const Duration(microseconds: 1))
-          .then((s) => slaveOutgoingDataStream.add(data)),
+      sendData: (data) async {
+        scheduleMicrotask(() {
+          slaveOutgoingDataStream.add(data);
+        });
+      },
       serviceInfo: serviceInfo,
     );
   }

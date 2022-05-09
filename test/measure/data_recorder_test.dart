@@ -16,9 +16,12 @@ void main() {
   late FakeService masterService;
   late FakeService slaveService;
 
+  // ...........................................................................
   Future<void> init() async {
     masterService = FakeService.master;
     slaveService = FakeService.slave;
+    masterService.start();
+    slaveService.start();
     slaveService.connectTo(masterService);
     await flushMicroTasks();
 
@@ -28,8 +31,11 @@ void main() {
     slaveDataRecorder = exampleSlaveDataRecorder(
       connection: slaveService.connections.value.first,
     );
+
+    await flushMicroTasks();
   }
 
+  // ...........................................................................
   void dispose() {
     masterDataRecorder.dispose();
     slaveDataRecorder.dispose();
@@ -42,8 +48,8 @@ void main() {
         () async {
       await init();
 
-      slaveDataRecorder.run();
-      await masterDataRecorder.run();
+      slaveDataRecorder.record();
+      await masterDataRecorder.record();
 
       expect(slaveDataRecorder.role, MeasurmentRole.slave);
 
@@ -62,6 +68,32 @@ void main() {
     test('should complete code coverage', () {
       exampleMasterDataRecorder();
       exampleSlaveDataRecorder();
+    });
+
+    test('should allow to interrupt measurments with stop', () async {
+      await init();
+
+      // Listen to measurment cycles and
+      // stop after second measurment cycle
+      masterDataRecorder.measurmentCycles.listen(
+        (event) {
+          // Assume master data recorder is running
+          expect(masterDataRecorder.isRunning, true);
+
+          // Stop the master data recorder
+          masterDataRecorder.stop();
+        },
+      );
+
+      // Run the measurments
+      slaveDataRecorder.record();
+      await masterDataRecorder.record();
+
+      // Expect it is stopped and no data have been written
+      expect(masterDataRecorder.isRunning, false);
+      expect(masterDataRecorder.resultCsv, null);
+
+      dispose();
     });
   });
 }

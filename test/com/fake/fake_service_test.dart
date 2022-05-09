@@ -78,6 +78,9 @@ void main() {
       fakeAsync((fake) {
         init(fake);
 
+        masterFakeService.start();
+        slaveFakeService0.start();
+
         // Connect a slave fake service to a master fake service
         slaveFakeService0.connectTo(masterFakeService);
         fake.flushMicrotasks();
@@ -86,11 +89,15 @@ void main() {
         expect(slaveFakeService1.connections.value.length, 0);
 
         // Connect a slave fake service to a slave fake service
+        slaveFakeService1.start();
         slaveFakeService1.connectTo(masterFakeService);
         fake.flushMicrotasks();
         expect(masterFakeService.connections.value.length, 2);
         expect(slaveFakeService1.connections.value.length, 1);
         expect(slaveFakeService1.connections.value.length, 1);
+
+        slaveFakeService0.stop();
+        masterFakeService.stop();
 
         dispose(fake);
       });
@@ -118,6 +125,8 @@ void main() {
         expect(firstMasterConnection, isNull);
 
         // Now let's connect
+        slaveFakeService0.start();
+        masterFakeService.start();
         slaveFakeService0.connectTo(masterFakeService);
         fake.flushMicrotasks();
 
@@ -141,6 +150,10 @@ void main() {
         init(fake);
 
         // Connect a slave fake service to a master fake service
+        slaveFakeService0.start();
+        slaveFakeService1.start();
+        masterFakeService.start();
+
         slaveFakeService0.connectTo(masterFakeService);
         slaveFakeService1.connectTo(masterFakeService);
         fake.flushMicrotasks();

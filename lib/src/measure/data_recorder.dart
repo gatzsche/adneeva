@@ -32,9 +32,7 @@ class DataRecorder {
     this.maxNumMeasurements = 10,
     this.packageSizes = const [_oneKb, _oneMb, _tenMb],
   }) {
-    if (role == MeasurmentRole.slave) {
-      _initSlave();
-    }
+    _initMeasurmentCycles();
   }
 
   // ...........................................................................
@@ -45,15 +43,42 @@ class DataRecorder {
   }
 
   // ...........................................................................
+  bool get isRunning => _isRunning;
+
+  // ...........................................................................
   final Connection connection;
   final MeasurmentRole role;
 
   // ######################
-  // Slave
+  // Master
   // ######################
 
-  /// Listen to incoming data packets and send acknowledgement
-  void _initSlave() {
+  /// Listen to incoming acknowledgments and start next measurement cycle then
+
+  final int maxNumMeasurements;
+  final Log? log;
+  final List<int> packageSizes;
+
+  Stream<int> get measurmentCycles => _measurmentCycles.stream;
+
+  // ...........................................................................
+  Future<void> get _waitForAcknowledgement => connection.receiveData.firstWhere(
+        (event) {
+          return event.string.startsWith(Messages.acknowledgment);
+        },
+      );
+
+  // ...........................................................................
+  Future<void> record() async {
+    if (role == MeasurmentRole.master) {
+      await _sendDataToSlaveAndWaitForAcknowledgement();
+    } else {
+      await _listenToDataFromMasterAndAcknowledge();
+    }
+  }
+
+  // ...........................................................................
+  Future<void> _listenToDataFromMasterAndAcknowledge() async {
     final s = connection.receiveData.listen(
       (data) {
         final str = data.string;
@@ -66,26 +91,11 @@ class DataRecorder {
     _dispose.add(s.cancel);
   }
 
-  // ######################
-  // Master
-  // ######################
-
-  /// Listen to incoming acknowledgments and start next measurement cycle then
-
-  final int maxNumMeasurements;
-  final Log? log;
-  final List<int> packageSizes;
-
   // ...........................................................................
-  Future<void> get _waitForAcknowledgement => connection.receiveData.firstWhere(
-        (event) => event.string.startsWith(Messages.acknowledgment),
-      );
+  Future<void> _sendDataToSlaveAndWaitForAcknowledgement() async {
+    _stop = false;
 
-  // ...........................................................................
-  Future<void> run() async {
-    if (role == MeasurmentRole.slave) {
-      return;
-    }
+    _isRunning = true;
 
     for (final packageSize in packageSizes) {
       _initResultArray(packageSize);
@@ -93,18 +103,34 @@ class DataRecorder {
       log?.call('Measuring data for packageSize $packageSize ...');
 
       for (var iteration = 0; iteration < maxNumMeasurements; iteration++) {
+        if (_stop) {
+          log?.call('Stopping measurment');
+          break;
+        }
+
+        _measurmentCycles.add(iteration);
         _initBuffer(packageSize);
         _startTimeMeasurement();
-        await _sendDataToServer();
+        _sendDataToSlave();
         await _waitForAcknowledgement;
         _stopTimeMeasurement();
         _writeMeasuredTimes(packageSize);
       }
     }
 
-    log?.call('Exporting Measurement Results');
-    _exportMeasuredResults();
+    _isRunning = false;
+
+    if (!_stop) {
+      log?.call('Exporting Measurement Results');
+      _exportMeasuredResults();
+    }
+
     log?.call('Done.');
+  }
+
+  // ...........................................................................
+  void stop() {
+    _stop = true;
   }
 
   // ...........................................................................
@@ -136,7 +162,7 @@ class DataRecorder {
   }
 
   // ...........................................................................
-  Future<void> _sendDataToServer() async {
+  Future<void> _sendDataToSlave() async {
     log?.call('Sending buffer of size ${_buffer!.lengthInBytes}...');
     await connection.sendData(_buffer!);
   }
@@ -248,6 +274,13 @@ class DataRecorder {
   // ######################
 
   final List<Function()> _dispose = [];
+
+  bool _stop = false;
+  bool _isRunning = false;
+  final _measurmentCycles = StreamController<int>();
+  void _initMeasurmentCycles() {
+    _dispose.add(_measurmentCycles.close);
+  }
 }
 
 // #############################################################################

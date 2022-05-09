@@ -108,8 +108,8 @@ void main() {
         expect(appA.measurmentMode.value, MeasurmentMode.idle);
         expect(appB.measurmentMode.value, MeasurmentMode.idle);
 
-        // Set AppA into TCP master mode
-        // AppB will be set into TCP slave mode
+        // Set AppA into TCP master mode.
+        // AppB will be set into TCP slave mode.
         appA.measurmentRole.value = MeasurmentRole.master;
         appA.measurmentMode.value = MeasurmentMode.tcp;
         fake.flushMicrotasks();

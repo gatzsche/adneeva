@@ -6,54 +6,73 @@
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile_network_evaluator/src/com/fake/fake_service.dart';
 import 'package:mobile_network_evaluator/src/measure/measure.dart';
+import 'package:mobile_network_evaluator/src/measure/types.dart';
 
 void main() {
   late Measure measureMaster;
   late Measure measureSlave;
   late List<String> logs;
 
-  void init(FakeAsync fake) {
+  // ...........................................................................
+  Future<void> connectMasterAndSlave() async {
+    await (measureSlave.networkService as FakeService).connectTo(
+      measureMaster.networkService as FakeService,
+    );
+  }
+
+  // ...........................................................................
+  void init() {
     logs = [];
     void log(String m) {
       logs.add(m);
     }
 
+    // Create a master and a slave instance
     measureMaster = exampleMeasureMaster(log: log);
     measureSlave = exampleMeasureSlave(log: log);
-    fake.flushMicrotasks();
   }
 
-  void dispose(FakeAsync fake) {
+  // ...........................................................................
+  void dispose(FakeAsync fake) async {
+    measureMaster.stop();
+    measureSlave.stop();
     measureMaster.dispose();
+    measureSlave.dispose();
     fake.flushMicrotasks();
   }
 
   group('Measure', () {
     // #########################################################################
-    group('master', () {
-      test('should start and stop master measuring ', () {
-        fakeAsync((fake) {
-          init(fake);
-          measureMaster.start();
-          expect(logs.last, MeasureLogMessages.startMeasurementAsMaster);
-          measureMaster.stop();
-          expect(logs.last, MeasureLogMessages.stopMeasurementAsMaster);
-          dispose(fake);
-        });
-      });
-    });
 
-    group('slave', () {
-      test('should start and stop master measuring ', () {
-        fakeAsync((fake) {
-          init(fake);
-          measureSlave.start();
-          expect(logs.last, MeasureLogMessages.startMeasurementAsSlave);
-          measureSlave.stop();
-          expect(logs.last, MeasureLogMessages.stopMeasurementAsSlave);
-          dispose(fake);
-        });
+    test(
+        'should allow to measure data rate and latency '
+        'when exchanging data between a master and a slave ', () {
+      fakeAsync((fake) {
+        init();
+        // Start master and slave
+        measureMaster.start();
+        measureSlave.start();
+        connectMasterAndSlave();
+        fake.flushMicrotasks();
+
+        // Perform measurments
+        measureSlave.measure();
+        measureMaster.measure();
+        fake.flushMicrotasks();
+
+        // Stop master and slave
+        measureMaster.stop();
+        expect(logs.last, MeasureLogMessages.stop(MeasurmentRole.master));
+        measureSlave.stop();
+        expect(logs.last, MeasureLogMessages.stop(MeasurmentRole.slave));
+
+        // Get measurment results
+        expect(measureMaster.measurmentResults, isNotEmpty);
+        expect(measureSlave.measurmentResults, isEmpty);
+
+        dispose(fake);
       });
     });
   });
