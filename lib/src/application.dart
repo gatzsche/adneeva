@@ -20,7 +20,6 @@ import 'com/tcp/mocks/mock_network_interface.dart';
 import 'measure/measure.dart';
 import 'measure/tcp/measure_tcp.dart';
 import 'measure/types.dart';
-import 'utils/is_test.dart';
 import 'utils/utils.dart';
 
 // #############################################################################
@@ -36,7 +35,6 @@ class MockApplicationDeps implements ApplicationDeps {
 // #############################################################################
 class Application {
   Application({required this.name}) {
-    _d = isTest ? MockApplicationDeps() : ApplicationDeps();
     _init();
   }
 
@@ -108,29 +106,15 @@ class Application {
   // Private
   // ######################
 
-  late ApplicationDeps _d;
   final _isInitialized = Completer();
 
   final List<Function()> _dispose = [];
 
-  late String _ipAddress;
   bool get isConnected =>
       remoteControlService.service(role.value).connections.value.isNotEmpty;
 
   // ...........................................................................
-  Future<void> _initIpAddress() async {
-    _ipAddress = '127.0.0.1';
-    for (var interface in await _d.networkInterfaceList()) {
-      for (var addr in interface.addresses) {
-        _ipAddress = addr.address;
-        break;
-      }
-    }
-  }
-
-  // ...........................................................................
   void _init() async {
-    await _initIpAddress();
     await _initRemoteControlService();
     _isInitialized.complete();
   }
