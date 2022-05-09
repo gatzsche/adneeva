@@ -21,13 +21,13 @@ void main() {
     late String currentUri;
 
     GgEasyWidgetTest? indexPage;
-    GgEasyWidgetTest? sportsPage;
-    GgEasyWidgetTest? transportationPage;
-    GgEasyWidgetTest? placesPage;
+    GgEasyWidgetTest? tcpPage;
+    GgEasyWidgetTest? nearbyPage;
+    GgEasyWidgetTest? btlePage;
 
-    late GgEasyWidgetTest sportsButton;
-    late GgEasyWidgetTest transportationButton;
-    late GgEasyWidgetTest placesButton;
+    late GgEasyWidgetTest tcpButton;
+    late GgEasyWidgetTest nearbyButton;
+    late GgEasyWidgetTest btleButton;
 
     GgEasyWidgetTest? bottomBarButton0;
     GgEasyWidgetTest? bottomBarButton1;
@@ -56,24 +56,24 @@ void main() {
     // .........................................................................
     void updatePages(WidgetTester tester) {
       indexPage = page('indexPage', tester);
-      sportsPage = page('sportsPage', tester);
-      transportationPage = page('transportationPage', tester);
-      placesPage = page('placesPage', tester);
+      tcpPage = page('tcpPage', tester);
+      nearbyPage = page('nearbyPage', tester);
+      btlePage = page('btlePage', tester);
       currentUri = routerDelegate.currentConfiguration.location!;
     }
 
     // .........................................................................
     void updateHeaderBar(WidgetTester tester) {
-      sportsButton = GgEasyWidgetTest(
-        find.byKey(const ValueKey('sports')),
+      tcpButton = GgEasyWidgetTest(
+        find.byKey(const ValueKey('tcp')),
         tester,
       );
-      transportationButton = GgEasyWidgetTest(
-        find.byKey(const ValueKey('transportation')),
+      nearbyButton = GgEasyWidgetTest(
+        find.byKey(const ValueKey('nearby')),
         tester,
       );
-      placesButton = GgEasyWidgetTest(
-        find.byKey(const ValueKey('places')),
+      btleButton = GgEasyWidgetTest(
+        find.byKey(const ValueKey('btle')),
         tester,
       );
     }
@@ -153,170 +153,169 @@ void main() {
       // ........................................
       // Initially the index page should be shown
       expect(indexPage, isNotNull);
-      expect(sportsPage, isNull);
-      expect(transportationPage, isNull);
-      expect(placesPage, isNull);
+      expect(tcpPage, isNull);
+      expect(nearbyPage, isNull);
+      expect(btlePage, isNull);
 
       // ..................................
-      // Click on sports menu item
-      // => Sports page should only be shown
-      await sportsButton.press();
+      // Click on tcp menu item
+      // => TCP page should only be shown
+      await tcpButton.press();
       update(tester);
-      expect(sportsPage, isNotNull);
-      expect(transportationPage, isNull);
-      expect(placesPage, isNull);
-      expect(currentUri, startsWith('sports/'));
+      expect(tcpPage, isNotNull);
+      expect(nearbyPage, isNull);
+      expect(btlePage, isNull);
+      expect(currentUri, startsWith('tcp/'));
 
       // ..................................
-      // Click on transportations menu item
-      // => Transportations page should only be shown
-      await transportationButton.press();
+      // Click on nearbys menu item
+      // => Nearbys page should only be shown
+      await nearbyButton.press();
       update(tester);
-      expect(sportsPage, isNull);
-      expect(transportationPage, isNotNull);
-      expect(placesPage, isNull);
-      expect(currentUri, startsWith('transportation/'));
+      expect(tcpPage, isNull);
+      expect(nearbyPage, isNotNull);
+      expect(btlePage, isNull);
+      expect(currentUri, startsWith('nearby/'));
 
       // .........................
-      // Click on places menu item
-      // => Transportations page should only be shown
-      await placesButton.press();
+      // Click on btle menu item
+      // => Nearbys page should only be shown
+      await btleButton.press();
       update(tester);
-      expect(sportsPage, isNull);
-      expect(transportationPage, isNull);
-      expect(placesPage, isNotNull);
-      expect(currentUri, startsWith('places/'));
+      expect(tcpPage, isNull);
+      expect(nearbyPage, isNull);
+      expect(btlePage, isNotNull);
+      expect(currentUri, startsWith('btle/'));
 
       await tearDown(tester);
     });
 
     // .........................................................................
-    testWidgets('sports show a bottom navigation bar with tree items',
+    testWidgets('tcp show a bottom navigation bar with tree items',
         (WidgetTester tester) async {
       await setUp(tester);
 
       // .......................
-      // Jump to the sports page
-      await sportsButton.press();
+      // Jump to the tcp page
+      await tcpButton.press();
       update(tester);
 
       // ..........................
       // Click on the first button
-      // => Basketball page should open
+      // => Measure page should open
       await pressBottomButton(0, tester);
-      expect(currentUri, startsWith('sports/basketball'));
+      expect(currentUri, startsWith('tcp/basketball'));
 
       // ..........................
       // Click on the second button
-      // => Basketball page should open
+      // => Measure page should open
       await pressBottomButton(1, tester);
-      expect(currentUri, startsWith('sports/football'));
+      expect(currentUri, startsWith('tcp/football'));
 
       // ..........................
       // Click on the third button
       // => Handball page should open
       await pressBottomButton(2, tester);
-      expect(currentUri, startsWith('sports/handball'));
+      expect(currentUri, startsWith('tcp/handball'));
+
+      await tearDown(tester);
+    });
+
+    // .........................................................................
+    testWidgets('nearby should show a bottom navigation bar with tree items',
+        (WidgetTester tester) async {
+      await setUp(tester);
+
+      // .......................
+      // Jump to the tcp page
+      await tcpButton.press();
+      update(tester);
+
+      // .............................
+      // Switch to nearby page
+      await nearbyButton.press();
+
+      // ..........................
+      // Click on the first button
+      // => Measure page should open
+      await pressBottomButton(0, tester);
+      expect(currentUri, startsWith('nearby/bus'));
+
+      // ..........................
+      // Click on the second button
+      // => Measure page should open
+      await pressBottomButton(1, tester);
+      expect(currentUri, startsWith('nearby/bike'));
+
+      // ..........................
+      // Click on the third button
+      // => Handball page should open
+      await pressBottomButton(2, tester);
+      expect(currentUri, startsWith('nearby/car'));
+
+      await tearDown(tester);
+    });
+
+    // .........................................................................
+    testWidgets('btle should show a bottom navigation bar with tree items',
+        (WidgetTester tester) async {
+      await setUp(tester);
+
+      // .............................
+      // Switch to nearby page
+      await btleButton.press();
+      update(tester);
+
+      // ..........................
+      // Click on the first button
+      // => Measure page should open
+      await pressBottomButton(0, tester);
+      expect(currentUri, startsWith('btle/airport'));
+
+      // ..........................
+      // Click on the second button
+      // => Measure page should open
+      await pressBottomButton(1, tester);
+      expect(currentUri, startsWith('btle/park'));
+
+      // ..........................
+      // Click on the third button
+      // => Handball page should open
+      await pressBottomButton(2, tester);
+      expect(currentUri, startsWith('btle/hospital'));
 
       await tearDown(tester);
     });
 
     // .........................................................................
     testWidgets(
-        'transportation should show a bottom navigation bar with tree items',
+        'when switching from transporations page back to tcp page, '
+        'the last opened tcp sub-page should be opeend',
         (WidgetTester tester) async {
       await setUp(tester);
 
       // .......................
-      // Jump to the sports page
-      await sportsButton.press();
+      // Jump to the tcp page
+      await tcpButton.press();
       update(tester);
 
       // .............................
-      // Switch to transportation page
-      await transportationButton.press();
-
-      // ..........................
-      // Click on the first button
-      // => Basketball page should open
-      await pressBottomButton(0, tester);
-      expect(currentUri, startsWith('transportation/bus'));
-
-      // ..........................
-      // Click on the second button
-      // => Basketball page should open
+      // Open the football tcp page
       await pressBottomButton(1, tester);
-      expect(currentUri, startsWith('transportation/bike'));
-
-      // ..........................
-      // Click on the third button
-      // => Handball page should open
-      await pressBottomButton(2, tester);
-      expect(currentUri, startsWith('transportation/car'));
-
-      await tearDown(tester);
-    });
-
-    // .........................................................................
-    testWidgets('places should show a bottom navigation bar with tree items',
-        (WidgetTester tester) async {
-      await setUp(tester);
+      expect(currentUri, startsWith('tcp/football'));
 
       // .............................
-      // Switch to transportation page
-      await placesButton.press();
+      // Open the nearbys page
+      await nearbyButton.press();
       update(tester);
-
-      // ..........................
-      // Click on the first button
-      // => Basketball page should open
-      await pressBottomButton(0, tester);
-      expect(currentUri, startsWith('places/airport'));
-
-      // ..........................
-      // Click on the second button
-      // => Basketball page should open
-      await pressBottomButton(1, tester);
-      expect(currentUri, startsWith('places/park'));
-
-      // ..........................
-      // Click on the third button
-      // => Handball page should open
-      await pressBottomButton(2, tester);
-      expect(currentUri, startsWith('places/hospital'));
-
-      await tearDown(tester);
-    });
-
-    // .........................................................................
-    testWidgets(
-        'when switching from transporations page back to sports page, '
-        'the last opened sports sub-page should be opeend',
-        (WidgetTester tester) async {
-      await setUp(tester);
-
-      // .......................
-      // Jump to the sports page
-      await sportsButton.press();
-      update(tester);
+      expect(currentUri, startsWith('nearby'));
 
       // .............................
-      // Open the football sports page
-      await pressBottomButton(1, tester);
-      expect(currentUri, startsWith('sports/football'));
-
-      // .............................
-      // Open the transportations page
-      await transportationButton.press();
-      update(tester);
-      expect(currentUri, startsWith('transportation'));
-
-      // .............................
-      // Switch back to sports page
+      // Switch back to tcp page
       // => last opened page should be visible again
-      await sportsButton.press();
+      await tcpButton.press();
       update(tester);
-      expect(currentUri, startsWith('sports/football'));
+      expect(currentUri, startsWith('tcp/football'));
 
       await tearDown(tester);
     });
@@ -332,10 +331,10 @@ void main() {
       await setUp(tester);
 
       // .......................
-      // Jump to the sports page
-      await sportsButton.press();
+      // Jump to the tcp page
+      await tcpButton.press();
       update(tester);
-      expect(currentUri, startsWith('sports/basketball'));
+      expect(currentUri, startsWith('tcp/basketball'));
 
       // ....................................................
       // Click on the basket ball in the center of the screen
@@ -346,7 +345,7 @@ void main() {
 
       // ................................
       // A dialog should have been opened
-      expect(currentUri, startsWith('sports/basketball/popover'));
+      expect(currentUri, startsWith('tcp/basketball/popover'));
       await tester.pumpAndSettle();
 
       // ..........................
@@ -356,7 +355,7 @@ void main() {
       var checkBoxWidget = checkBox.widget as CheckboxListTile;
       expect(checkBoxWidget.value, false);
       update(tester);
-      expect(currentUri, 'sports/basketball/popover?visit=false');
+      expect(currentUri, 'tcp/basketball/popover?visit=false');
 
       // ........................
       // Let's click the checkbox
@@ -366,14 +365,13 @@ void main() {
       checkBox = GgEasyWidgetTest(find.byType(CheckboxListTile), tester);
       checkBoxWidget = checkBox.widget as CheckboxListTile;
       expect(checkBoxWidget.value, true);
-      expect(currentUri, 'sports/basketball/popover?visit=true');
+      expect(currentUri, 'tcp/basketball/popover?visit=true');
 
       // ..............
       // Change the URI
       // => checkbox should change also
       routerDelegate.setNewRoutePath(
-        const RouteInformation(
-            location: 'sports/basketball/popover?visit=false'),
+        const RouteInformation(location: 'tcp/basketball/popover?visit=false'),
       );
       await tester.pumpAndSettle();
       update(tester);
@@ -391,7 +389,7 @@ void main() {
       await dialogCloseButton.press();
       await tester.pumpAndSettle();
       update(tester);
-      expect(currentUri, 'sports/basketball?visit=false');
+      expect(currentUri, 'tcp/basketball?visit=false');
 
       await tearDown(tester);
     });
@@ -407,9 +405,9 @@ void main() {
 
       // ................
       // Open the popover
-      routerDelegate.root.navigateTo('/sports/basketball/popover');
+      routerDelegate.root.navigateTo('/tcp/basketball/popover');
       await tester.pumpAndSettle();
-      expect(routerDelegate.root.stagedChildPath, 'sports/basketball/popover');
+      expect(routerDelegate.root.stagedChildPath, 'tcp/basketball/popover');
 
       // ..................
       // Click on "Details"
@@ -421,7 +419,7 @@ void main() {
 
       // Check if the details page was opened
       expect(routerDelegate.root.stagedChildPath,
-          'sports/basketball/popover/details');
+          'tcp/basketball/popover/details');
 
       // .......................
       // Click on "More details"
@@ -434,7 +432,7 @@ void main() {
 
       // Check if the details page was opened
       expect(routerDelegate.root.stagedChildPath,
-          'sports/basketball/popover/details/more-details');
+          'tcp/basketball/popover/details/more-details');
 
       // ........................
       // Click on the back button
@@ -447,7 +445,7 @@ void main() {
 
       // Check if we have navigated back
       expect(routerDelegate.root.stagedChildPath,
-          'sports/basketball/popover/details');
+          'tcp/basketball/popover/details');
 
       // ..............................
       // Finally let's close the dialog
@@ -459,7 +457,7 @@ void main() {
       await dialogCloseButton.press();
       await tester.pumpAndSettle();
       update(tester);
-      expect(currentUri, 'sports/basketball?visit=false');
+      expect(currentUri, 'tcp/basketball?visit=false');
     });
 
     // .........................................................................
@@ -467,13 +465,13 @@ void main() {
         (WidgetTester tester) async {
       await setUp(tester);
 
-      routerDelegate.setNewRoutePath(
-          const RouteInformation(location: 'sports/superhero'));
+      routerDelegate
+          .setNewRoutePath(const RouteInformation(location: 'tcp/superhero'));
       await tester.pumpAndSettle();
       final snackBar =
           GgEasyWidgetTest(find.byType(SnackBar), tester).widget as SnackBar;
       expect((snackBar.content as Text).data,
-          'Route "/sports" has no child named "superhero" nor does your GgRouter define a "*" wild card route.');
+          'Route "/tcp" has no child named "superhero" nor does your GgRouter define a "*" wild card route.');
 
       await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -508,23 +506,23 @@ void main() {
       const stagedChildKey = GgRouteTreeNode.stagedChildJsonKey;
       const lastState = '''
       {
-        "$stagedChildKey":"transportation",
-        "transportation":{
+        "$stagedChildKey":"nearby",
+        "nearby":{
         "$stagedChildKey":"bus"
         }
       }
       ''';
 
       // .......................................
-      // Start the application, and expect that it is on transportation/bus
+      // Start the application, and expect that it is on nearby/bus
       await setUp(tester, lastState: lastState);
       await tester.pumpAndSettle();
       update(tester);
-      expect(routerDelegate.root.stagedChildPath, 'transportation/bus');
+      expect(routerDelegate.root.stagedChildPath, 'nearby/bus');
       expect(indexPage, isNull);
-      expect(sportsPage, isNull);
-      expect(transportationPage, isNotNull);
-      expect(placesPage, isNull);
+      expect(tcpPage, isNull);
+      expect(nearbyPage, isNotNull);
+      expect(btlePage, isNull);
     });
 
     // .........................................................................
@@ -534,15 +532,15 @@ void main() {
 
       const stagedChildKey = GgRouteTreeNode.stagedChildJsonKey;
       // .......................................
-      // Start the application, and expect that it is on transportation/bus
+      // Start the application, and expect that it is on nearby/bus
       await setUp(tester);
-      routerDelegate.root.navigateTo('places/hospital');
+      routerDelegate.root.navigateTo('btle/hospital');
       await tester.pumpAndSettle();
       update(tester);
       expect(indexPage, isNull);
-      expect(sportsPage, isNull);
-      expect(transportationPage, isNull);
-      expect(placesPage, isNotNull);
+      expect(tcpPage, isNull);
+      expect(nearbyPage, isNull);
+      expect(btlePage, isNotNull);
       final preferences = await SharedPreferences.getInstance();
       expect(preferences.getString('lastApplicationState'),
           contains('"$stagedChildKey":"hospital"'));
@@ -552,10 +550,9 @@ void main() {
     testWidgets('Semantic labels should be assigned correctly',
         (WidgetTester tester) async {
       await setUp(tester);
-      expect(find.bySemanticsLabel('Navigate to Sports Page'), findsOneWidget);
-      expect(find.bySemanticsLabel('Navigate to Transportation Page'),
-          findsOneWidget);
-      expect(find.bySemanticsLabel('Navigate to Places Page'), findsOneWidget);
+      expect(find.bySemanticsLabel('Navigate to TCP Page'), findsOneWidget);
+      expect(find.bySemanticsLabel('Navigate to Nearby Page'), findsOneWidget);
+      expect(find.bySemanticsLabel('Navigate to BTLE Page'), findsOneWidget);
     });
   });
 }

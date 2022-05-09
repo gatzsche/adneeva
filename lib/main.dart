@@ -49,12 +49,12 @@ class _GgRouterExampleState extends State<GgRouterExample> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'GgRouterExample',
+      title: 'Mobile AdHoc Evaluator',
       routerDelegate: GgRouterDelegate(
         child: _appContent,
         saveState: _saveState,
         restoreState: _restoreState,
-        defaultRoute: '/sports/basketball',
+        defaultRoute: '/tcp/basketball',
       ),
       routeInformationParser: GgRouteInformationParser(),
       themeMode: ThemeMode.dark,
@@ -69,11 +69,11 @@ class _GgRouterExampleState extends State<GgRouterExample> {
   Widget get _appContent {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('GgRouter'),
+        title: const Text('Mobile AdHoc Evaluator'),
         actions: <Widget>[
-          _routeButton('Sports', 'sports'),
-          _routeButton('Transportation', 'transportation'),
-          _routeButton('Places', 'places'),
+          _routeButton('TCP', 'tcp'),
+          _routeButton('Nearby', 'nearby'),
+          _routeButton('BTLE', 'btle'),
           Container(
             width: debugShowCheckedModeBanner ? 50 : 0,
           ),
@@ -85,9 +85,9 @@ class _GgRouterExampleState extends State<GgRouterExample> {
           return GgRouter(
             {
               '_INDEX_': _indexPage,
-              'sports': _sportsPage,
-              'transportation': _transportationPage,
-              'places': _placesPage,
+              'tcp': _tcpPage,
+              'nearby': _nearbyPage,
+              'btle': _btlePage,
               '*': _wildCardPage,
             },
             key: const ValueKey('mainRouter'),
@@ -95,9 +95,9 @@ class _GgRouterExampleState extends State<GgRouterExample> {
             outAnimation: _zoomOut,
             semanticLabels: const {
               '_INDEX_': 'Navigate to Index Page',
-              'sports': 'Navigate to Sports Page',
-              'transportation': 'Navigate to Transportation Page',
-              'places': 'Navigate to Places Page',
+              'tcp': 'Navigate to TCP Page',
+              'nearby': 'Navigate to Nearby Page',
+              'btle': 'Navigate to BTLE Page',
               '*': 'Another Page',
             },
           );
@@ -314,11 +314,11 @@ class _GgRouterExampleState extends State<GgRouterExample> {
   }
 
   // ...........................................................................
-  Widget _sportsPage(BuildContext context) {
+  Widget _tcpPage(BuildContext context) {
     final router = GgRouter.of(context);
 
     return Scaffold(
-      key: const ValueKey('sportsPage'),
+      key: const ValueKey('tcpPage'),
       bottomNavigationBar: StreamBuilder(
           stream: router.onActiveChildChange,
           builder: (context, snapshot) {
@@ -328,11 +328,11 @@ class _GgRouterExampleState extends State<GgRouterExample> {
               currentIndex: index,
               items: const [
                 BottomNavigationBarItem(
-                  label: 'Basketball',
+                  label: 'Measure',
                   icon: Icon(Icons.sports_basketball),
                 ),
                 BottomNavigationBarItem(
-                  label: 'Football',
+                  label: 'Results',
                   icon: Icon(Icons.sports_football),
                 ),
                 BottomNavigationBarItem(
@@ -380,7 +380,7 @@ class _GgRouterExampleState extends State<GgRouterExample> {
           'football': (c) => _bigIcon(c, Icons.sports_football),
           'handball': (c) => _bigIcon(c, Icons.sports_handball),
         },
-        key: const ValueKey('sportsRouter'),
+        key: const ValueKey('tcpRouter'),
         defaultRoute: 'basketball',
         inAnimation: _moveIn,
         outAnimation: _moveOut,
@@ -389,11 +389,11 @@ class _GgRouterExampleState extends State<GgRouterExample> {
   }
 
   // ...........................................................................
-  Widget _transportationPage(BuildContext context) {
+  Widget _nearbyPage(BuildContext context) {
     final router = GgRouter.of(context);
 
     return Scaffold(
-      key: const ValueKey('transportationPage'),
+      key: const ValueKey('nearbyPage'),
       bottomNavigationBar: StreamBuilder(
           stream: router.onActiveChildChange,
           builder: (context, snapshot) {
@@ -436,7 +436,7 @@ class _GgRouterExampleState extends State<GgRouterExample> {
           'bike': (c) => _bigIcon(c, Icons.directions_bike),
           'car': (c) => _bigIcon(c, Icons.directions_car),
         },
-        key: const ValueKey('/transportation'),
+        key: const ValueKey('/nearby'),
         defaultRoute: 'bus',
         inAnimation: _moveIn,
         outAnimation: _moveOut,
@@ -445,13 +445,13 @@ class _GgRouterExampleState extends State<GgRouterExample> {
   }
 
 // ...........................................................................
-  Widget _placesPage(BuildContext context) {
+  Widget _btlePage(BuildContext context) {
     final router = GgRouter.of(context);
     // return Container(color: Colors.green);
 
     return Scaffold(
       bottomNavigationBar: StreamBuilder(
-          key: const ValueKey('placesPage'),
+          key: const ValueKey('btlePage'),
           stream: router.onActiveChildChange,
           builder: (context, snapshot) {
             final index = router.indexOfActiveChild ?? 0;
@@ -493,7 +493,7 @@ class _GgRouterExampleState extends State<GgRouterExample> {
           'park': (c) => _bigIcon(c, Icons.park),
           'hospital': (c) => _bigIcon(c, Icons.local_hospital),
         },
-        key: const ValueKey('/places'),
+        key: const ValueKey('/btle'),
         defaultRoute: 'airport',
         inAnimation: _moveIn,
         outAnimation: _moveOut,
