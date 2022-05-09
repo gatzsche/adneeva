@@ -14,9 +14,7 @@ import '../shared/network_service.dart';
 class FakeServiceInfo {}
 
 // .............................................................................
-class ResolvedFakeServiceInfo extends FakeServiceInfo {
-  ResolvedFakeServiceInfo();
-}
+class ResolvedFakeServiceInfo extends FakeServiceInfo {}
 
 class FakeService
     extends NetworkService<FakeServiceInfo, ResolvedFakeServiceInfo> {
@@ -72,8 +70,10 @@ class FakeService
   // ................
   // Connect services
 
+  // coverage:ignore-start
   @override
   Future<void> connectToDiscoveredService(service) async {}
+  // coverage:ignore-end
 
   // ...........................................................................
   @override

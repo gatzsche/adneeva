@@ -103,7 +103,6 @@ class Application {
 
   @visibleForTesting
   final int port = randomPort();
-  String get ip => _ipAddress;
 
   // ######################
   // Private
