@@ -5,11 +5,9 @@
 // found in the LICENSE file in the root of this package.
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:gg_router/gg_router.dart';
-import 'package:gg_value/gg_value.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import './src/application.dart';
@@ -174,121 +172,6 @@ class _GgRouterExampleState extends State<GgRouterExample> {
   }
 
   // ...........................................................................
-  Widget _dialogContent(BuildContext context) {
-    return GgNavigationPageRoot(
-      // Customize animation
-      inAnimation: _navigateIn(context),
-      outAnimation: _navigateOut(context),
-
-      // Customize navigation bar style
-      navigationBarBackgroundColor: null,
-      navigationBarPadding: 10,
-
-      // Customize back button
-      navigationBarBackButton: (_) => const Icon(
-        Icons.arrow_back_ios_new,
-        size: 18.0,
-      ),
-
-      // Customize close button
-      navigationBarCloseButton: (_) => const Icon(
-        Icons.close,
-        size: 18.0,
-      ),
-
-      // Setup page content
-      pageContent: (ctx2) => Center(
-        child: Column(
-          children: [
-            Row(children: [
-              TextButton(
-                child: const Text('Hello World'),
-                onPressed: () {}, // coverage:ignore-line
-              ),
-              const Spacer(),
-            ]),
-            const Spacer(),
-            _checkBox(context),
-            Container(
-              height: 30,
-            ),
-            TextButton(
-              key: const ValueKey('Details Button'),
-              onPressed: () => GgRouter.of(ctx2).navigateTo('details'),
-              child: const Text('Details'),
-            ),
-            const Spacer(),
-          ],
-        ),
-      ),
-      children: {
-        'details': GgNavigationPage(
-          pageContent: (ctx3) => Container(
-            color: const Color(0xFF555555),
-            child: Center(
-                child: TextButton(
-                    key: const ValueKey('More Details Button'),
-                    onPressed: () {
-                      GgRouter.of(ctx3).navigateTo('more-details');
-                    },
-                    child: const Text('More details'))),
-          ),
-          children: {
-            'more-details': GgNavigationPage(
-              pageContent: (_) => Container(
-                color: const Color(0xFF666666),
-                child: const Center(
-                  child: Text('More details'),
-                ),
-              ),
-            )
-          },
-          semanticLabels: const {
-            'more-details': 'More Details',
-          },
-        )
-      },
-      semanticLabels: const {
-        'details': 'Details',
-      },
-    );
-  }
-
-  // ...........................................................................
-  Widget _dialog(BuildContext context) {
-    return Dialog(
-      child: _dialogContent(context),
-    );
-  }
-
-  // ...........................................................................
-  Widget _checkBox(BuildContext context) {
-    final GgValue param = GgRouter.of(context).param('visit')!;
-
-    return Row(children: [
-      Expanded(child: Container()),
-      SizedBox(
-        width: 200,
-        height: 50,
-        child: Container(
-          color: const Color(0x11FFFFFF),
-          child: StreamBuilder(
-            stream: param.stream,
-            builder: (context, snapshot) {
-              return CheckboxListTile(
-                title: const Text('Visit Event'),
-                value: param.value,
-                onChanged: (newValue) => param.value = newValue as bool,
-              );
-            },
-          ),
-        ),
-      ),
-      Expanded(child: Container()),
-    ]);
-  }
-
-  // ...........................................................................
   Widget _indexPage(BuildContext context) {
     return Center(
       key: const ValueKey('indexPage'),
@@ -357,26 +240,7 @@ class _GgRouterExampleState extends State<GgRouterExample> {
           }),
       body: GgRouter(
         {
-          'measure': (context) {
-            return GgRouteParams(
-              params: {
-                'visit': GgRouteParam<bool>(seed: false),
-              },
-              child: GgPopoverRoute(
-                key: const ValueKey('dialog'),
-                name: 'popover',
-                semanticLabel: 'Popover Dialog Example',
-                base: Listener(
-                  child: _bigIcon(context, Icons.sports_basketball),
-                  onPointerUp: (_) =>
-                      GgRouter.of(context).navigateTo('./popover'),
-                ),
-                popover: _dialog,
-                inAnimation: _rotateIn,
-                outAnimation: _rotateOut,
-              ),
-            );
-          },
+          'measure': (c) => _bigIcon(c, Icons.sports_basketball),
           'results': (c) => _bigIcon(c, Icons.sports_football),
           'info': (c) => _bigIcon(c, Icons.sports_handball),
         },
@@ -602,93 +466,5 @@ class _GgRouterExampleState extends State<GgRouterExample> {
       offset: offset,
       child: child,
     );
-  }
-
-  // ...........................................................................
-  Widget _rotateIn(
-    BuildContext context,
-    Animation animation,
-    Widget child,
-    Size size,
-  ) {
-    final scale = animation.value;
-    final angle = 2 * pi * animation.value;
-    final fade = animation.value;
-
-    return Transform.scale(
-      scale: scale,
-      child: Transform.rotate(
-        angle: angle,
-        child: Opacity(
-          opacity: fade,
-          child: child,
-        ),
-      ),
-    );
-  }
-
-  // ...........................................................................
-  Widget _rotateOut(
-    BuildContext context,
-    Animation animation,
-    Widget child,
-    Size size,
-  ) {
-    final scale = 1.0 - animation.value;
-    final angle = -2 * pi * animation.value;
-    final fade = 1.0 - animation.value;
-
-    return Transform.scale(
-      scale: scale,
-      child: Transform.rotate(
-        angle: angle,
-        child: Opacity(
-          opacity: fade,
-          child: child,
-        ),
-      ),
-    );
-  }
-
-  // ...........................................................................
-  Widget _moveInFromRight(Animation animation, Widget child, double width) {
-    return Transform.translate(
-        offset: Offset(
-            (1.0 - Curves.easeInOut.transform(animation.value)) * width, 0),
-        child: child);
-  }
-
-  // ...........................................................................
-  Widget _moveOutToRight(Animation animation, Widget child, double width) {
-    return Transform.translate(
-      offset: Offset(Curves.easeInOut.transform(animation.value) * width, 0),
-      child: child,
-    );
-  }
-
-  // ...........................................................................
-  GgAnimationBuilder _navigateIn(BuildContext context) {
-    return (BuildContext context, Animation animation, Widget child,
-        Size size) {
-      final currentRoute = GgRouter.of(context).nameOfChildAnimatingIn;
-
-      return currentRoute != '_INDEX_'
-          ? GgShowInForeground(
-              child: _moveInFromRight(animation, child, size.width))
-          : child;
-    };
-  }
-
-  // ...........................................................................
-  GgAnimationBuilder _navigateOut(BuildContext context) {
-    return (BuildContext context, Animation animation, Widget child,
-        Size size) {
-      final currentRoute = GgRouter.of(context).nameOfChildAnimatingOut;
-
-      return currentRoute != '_INDEX_'
-          ? GgShowInForeground(
-              child: _moveOutToRight(animation, child, size.width))
-          : child;
-    };
   }
 }

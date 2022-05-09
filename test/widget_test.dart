@@ -210,7 +210,7 @@ void main() {
       // Click on the second button
       // => Measure page should open
       await pressBottomButton(1, tester);
-      expect(currentUri, startsWith('tcp/football'));
+      expect(currentUri, startsWith('tcp/results'));
 
       // ..........................
       // Click on the third button
@@ -300,9 +300,9 @@ void main() {
       update(tester);
 
       // .............................
-      // Open the football tcp page
+      // Open the results tcp page
       await pressBottomButton(1, tester);
-      expect(currentUri, startsWith('tcp/football'));
+      expect(currentUri, startsWith('tcp/results'));
 
       // .............................
       // Open the nearbys page
@@ -315,149 +315,9 @@ void main() {
       // => last opened page should be visible again
       await tcpButton.press();
       update(tester);
-      expect(currentUri, startsWith('tcp/football'));
+      expect(currentUri, startsWith('tcp/results'));
 
       await tearDown(tester);
-    });
-
-    // .........................................................................
-    testWidgets(
-        'when clicking on basket ball page, a dialog should open.'
-        'The dialog should show a check box. '
-        'Checking the checkbox should change the visit param in the URI. '
-        'Changing the visit param in the URI should change the checkbox. '
-        'Clicking the close button should switch back.',
-        (WidgetTester tester) async {
-      await setUp(tester);
-
-      // .......................
-      // Jump to the tcp page
-      await tcpButton.press();
-      update(tester);
-      expect(currentUri, startsWith('tcp/measure'));
-
-      // ....................................................
-      // Click on the basket ball in the center of the screen
-      final gesture =
-          await tester.startGesture(ggRouterExample.absoluteFrame.center);
-      await gesture.up();
-      update(tester);
-
-      // ................................
-      // A dialog should have been opened
-      expect(currentUri, startsWith('tcp/measure/popover'));
-      await tester.pumpAndSettle();
-
-      // ..........................
-      // There should be a checkbox
-      // The checkbox should not be checked
-      var checkBox = GgEasyWidgetTest(find.byType(CheckboxListTile), tester);
-      var checkBoxWidget = checkBox.widget as CheckboxListTile;
-      expect(checkBoxWidget.value, false);
-      update(tester);
-      expect(currentUri, 'tcp/measure/popover?visit=false');
-
-      // ........................
-      // Let's click the checkbox
-      // => The checkbox should be checked now
-      await checkBox.press();
-      update(tester);
-      checkBox = GgEasyWidgetTest(find.byType(CheckboxListTile), tester);
-      checkBoxWidget = checkBox.widget as CheckboxListTile;
-      expect(checkBoxWidget.value, true);
-      expect(currentUri, 'tcp/measure/popover?visit=true');
-
-      // ..............
-      // Change the URI
-      // => checkbox should change also
-      routerDelegate.setNewRoutePath(
-        const RouteInformation(location: 'tcp/measure/popover?visit=false'),
-      );
-      await tester.pumpAndSettle();
-      update(tester);
-      checkBox = GgEasyWidgetTest(find.byType(CheckboxListTile), tester);
-      checkBoxWidget = checkBox.widget as CheckboxListTile;
-      expect(checkBoxWidget.value, false);
-
-      // ..............................
-      // Finally let's close the dialog
-      // => dialog is removed from the URI
-      final dialogCloseButton = GgEasyWidgetTest(
-        find.byKey(const ValueKey('GgNavigationPageCloseButton')),
-        tester,
-      );
-      await dialogCloseButton.press();
-      await tester.pumpAndSettle();
-      update(tester);
-      expect(currentUri, 'tcp/measure?visit=false');
-
-      await tearDown(tester);
-    });
-
-    testWidgets(
-        'when clicking on basket ball page, a dialog should open. '
-        'Clicking on "Details" should open a detail page. '
-        'Clicking on "Even more Details" should open another detail page. '
-        'Clicking on the "back button" should navigate to the previous page. '
-        'Clicking on the "close button" should close the dialog. ',
-        (WidgetTester tester) async {
-      await setUp(tester);
-
-      // ................
-      // Open the popover
-      routerDelegate.root.navigateTo('/tcp/measure/popover');
-      await tester.pumpAndSettle();
-      expect(routerDelegate.root.stagedChildPath, 'tcp/measure/popover');
-
-      // ..................
-      // Click on "Details"
-      final detailsButtonFinder = find.byKey(const ValueKey('Details Button'));
-      expect(detailsButtonFinder, findsOneWidget);
-      var gesture = await tester.press(detailsButtonFinder);
-      await gesture.up();
-      await tester.pumpAndSettle();
-
-      // Check if the details page was opened
-      expect(
-          routerDelegate.root.stagedChildPath, 'tcp/measure/popover/details');
-
-      // .......................
-      // Click on "More details"
-      final moreDetailsButtonFinder =
-          find.byKey(const ValueKey('More Details Button'));
-      expect(moreDetailsButtonFinder, findsOneWidget);
-      gesture = await tester.press(moreDetailsButtonFinder);
-      await gesture.up();
-      await tester.pumpAndSettle();
-
-      // Check if the details page was opened
-      expect(routerDelegate.root.stagedChildPath,
-          'tcp/measure/popover/details/more-details');
-
-      // ........................
-      // Click on the back button
-      final dialogBackButton = GgEasyWidgetTest(
-        find.byKey(const ValueKey('GgNavigationPageBackButton')),
-        tester,
-      );
-      await dialogBackButton.press();
-      await tester.pumpAndSettle();
-
-      // Check if we have navigated back
-      expect(
-          routerDelegate.root.stagedChildPath, 'tcp/measure/popover/details');
-
-      // ..............................
-      // Finally let's close the dialog
-      // => dialog is removed from the URI
-      final dialogCloseButton = GgEasyWidgetTest(
-        find.byKey(const ValueKey('GgNavigationPageCloseButton')),
-        tester,
-      );
-      await dialogCloseButton.press();
-      await tester.pumpAndSettle();
-      update(tester);
-      expect(currentUri, 'tcp/measure?visit=false');
     });
 
     // .........................................................................
