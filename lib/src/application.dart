@@ -54,7 +54,7 @@ class Application {
     await _remoteControlService.slave.firstConnection;
   }
 
-  final measurmentMode = GgValue<MeasurementMode>(seed: MeasurementMode.idle);
+  final measurementMode = GgValue<MeasurementMode>(seed: MeasurementMode.idle);
   final role = GgValue<EndpointRole>(seed: EndpointRole.master);
 
   // ...........................................................................
@@ -170,7 +170,7 @@ class Application {
         if (id == 'EndpointRoleCmd') {
           final cmd = EndpointRoleCmd.fromJson(command);
           role.value = cmd.role;
-          measurmentMode.value = cmd.mode;
+          measurementMode.value = cmd.mode;
         } else if (id == 'StartMeasurementCmd') {
           startMeasurements();
         } else if (id == 'StopMeasurementCmd') {
@@ -182,11 +182,11 @@ class Application {
 
   // ...........................................................................
   void _listenToEndpointRole() {
-    StreamGroup.merge([measurmentMode.stream, role.stream]).listen(
+    StreamGroup.merge([measurementMode.stream, role.stream]).listen(
       (value) {
         if (role.value == EndpointRole.master) {
           _sendCommand(EndpointRoleCmd(
-            mode: measurmentMode.value,
+            mode: measurementMode.value,
             role: EndpointRole.slave,
           ));
         }
