@@ -34,13 +34,13 @@ class BonjourService
   // ...........................................................................
   BonjourService({
     required BonsoirService service,
-    required NetworkServiceMode mode,
+    required EndpointRole mode,
     Function(String)? log,
     String? name,
   })  : _bonsoirService = service,
         super(
           serviceInfo: service,
-          mode: mode,
+          role: mode,
           name: name ?? 'BonjourService',
         ) {
     _d = isTest ? const MockBonjourServiceDeps() : const BonjourServiceDeps();

@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:gg_value/gg_value.dart';
 import 'package:async/async.dart';
 
+import 'com/shared/bipolar_service.dart';
 import 'com/shared/commands.dart';
 import 'com/tcp/bonjour_service.dart';
 import 'com/tcp/mocks/mock_network_interface.dart';
@@ -50,18 +51,22 @@ class Application {
   final String name;
 
   // ...........................................................................
-  Future<void> get waitUntilConnected => _remoteControlService.firstConnection;
+  Future<void> get waitUntilConnected async {
+    await _remoteControlService.master.firstConnection;
+    await _remoteControlService.slave.firstConnection;
+  }
 
-  final measurmentMode = GgValue<MeasurmentMode>(seed: MeasurmentMode.idle);
-  final measurmentRole = GgValue<MeasurmentRole>(seed: MeasurmentRole.master);
+  final measurmentMode = GgValue<MeasurementMode>(seed: MeasurementMode.idle);
+  final role = GgValue<EndpointRole>(seed: EndpointRole.master);
 
   // ...........................................................................
+  Measure? get measure => _measure;
   Measure? _measure;
 
   // ...........................................................................
   void waitForConnections() async {
     await waitUntilConnected;
-    _listenToMeasurmentMode();
+    _listenToEndpointRole();
     _listenForCommands();
   }
 
@@ -70,33 +75,31 @@ class Application {
     if (_measure?.isMeasuring.value == true) {
       return;
     }
-    isMeasuring.value = true;
-
-    if (measurmentMode.value == MeasurmentMode.tcp) {
-      _measure = MeasureTcp(role: MeasurmentRole.master);
-    } else {
-      throw UnimplementedError;
-    }
-
-    await _measure!.start();
+    _startMeasurementOnOtherSide();
+    _initMeasurement();
+    await _measure!.connect();
+    await _measure!.measure();
   }
 
   // ...........................................................................
-  void stopMeasurments() async {
-    _measure?.stop();
+  void stopMeasurements() async {
+    _measure?.disconnect();
+    _stopMeasurementOnOtherSide();
   }
 
-  final isMeasuring = GgValue<bool>(seed: false);
-  void _initIsMeasuring() {
-    _dispose.add(isMeasuring.dispose);
-  }
+  // ...........................................................................
+  List<String>? get measurementResults => _measure?.measurmentResults;
+
+  // ...........................................................................
+  bool get isMeasuring => _measure?.isMeasuring.value ?? false;
 
   // ######################
   // Test
   // ######################
 
   @visibleForTesting
-  BonjourService get remoteControlService => _remoteControlService;
+  BipolarService<BonjourService> get remoteControlService =>
+      _remoteControlService;
 
   @visibleForTesting
   final int port = randomPort();
@@ -112,7 +115,8 @@ class Application {
   final List<Function()> _dispose = [];
 
   late String _ipAddress;
-  bool get isConnected => _remoteControlService.connections.value.isNotEmpty;
+  bool get isConnected =>
+      remoteControlService.service(role.value).connections.value.isNotEmpty;
 
   // ...........................................................................
   Future<void> _initIpAddress() async {
@@ -127,23 +131,35 @@ class Application {
 
   // ...........................................................................
   void _init() async {
-    _initIsMeasuring();
     await _initIpAddress();
-    await _initRemoteControl();
+    await _initRemoteControlService();
     _isInitialized.complete();
   }
 
   // ...........................................................................
-  late BonjourService _remoteControlService;
-  Future<void> _initRemoteControl() async {
-    _remoteControlService = BonjourService(
+  late BipolarService<BonjourService> _remoteControlService;
+  Future<void> _initRemoteControlService() async {
+    final info = BonsoirService(
+      name: 'Mobile Network Evaluator',
+      port: port,
+      type: '_mobile_network_evaluator._tcp',
+    );
+
+    final master = BonjourService(
       name: name,
-      mode: NetworkServiceMode.masterAndSlave,
-      service: BonsoirService(
-        name: 'Mobile Network Evaluator',
-        port: port,
-        type: '_mobile_network_evaluator._tcp',
-      ),
+      mode: EndpointRole.master,
+      service: info,
+    );
+
+    final slave = BonjourService(
+      name: name,
+      mode: EndpointRole.slave,
+      service: info,
+    );
+
+    _remoteControlService = BipolarService<BonjourService>(
+      master: master,
+      slave: slave,
     );
 
     _remoteControlService.start();
@@ -152,39 +168,66 @@ class Application {
 
   // ...........................................................................
   void _sendCommand(Command command) {
-    _remoteControlService.connections.value.first.sendString(
+    _remoteControlService.master.connections.value.first.sendString(
       command.toJsonString(),
     );
   }
 
   // ...........................................................................
   void _listenForCommands() {
-    _remoteControlService.connections.value.first.receiveData.listen(
+    _remoteControlService.slave.connections.value.first.receiveData.listen(
       (uint8List) {
+        // Currently only master sends remote control commands
+
         final string = String.fromCharCodes(uint8List);
         final command = json.decode(string);
 
-        if (command['id'] == 'MeasurmentModeCmd') {
-          final cmd = MeasurmentModeCmd.fromJson(command);
-          measurmentRole.value = cmd.role;
+        final id = command['id'];
+
+        if (id == 'EndpointRoleCmd') {
+          final cmd = EndpointRoleCmd.fromJson(command);
+          role.value = cmd.role;
           measurmentMode.value = cmd.mode;
+        } else if (id == 'StartMeasurementCmd') {
+          startMeasurements();
+        } else if (id == 'StopMeasurementCmd') {
+          stopMeasurements();
         }
       },
     );
   }
 
   // ...........................................................................
-  void _listenToMeasurmentMode() {
-    StreamGroup.merge([measurmentMode.stream, measurmentRole.stream]).listen(
+  void _listenToEndpointRole() {
+    StreamGroup.merge([measurmentMode.stream, role.stream]).listen(
       (value) {
-        if (measurmentRole.value == MeasurmentRole.master) {
-          _sendCommand(MeasurmentModeCmd(
+        if (role.value == EndpointRole.master) {
+          _sendCommand(EndpointRoleCmd(
             mode: measurmentMode.value,
-            role: MeasurmentRole.slave,
+            role: EndpointRole.slave,
           ));
         }
       },
     );
+  }
+
+  // ...........................................................................
+  void _initMeasurement() {
+    _measure = MeasureTcp(role: role.value);
+  }
+
+  // ...........................................................................
+  void _startMeasurementOnOtherSide() {
+    if (role.value == EndpointRole.master) {
+      _sendCommand(StartMeasurementCmd());
+    }
+  }
+
+  // ...........................................................................
+  void _stopMeasurementOnOtherSide() {
+    if (role.value == EndpointRole.master) {
+      _sendCommand(StopMeasurementCmd());
+    }
   }
 }
 

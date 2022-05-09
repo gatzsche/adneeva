@@ -12,7 +12,7 @@ import 'package:mocktail/mocktail.dart';
 
 class MockSocket extends Mock implements Socket {
   // ...........................................................................
-  static Future<Socket> connect(
+  static Future<MockSocket> connect(
     host,
     int port, {
     sourceAddress,
@@ -23,7 +23,7 @@ class MockSocket extends Mock implements Socket {
   }
 
   // ...........................................................................
-  Socket get otherEndpoint {
+  MockSocket get otherEndpoint {
     return MockSocket(inStream: dataOut, outStream: dataIn);
   }
 

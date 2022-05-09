@@ -6,28 +6,39 @@ part of 'commands.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-MeasurmentModeCmd _$MeasurmentModeCmdFromJson(Map<String, dynamic> json) =>
-    MeasurmentModeCmd(
-      mode: $enumDecode(_$MeasurmentModeEnumMap, json['mode']),
-      role: $enumDecode(_$MeasurmentRoleEnumMap, json['role']),
-      id: json['id'] as String? ?? 'MeasurmentModeCmd',
+EndpointRoleCmd _$EndpointRoleCmdFromJson(Map<String, dynamic> json) =>
+    EndpointRoleCmd(
+      mode: $enumDecode(_$MeasurementModeEnumMap, json['mode']),
+      role: $enumDecode(_$EndpointRoleEnumMap, json['role']),
     );
 
-Map<String, dynamic> _$MeasurmentModeCmdToJson(MeasurmentModeCmd instance) =>
+Map<String, dynamic> _$EndpointRoleCmdToJson(EndpointRoleCmd instance) =>
     <String, dynamic>{
-      'id': instance.id,
-      'mode': _$MeasurmentModeEnumMap[instance.mode],
-      'role': _$MeasurmentRoleEnumMap[instance.role],
+      'mode': _$MeasurementModeEnumMap[instance.mode],
+      'role': _$EndpointRoleEnumMap[instance.role],
     };
 
-const _$MeasurmentModeEnumMap = {
-  MeasurmentMode.idle: 'idle',
-  MeasurmentMode.tcp: 'tcp',
-  MeasurmentMode.nearby: 'nearby',
-  MeasurmentMode.btle: 'btle',
+const _$MeasurementModeEnumMap = {
+  MeasurementMode.idle: 'idle',
+  MeasurementMode.tcp: 'tcp',
+  MeasurementMode.nearby: 'nearby',
+  MeasurementMode.btle: 'btle',
 };
 
-const _$MeasurmentRoleEnumMap = {
-  MeasurmentRole.master: 'master',
-  MeasurmentRole.slave: 'slave',
+const _$EndpointRoleEnumMap = {
+  EndpointRole.master: 'master',
+  EndpointRole.slave: 'slave',
 };
+
+StartMeasurementCmd _$StartMeasurementCmdFromJson(Map<String, dynamic> json) =>
+    StartMeasurementCmd();
+
+Map<String, dynamic> _$StartMeasurementCmdToJson(
+        StartMeasurementCmd instance) =>
+    <String, dynamic>{};
+
+StopMeasurementCmd _$StopMeasurementCmdFromJson(Map<String, dynamic> json) =>
+    StopMeasurementCmd();
+
+Map<String, dynamic> _$StopMeasurementCmdToJson(StopMeasurementCmd instance) =>
+    <String, dynamic>{};

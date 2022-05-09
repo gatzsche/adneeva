@@ -46,7 +46,7 @@ const description = BonsoirService(
 // .............................................................................
 class MockBonjourService extends BonjourService {
   MockBonjourService({
-    NetworkServiceMode mode = NetworkServiceMode.masterAndSlave,
+    required EndpointRole mode,
   }) : super(
           service: description,
           mode: mode,

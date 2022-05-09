@@ -6,7 +6,7 @@
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobile_network_evaluator/src/com/fake/fake_service.dart';
+import 'package:mobile_network_evaluator/src/com/shared/network_service.dart';
 import 'package:mobile_network_evaluator/src/measure/measure.dart';
 import 'package:mobile_network_evaluator/src/measure/types.dart';
 
@@ -17,8 +17,9 @@ void main() {
 
   // ...........................................................................
   Future<void> connectMasterAndSlave() async {
-    await (measureSlave.networkService as FakeService).connectTo(
-      measureMaster.networkService as FakeService,
+    await NetworkService.fakeConnect(
+      measureSlave.networkService,
+      measureMaster.networkService,
     );
   }
 
@@ -36,8 +37,8 @@ void main() {
 
   // ...........................................................................
   void dispose(FakeAsync fake) async {
-    measureMaster.stop();
-    measureSlave.stop();
+    measureMaster.disconnect();
+    measureSlave.disconnect();
     measureMaster.dispose();
     measureSlave.dispose();
     fake.flushMicrotasks();
@@ -52,21 +53,21 @@ void main() {
       fakeAsync((fake) {
         init();
         // Start master and slave
-        measureMaster.start();
-        measureSlave.start();
+        measureMaster.connect();
+        measureSlave.connect();
         connectMasterAndSlave();
         fake.flushMicrotasks();
 
-        // Perform measurments
+        // Perform measurements
         measureSlave.measure();
         measureMaster.measure();
         fake.flushMicrotasks();
 
         // Stop master and slave
-        measureMaster.stop();
-        expect(logs.last, MeasureLogMessages.stop(MeasurmentRole.master));
-        measureSlave.stop();
-        expect(logs.last, MeasureLogMessages.stop(MeasurmentRole.slave));
+        measureMaster.disconnect();
+        expect(logs.last, MeasureLogMessages.stop(EndpointRole.master));
+        measureSlave.disconnect();
+        expect(logs.last, MeasureLogMessages.stop(EndpointRole.slave));
 
         // Get measurment results
         expect(measureMaster.measurmentResults, isNotEmpty);

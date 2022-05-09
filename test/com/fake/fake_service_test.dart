@@ -8,6 +8,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_network_evaluator/src/com/fake/fake_service.dart';
 import 'package:mobile_network_evaluator/src/com/shared/connection.dart';
+import 'package:mobile_network_evaluator/src/com/shared/network_service.dart';
 import 'package:mobile_network_evaluator/src/utils/utils.dart';
 
 void main() {
@@ -81,20 +82,29 @@ void main() {
         masterFakeService.start();
         slaveFakeService0.start();
 
+        expect(masterFakeService.isConnected, false);
+        expect(slaveFakeService0.isConnected, false);
+        expect(slaveFakeService1.isConnected, false);
+
         // Connect a slave fake service to a master fake service
-        slaveFakeService0.connectTo(masterFakeService);
+        NetworkService.fakeConnect(slaveFakeService0, masterFakeService);
         fake.flushMicrotasks();
         expect(masterFakeService.connections.value.length, 1);
         expect(slaveFakeService0.connections.value.length, 1);
         expect(slaveFakeService1.connections.value.length, 0);
+        expect(masterFakeService.isConnected, true);
+        expect(slaveFakeService0.isConnected, true);
+        expect(slaveFakeService1.isConnected, false);
 
         // Connect a slave fake service to a slave fake service
         slaveFakeService1.start();
-        slaveFakeService1.connectTo(masterFakeService);
+        NetworkService.fakeConnect(slaveFakeService1, masterFakeService);
         fake.flushMicrotasks();
         expect(masterFakeService.connections.value.length, 2);
         expect(slaveFakeService1.connections.value.length, 1);
         expect(slaveFakeService1.connections.value.length, 1);
+        expect(slaveFakeService0.isConnected, true);
+        expect(slaveFakeService1.isConnected, true);
 
         slaveFakeService0.stop();
         masterFakeService.stop();
@@ -127,7 +137,8 @@ void main() {
         // Now let's connect
         slaveFakeService0.start();
         masterFakeService.start();
-        slaveFakeService0.connectTo(masterFakeService);
+
+        NetworkService.fakeConnect(slaveFakeService0, masterFakeService);
         fake.flushMicrotasks();
 
         expect(firstMasterConnection, isNotNull);
@@ -154,8 +165,8 @@ void main() {
         slaveFakeService1.start();
         masterFakeService.start();
 
-        slaveFakeService0.connectTo(masterFakeService);
-        slaveFakeService1.connectTo(masterFakeService);
+        NetworkService.fakeConnect(slaveFakeService0, masterFakeService);
+        NetworkService.fakeConnect(slaveFakeService1, masterFakeService);
         fake.flushMicrotasks();
 
         // Create a bunch of connections

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:gg_value/gg_value.dart';
 
 import '../../measure/types.dart';
+import '../tcp/mocks/mock_socket.dart';
 import 'connection.dart';
 
 // #############################################################################
@@ -17,7 +18,7 @@ abstract class NetworkService<ServiceInfo,
     ResolvedServiceInfo extends ServiceInfo> {
   NetworkService(
       {required this.serviceInfo,
-      required this.mode,
+      required this.role,
       this.name = 'NetworkService'}) {
     _init();
   }
@@ -38,7 +39,7 @@ abstract class NetworkService<ServiceInfo,
 
   // ...........................................................................
   final ServiceInfo serviceInfo;
-  final NetworkServiceMode mode;
+  final EndpointRole role;
 
   // ...........................................................................
   bool get isStarted => _isStarted;
@@ -48,13 +49,11 @@ abstract class NetworkService<ServiceInfo,
     assert(!_isStarted);
     _isStarted = true;
 
-    if (mode == NetworkServiceMode.master ||
-        mode == NetworkServiceMode.masterAndSlave) {
+    if (role == EndpointRole.master) {
       await _startMaster();
     }
 
-    if (mode == NetworkServiceMode.slave ||
-        mode == NetworkServiceMode.masterAndSlave) {
+    if (role == EndpointRole.slave) {
       await _startSlave();
     }
   }
@@ -63,18 +62,19 @@ abstract class NetworkService<ServiceInfo,
   Future<void> stop() async {
     assert(_isStarted);
 
-    if (mode == NetworkServiceMode.master ||
-        mode == NetworkServiceMode.masterAndSlave) {
+    if (role == EndpointRole.master) {
       await _stopMaster();
     }
 
-    if (mode == NetworkServiceMode.slave ||
-        mode == NetworkServiceMode.masterAndSlave) {
+    if (role == EndpointRole.slave) {
       await _stopSlave();
     }
 
     _isStarted = false;
   }
+
+  // ...........................................................................
+  bool get isConnected => connections.value.isNotEmpty;
 
   // ######################
   // Advertizing / Master
@@ -133,6 +133,65 @@ abstract class NetworkService<ServiceInfo,
     }
 
     return null;
+  }
+
+  // ######################
+  // Test
+  // ######################
+
+  // ...........................................................................
+  /// Implement this function to directly connect a master service to a
+  /// client service. This is needed for test purposes
+  @visibleForTesting
+  static Future<void> fakeConnect(
+    NetworkService endpointA,
+    NetworkService endpointB,
+  ) async {
+    assert(endpointA.role != endpointB.role);
+    assert(endpointA.runtimeType == endpointB.runtimeType);
+    assert(endpointA.isStarted);
+    assert(endpointB.isStarted);
+
+    // Identify master and slave service
+    final master =
+        endpointA.role == EndpointRole.master ? endpointA : endpointB;
+    final slave = endpointA.role == EndpointRole.master ? endpointB : endpointA;
+
+    // Create a mock socket
+    final MockSocket mockSocketMaster =
+        await MockSocket.connect('123.123.123.123', 12345);
+    final mockSocketSlave = mockSocketMaster.otherEndpoint;
+
+    // Create two connections
+    // master listens to the slaves outgoing data stream
+    // master sends to its own outgoing data stream
+    // ignore: unused_local_variable
+    final masterConnection = Connection(
+      parentService: master,
+      disconnect: mockSocketMaster.close,
+      receiveData: mockSocketMaster.dataIn.stream,
+      sendData: (data) async {
+        scheduleMicrotask(() {
+          mockSocketMaster.dataOut.add(data);
+        });
+      },
+      serviceInfo: master.serviceInfo,
+    );
+
+    // slave listens to the master outgoing data stream
+    // slave sends to its own outgoing data stream
+    // ignore: unused_local_variable
+    final slaveConnection = Connection(
+      parentService: slave,
+      disconnect: mockSocketSlave.close,
+      receiveData: mockSocketSlave.dataIn.stream,
+      sendData: (data) async {
+        scheduleMicrotask(() {
+          mockSocketSlave.dataOut.add(data);
+        });
+      },
+      serviceInfo: slave.serviceInfo,
+    );
   }
 
   // ######################

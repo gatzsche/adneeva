@@ -18,7 +18,6 @@ abstract class Command {
   const Command();
 
   // ...........................................................................
-  @JsonKey()
   String get id;
 
   // ...........................................................................
@@ -26,46 +25,105 @@ abstract class Command {
 
   // ...........................................................................
   String toJsonString() => json.encode(toJson());
+
+  // ...........................................................................
+  Map<String, dynamic> _addId(Map<String, dynamic> jsonObject) {
+    jsonObject['id'] = id;
+    return jsonObject;
+  }
 }
 
 // #############################################################################
 @JsonSerializable()
-class MeasurmentModeCmd extends Command {
-  MeasurmentModeCmd({
+class EndpointRoleCmd extends Command {
+  EndpointRoleCmd({
     required this.mode,
     required this.role,
-    this.id = 'MeasurmentModeCmd',
   }) : super();
 
   // ...........................................................................
   @override
   @JsonKey()
-  final String id;
+  final String id = 'EndpointRoleCmd';
 
   // ...........................................................................
   @JsonKey()
-  final MeasurmentMode mode;
+  final MeasurementMode mode;
 
   // ...........................................................................
   @JsonKey()
-  final MeasurmentRole role;
+  final EndpointRole role;
 
   // ...........................................................................
-  factory MeasurmentModeCmd.fromJson(Map<String, dynamic> json) =>
-      _$MeasurmentModeCmdFromJson(json);
+  factory EndpointRoleCmd.fromJson(Map<String, dynamic> json) =>
+      _$EndpointRoleCmdFromJson(json);
 
-  factory MeasurmentModeCmd.fromJsonString(String string) =>
-      MeasurmentModeCmd.fromJson(
+  factory EndpointRoleCmd.fromJsonString(String string) =>
+      EndpointRoleCmd.fromJson(
         json.decode(string),
       );
 
   // ...........................................................................
   @override
-  Map<String, dynamic> toJson() => _$MeasurmentModeCmdToJson(this);
+  Map<String, dynamic> toJson() => _addId(_$EndpointRoleCmdToJson(this));
 }
 
 // .............................................................................
-final exampleMeasurmentModeCmd = MeasurmentModeCmd(
-  mode: MeasurmentMode.tcp,
-  role: MeasurmentRole.master,
+final exampleEndpointRoleCmd = EndpointRoleCmd(
+  mode: MeasurementMode.btle,
+  role: EndpointRole.master,
 );
+
+// #############################################################################
+@JsonSerializable()
+class StartMeasurementCmd extends Command {
+  StartMeasurementCmd() : super();
+
+  // ...........................................................................
+  @override
+  @JsonKey()
+  final String id = 'StartMeasurementCmd';
+
+  // ...........................................................................
+  factory StartMeasurementCmd.fromJson(Map<String, dynamic> json) =>
+      _$StartMeasurementCmdFromJson(json);
+
+  factory StartMeasurementCmd.fromJsonString(String string) =>
+      StartMeasurementCmd.fromJson(
+        json.decode(string),
+      );
+
+  // ...........................................................................
+  @override
+  Map<String, dynamic> toJson() => _addId(_$StartMeasurementCmdToJson(this));
+}
+
+// .............................................................................
+final exampleStartMeasurementCmd = StartMeasurementCmd();
+
+// #############################################################################
+@JsonSerializable()
+class StopMeasurementCmd extends Command {
+  StopMeasurementCmd() : super();
+
+  // ...........................................................................
+  @override
+  @JsonKey()
+  final String id = 'StopMeasurementCmd';
+
+  // ...........................................................................
+  factory StopMeasurementCmd.fromJson(Map<String, dynamic> json) =>
+      _$StopMeasurementCmdFromJson(json);
+
+  factory StopMeasurementCmd.fromJsonString(String string) =>
+      StopMeasurementCmd.fromJson(
+        json.decode(string),
+      );
+
+  // ...........................................................................
+  @override
+  Map<String, dynamic> toJson() => _addId(_$StopMeasurementCmdToJson(this));
+}
+
+// .............................................................................
+final exampleStopMeasurementCmd = StopMeasurementCmd();

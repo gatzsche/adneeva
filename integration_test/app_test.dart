@@ -36,7 +36,7 @@ void main() {
 
       // AppB should have informed AppA that it is ready for measuremnt
 
-      // AppA should start the measurments
+      // AppA should start the measurements
 
       // AppA should tell AppB to close the TCP mode
 
@@ -51,7 +51,7 @@ void main() {
 
       // AppB should have told AppA that it is ready for measurment
 
-      // AppA should start the measurments
+      // AppA should start the measurements
 
       // AppA should tell AppB to close Nearby mode
     });

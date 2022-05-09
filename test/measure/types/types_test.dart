@@ -8,17 +8,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_network_evaluator/src/measure/types.dart';
 
 void main() {
-  group('MeasurmentRole', () {
+  group('EndpointRole', () {
     test('.string should return the role as string', () {
-      expect(MeasurmentRole.master.string, 'master');
-      expect(MeasurmentRole.slave.string, 'slave');
+      expect(EndpointRole.master.string, 'master');
+      expect(EndpointRole.slave.string, 'slave');
     });
   });
 
-  group('MeasurmentMode', () {
+  group('EndpointRole', () {
     test('.string should return the mode as string', () {
-      expect(MeasurmentMode.tcp.string, 'tcp');
-      expect(MeasurmentMode.idle.string, 'idle');
+      expect(MeasurementMode.btle.string, 'btle');
+      expect(MeasurementMode.idle.string, 'idle');
     });
   });
 }

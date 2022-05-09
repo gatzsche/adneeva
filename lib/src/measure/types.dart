@@ -5,32 +5,25 @@
 // found in the LICENSE file in the root of this package.
 
 // .............................................................................
-enum MeasurmentMode {
+enum MeasurementMode {
   idle,
   tcp,
   nearby,
   btle,
 }
 
-extension MeasurmentModeToString on MeasurmentMode {
+extension MeasurementModeToString on MeasurementMode {
   String get string => toString().split('.').last;
 }
 
 // .............................................................................
-enum MeasurmentRole {
+enum EndpointRole {
   master,
   slave,
 }
 
-extension MeasurmentRoleToString on MeasurmentRole {
+extension EndpointRoleToString on EndpointRole {
   String get string => toString().split('.').last;
-}
-
-// .............................................................................
-enum NetworkServiceMode {
-  master,
-  slave,
-  masterAndSlave,
 }
 
 typedef Log = Function(String);

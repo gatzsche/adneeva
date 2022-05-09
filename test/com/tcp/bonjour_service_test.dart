@@ -77,8 +77,8 @@ void main() {
 
   // ...........................................................................
   void initMocks() {
-    master = MockBonjourService(mode: NetworkServiceMode.master);
-    slave = MockBonjourService(mode: NetworkServiceMode.slave);
+    master = MockBonjourService(mode: EndpointRole.master);
+    slave = MockBonjourService(mode: EndpointRole.slave);
     bonsoirDiscovery = slave.bonsoirDiscovery as MockBonsoirDiscovery;
     bonsoirBroadcast = master.bonsoirBroadcast as MockBonsoirBroadcast;
   }

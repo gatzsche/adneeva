@@ -14,9 +14,9 @@ import 'data_recorder.dart';
 import 'types.dart';
 
 class MeasureLogMessages {
-  static String start(MeasurmentRole role) => 'Start measurement as $role';
-  static String measure(MeasurmentRole role) => 'Measure as $role';
-  static String stop(MeasurmentRole role) => 'Stop measurement as $role';
+  static String start(EndpointRole role) => 'Start measurement as $role';
+  static String measure(EndpointRole role) => 'Measure as $role';
+  static String stop(EndpointRole role) => 'Stop measurement as $role';
 }
 
 class Measure {
@@ -39,10 +39,10 @@ class Measure {
   // ...........................................................................
   final Log? log;
   final NetworkService networkService;
-  final MeasurmentRole role;
+  final EndpointRole role;
 
   // ...........................................................................
-  Future<void> start() async {
+  Future<void> connect() async {
     if (_connection != null) {
       return;
     }
@@ -73,7 +73,7 @@ class Measure {
   }
 
   // ...........................................................................
-  Future<void> stop() async {
+  Future<void> disconnect() async {
     assert(_connection != null);
 
     _logStop();
@@ -128,7 +128,7 @@ class Measure {
 
 Measure exampleMeasureMaster({Log? log}) {
   return Measure(
-    role: MeasurmentRole.master,
+    role: EndpointRole.master,
     log: log,
     networkService: FakeService.master,
   );
@@ -136,7 +136,7 @@ Measure exampleMeasureMaster({Log? log}) {
 
 Measure exampleMeasureSlave({Log? log}) {
   return Measure(
-    role: MeasurmentRole.slave,
+    role: EndpointRole.slave,
     log: log,
     networkService: FakeService.slave,
   );

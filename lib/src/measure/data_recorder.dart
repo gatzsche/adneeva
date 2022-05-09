@@ -32,7 +32,7 @@ class DataRecorder {
     this.maxNumMeasurements = 10,
     this.packageSizes = const [_oneKb, _oneMb, _tenMb],
   }) {
-    _initMeasurmentCycles();
+    _initMeasurementCycles();
   }
 
   // ...........................................................................
@@ -47,7 +47,7 @@ class DataRecorder {
 
   // ...........................................................................
   final Connection connection;
-  final MeasurmentRole role;
+  final EndpointRole role;
 
   // ######################
   // Master
@@ -70,7 +70,7 @@ class DataRecorder {
 
   // ...........................................................................
   Future<void> record() async {
-    if (role == MeasurmentRole.master) {
+    if (role == EndpointRole.master) {
       await _sendDataToSlaveAndWaitForAcknowledgement();
     } else {
       await _listenToDataFromMasterAndAcknowledge();
@@ -278,7 +278,7 @@ class DataRecorder {
   bool _stop = false;
   bool _isRunning = false;
   final _measurmentCycles = StreamController<int>();
-  void _initMeasurmentCycles() {
+  void _initMeasurementCycles() {
     _dispose.add(_measurmentCycles.close);
   }
 }
@@ -287,11 +287,11 @@ class DataRecorder {
 DataRecorder exampleMasterDataRecorder({Connection? connection}) =>
     DataRecorder(
       connection: connection ?? exampleConnection(),
-      role: MeasurmentRole.master,
+      role: EndpointRole.master,
     );
 
 // #############################################################################
 DataRecorder exampleSlaveDataRecorder({Connection? connection}) => DataRecorder(
       connection: connection ?? exampleConnection(),
-      role: MeasurmentRole.slave,
+      role: EndpointRole.slave,
     );

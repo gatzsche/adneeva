@@ -6,6 +6,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_network_evaluator/src/com/fake/fake_service.dart';
+import 'package:mobile_network_evaluator/src/com/shared/network_service.dart';
 import 'package:mobile_network_evaluator/src/measure/data_recorder.dart';
 import 'package:mobile_network_evaluator/src/measure/types.dart';
 import 'package:mobile_network_evaluator/src/utils/utils.dart';
@@ -22,7 +23,7 @@ void main() {
     slaveService = FakeService.slave;
     masterService.start();
     slaveService.start();
-    slaveService.connectTo(masterService);
+    NetworkService.fakeConnect(slaveService, masterService);
     await flushMicroTasks();
 
     masterDataRecorder = exampleMasterDataRecorder(
@@ -51,7 +52,7 @@ void main() {
       slaveDataRecorder.record();
       await masterDataRecorder.record();
 
-      expect(slaveDataRecorder.role, MeasurmentRole.slave);
+      expect(slaveDataRecorder.role, EndpointRole.slave);
 
       const headerRow = 1;
       final rows = masterDataRecorder.resultCsv!.split('\n');
@@ -70,7 +71,7 @@ void main() {
       exampleSlaveDataRecorder();
     });
 
-    test('should allow to interrupt measurments with stop', () async {
+    test('should allow to interrupt measurements with stop', () async {
       await init();
 
       // Listen to measurment cycles and
@@ -85,7 +86,7 @@ void main() {
         },
       );
 
-      // Run the measurments
+      // Run the measurements
       slaveDataRecorder.record();
       await masterDataRecorder.record();
 
