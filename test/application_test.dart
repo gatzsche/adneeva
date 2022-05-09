@@ -4,8 +4,6 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
-import 'dart:developer';
-
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_network_evaluator/src/application.dart';
@@ -99,136 +97,71 @@ void main() {
         appBDiscoversAppA(fake);
 
         // Initially AppA and AppB are in idle mode
-        expect(appA.measurementMode.value, MeasurementMode.idle);
-        expect(appB.measurementMode.value, MeasurementMode.idle);
+        expect(appA.mode.value, MeasurementMode.idle);
+        expect(appB.mode.value, MeasurementMode.idle);
 
         // Set AppA into TCP master mode.
         // AppB will be set into TCP slave mode.
         appA.role.value = EndpointRole.master;
-        appA.measurementMode.value = MeasurementMode.tcp;
+        appA.mode.value = MeasurementMode.tcp;
         fake.flushMicrotasks();
-        expect(appB.measurementMode.value, MeasurementMode.tcp);
+        expect(appB.mode.value, MeasurementMode.tcp);
         expect(appB.role.value, EndpointRole.slave);
 
         // AppB is in TCP slave mode.
         // Somebody sets the application to btle mode.
         // This will not change AppA, because a slave will not control master.
         expect(appB.role.value, EndpointRole.slave);
-        expect(appB.measurementMode.value, MeasurementMode.tcp);
-        appB.measurementMode.value = MeasurementMode.btle;
+        expect(appB.mode.value, MeasurementMode.tcp);
+        appB.mode.value = MeasurementMode.btle;
         fake.flushMicrotasks();
-        expect(appA.measurementMode.value, MeasurementMode.tcp);
+        expect(appA.mode.value, MeasurementMode.tcp);
         expect(appA.role.value, EndpointRole.master);
 
         // Now AppB is set to master mode.
         // Set applications into Nearby mode.
         // This will also change the other side because AppB is master now.
         expect(appA.role.value, EndpointRole.master);
-        expect(appA.measurementMode.value, MeasurementMode.tcp);
+        expect(appA.mode.value, MeasurementMode.tcp);
         expect(appB.role.value, EndpointRole.slave);
-        expect(appB.measurementMode.value, MeasurementMode.btle);
+        expect(appB.mode.value, MeasurementMode.btle);
         appB.role.value = EndpointRole.master;
         fake.flushMicrotasks();
         expect(appA.role.value, EndpointRole.slave);
-        expect(appA.measurementMode.value, MeasurementMode.btle);
+        expect(appA.mode.value, MeasurementMode.btle);
 
         dispose();
       });
     });
 
-    test('should allow to execute measurements', () {
+    test('should allow to make measurments on both sides', () {
       fakeAsync((fake) {
         init(fake);
         appBDiscoversAppA(fake);
 
-        // Set applications into TCP mode
-        appA.measurementMode.value = MeasurementMode.btle;
+        // Make measurements on AppA first
+        appA.mode.value = MeasurementMode.tcp;
         fake.flushMicrotasks();
-        expect(appB.measurementMode.value, MeasurementMode.btle);
-
-        // Start measurement
         appA.startMeasurements();
         fake.flushMicrotasks();
-
-        // Download measurements
-        // expect(appA.measurements, '...');
-
-        dispose();
-      });
-    });
-
-    test('should allow to stop an ongoing measurements', () {
-      fakeAsync((fake) {
-        init(fake);
-        appBDiscoversAppA(fake);
-
-        // Set applications into TCP mode
-        appA.measurementMode.value = MeasurementMode.btle;
-        fake.flushMicrotasks();
-        expect(appB.measurementMode.value, MeasurementMode.btle);
-
-        // At the beginning we are not measuring
-        expect(appA.isMeasuring, false);
-        expect(appB.isMeasuring, false);
-
-        // Start measurement
-        appA.startMeasurements();
-        fake.flushMicrotasks();
-
-        // Connect measurement core
         connectMeasurmentCore(fake);
-
-        // Both sides will automatically measuring.
-        // We can now get the results
         fake.flushMicrotasks();
-        expect(appA.measurementResults, isNotEmpty);
-
-        // Now let's stop measuring
         appA.stopMeasurements();
         fake.flushMicrotasks();
-
-        // Both sides should not measure anymore
-        expect(appA.isMeasuring, false);
-        expect(appB.isMeasuring, false);
-
-        dispose();
-      });
-    });
-
-    test('should allow to measure on both sides, appA and appB', () {
-      fakeAsync((fake) {
-        init(fake);
-        appBDiscoversAppA(fake);
-
-        // Set applications into TCP mode
-        appA.measurementMode.value = MeasurementMode.btle;
-        fake.flushMicrotasks();
-        expect(appB.measurementMode.value, MeasurementMode.btle);
-
-        // At the beginning we are not measuring
-        expect(appA.isMeasuring, false);
-        expect(appB.isMeasuring, false);
-
-        // Start measurement
-        appA.startMeasurements();
-        fake.flushMicrotasks();
-
-        // Connect measurement core
-        connectMeasurmentCore(fake);
-
-        // Both sides will automatically measuring.
-        // We can now get the results
-        fake.flushMicrotasks();
         expect(appA.measurementResults, isNotEmpty);
+        expect(appB.measurementResults, isEmpty);
 
-        // Now let's stop measuring
-        appA.stopMeasurements();
+        // Now let's make the measurements on AppA too
+        appB.mode.value = MeasurementMode.tcp;
+        appB.role.value = EndpointRole.master;
         fake.flushMicrotasks();
-
-        // Both sides should not measure anymore
-        expect(appA.isMeasuring, false);
-        expect(appB.isMeasuring, false);
-
+        appB.startMeasurements();
+        fake.flushMicrotasks();
+        connectMeasurmentCore(fake);
+        fake.flushMicrotasks();
+        appB.stopMeasurements();
+        fake.flushMicrotasks();
+        expect(appB.measurementResults, isNotEmpty);
         dispose();
       });
     });
