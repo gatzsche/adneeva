@@ -204,7 +204,7 @@ void main() {
       // Click on the first button
       // => Measure page should open
       await pressBottomButton(0, tester);
-      expect(currentUri, startsWith('tcp/basketball'));
+      expect(currentUri, startsWith('tcp/measure'));
 
       // ..........................
       // Click on the second button
@@ -214,9 +214,9 @@ void main() {
 
       // ..........................
       // Click on the third button
-      // => Handball page should open
+      // => Info page should open
       await pressBottomButton(2, tester);
-      expect(currentUri, startsWith('tcp/handball'));
+      expect(currentUri, startsWith('tcp/info'));
 
       await tearDown(tester);
     });
@@ -249,7 +249,7 @@ void main() {
 
       // ..........................
       // Click on the third button
-      // => Handball page should open
+      // => Info page should open
       await pressBottomButton(2, tester);
       expect(currentUri, startsWith('nearby/car'));
 
@@ -280,7 +280,7 @@ void main() {
 
       // ..........................
       // Click on the third button
-      // => Handball page should open
+      // => Info page should open
       await pressBottomButton(2, tester);
       expect(currentUri, startsWith('btle/hospital'));
 
@@ -334,7 +334,7 @@ void main() {
       // Jump to the tcp page
       await tcpButton.press();
       update(tester);
-      expect(currentUri, startsWith('tcp/basketball'));
+      expect(currentUri, startsWith('tcp/measure'));
 
       // ....................................................
       // Click on the basket ball in the center of the screen
@@ -345,7 +345,7 @@ void main() {
 
       // ................................
       // A dialog should have been opened
-      expect(currentUri, startsWith('tcp/basketball/popover'));
+      expect(currentUri, startsWith('tcp/measure/popover'));
       await tester.pumpAndSettle();
 
       // ..........................
@@ -355,7 +355,7 @@ void main() {
       var checkBoxWidget = checkBox.widget as CheckboxListTile;
       expect(checkBoxWidget.value, false);
       update(tester);
-      expect(currentUri, 'tcp/basketball/popover?visit=false');
+      expect(currentUri, 'tcp/measure/popover?visit=false');
 
       // ........................
       // Let's click the checkbox
@@ -365,13 +365,13 @@ void main() {
       checkBox = GgEasyWidgetTest(find.byType(CheckboxListTile), tester);
       checkBoxWidget = checkBox.widget as CheckboxListTile;
       expect(checkBoxWidget.value, true);
-      expect(currentUri, 'tcp/basketball/popover?visit=true');
+      expect(currentUri, 'tcp/measure/popover?visit=true');
 
       // ..............
       // Change the URI
       // => checkbox should change also
       routerDelegate.setNewRoutePath(
-        const RouteInformation(location: 'tcp/basketball/popover?visit=false'),
+        const RouteInformation(location: 'tcp/measure/popover?visit=false'),
       );
       await tester.pumpAndSettle();
       update(tester);
@@ -389,7 +389,7 @@ void main() {
       await dialogCloseButton.press();
       await tester.pumpAndSettle();
       update(tester);
-      expect(currentUri, 'tcp/basketball?visit=false');
+      expect(currentUri, 'tcp/measure?visit=false');
 
       await tearDown(tester);
     });
@@ -405,9 +405,9 @@ void main() {
 
       // ................
       // Open the popover
-      routerDelegate.root.navigateTo('/tcp/basketball/popover');
+      routerDelegate.root.navigateTo('/tcp/measure/popover');
       await tester.pumpAndSettle();
-      expect(routerDelegate.root.stagedChildPath, 'tcp/basketball/popover');
+      expect(routerDelegate.root.stagedChildPath, 'tcp/measure/popover');
 
       // ..................
       // Click on "Details"
@@ -418,8 +418,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check if the details page was opened
-      expect(routerDelegate.root.stagedChildPath,
-          'tcp/basketball/popover/details');
+      expect(
+          routerDelegate.root.stagedChildPath, 'tcp/measure/popover/details');
 
       // .......................
       // Click on "More details"
@@ -432,7 +432,7 @@ void main() {
 
       // Check if the details page was opened
       expect(routerDelegate.root.stagedChildPath,
-          'tcp/basketball/popover/details/more-details');
+          'tcp/measure/popover/details/more-details');
 
       // ........................
       // Click on the back button
@@ -444,8 +444,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check if we have navigated back
-      expect(routerDelegate.root.stagedChildPath,
-          'tcp/basketball/popover/details');
+      expect(
+          routerDelegate.root.stagedChildPath, 'tcp/measure/popover/details');
 
       // ..............................
       // Finally let's close the dialog
@@ -457,7 +457,7 @@ void main() {
       await dialogCloseButton.press();
       await tester.pumpAndSettle();
       update(tester);
-      expect(currentUri, 'tcp/basketball?visit=false');
+      expect(currentUri, 'tcp/measure?visit=false');
     });
 
     // .........................................................................

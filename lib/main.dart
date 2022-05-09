@@ -49,12 +49,12 @@ class _GgRouterExampleState extends State<GgRouterExample> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Mobile AdHoc Evaluator',
+      title: 'Mobile Adhoc Evaluator',
       routerDelegate: GgRouterDelegate(
         child: _appContent,
         saveState: _saveState,
         restoreState: _restoreState,
-        defaultRoute: '/tcp/basketball',
+        defaultRoute: '/tcp/measure',
       ),
       routeInformationParser: GgRouteInformationParser(),
       themeMode: ThemeMode.dark,
@@ -336,20 +336,20 @@ class _GgRouterExampleState extends State<GgRouterExample> {
                   icon: Icon(Icons.sports_football),
                 ),
                 BottomNavigationBarItem(
-                  label: 'Handball',
+                  label: 'Info',
                   icon: Icon(Icons.sports_handball),
                 ),
               ],
               onTap: (index) {
                 switch (index) {
                   case 0:
-                    router.navigateTo('basketball/_LAST_');
+                    router.navigateTo('measure/_LAST_');
                     break;
                   case 1:
-                    router.navigateTo('football/_LAST_');
+                    router.navigateTo('results/_LAST_');
                     break;
                   case 2:
-                    router.navigateTo('handball/_LAST_');
+                    router.navigateTo('info/_LAST_');
                     break;
                 }
               },
@@ -357,7 +357,7 @@ class _GgRouterExampleState extends State<GgRouterExample> {
           }),
       body: GgRouter(
         {
-          'basketball': (context) {
+          'measure': (context) {
             return GgRouteParams(
               params: {
                 'visit': GgRouteParam<bool>(seed: false),
@@ -377,11 +377,11 @@ class _GgRouterExampleState extends State<GgRouterExample> {
               ),
             );
           },
-          'football': (c) => _bigIcon(c, Icons.sports_football),
-          'handball': (c) => _bigIcon(c, Icons.sports_handball),
+          'results': (c) => _bigIcon(c, Icons.sports_football),
+          'info': (c) => _bigIcon(c, Icons.sports_handball),
         },
         key: const ValueKey('tcpRouter'),
-        defaultRoute: 'basketball',
+        defaultRoute: 'measure',
         inAnimation: _moveIn,
         outAnimation: _moveOut,
       ),
