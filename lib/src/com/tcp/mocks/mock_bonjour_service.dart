@@ -49,7 +49,7 @@ class MockBonjourService extends BonjourService {
     required EndpointRole mode,
   }) : super(
           service: description,
-          mode: mode,
+          role: mode,
         ) {
     log = (str) => loggedData.add(str);
   }

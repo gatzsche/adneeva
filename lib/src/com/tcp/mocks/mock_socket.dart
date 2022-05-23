@@ -12,6 +12,9 @@ import 'package:mocktail/mocktail.dart';
 
 class MockSocket extends Mock implements Socket {
   // ...........................................................................
+  static bool failAtNextConnect = false;
+
+  // ...........................................................................
   static Future<MockSocket> connect(
     host,
     int port, {
@@ -19,6 +22,14 @@ class MockSocket extends Mock implements Socket {
     int sourcePort = 0,
     Duration? timeout,
   }) async {
+    if (failAtNextConnect) {
+      failAtNextConnect = false;
+      throw SocketException(
+        'Connection refused',
+        port: port,
+        address: sourceAddress,
+      );
+    }
     return MockSocket();
   }
 

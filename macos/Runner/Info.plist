@@ -34,5 +34,12 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Looking for other instances to make QoS measurements</string>
+    <key>NSBonjourServices</key>
+    <array>
+        <string>_mobile_network_evaluator._tcp</string>
+        <string>_dartobservatory._tcp</string>
+    </array>
 </dict>
 </plist>

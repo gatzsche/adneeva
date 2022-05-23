@@ -31,7 +31,7 @@ void main() {
     bool noIpAddress = false,
     String ip = '123.456.789.123',
   }) {
-    final description = master.serviceInfo;
+    final description = master.service;
 
     bonsoirDiscovery.mockDiscovery(
       eventType: eventType,
@@ -183,7 +183,7 @@ void main() {
       });
     });
 
-    test('should not discover own server', () {
+    test('should not discover own service', () {
       fakeAsync((fake) {
         init();
 
@@ -356,6 +356,28 @@ void main() {
         stopMasterAndSlave(fake);
         expect(slave.connections.value.length, 0);
         expect(master.connections.value.length, 0);
+      });
+    });
+
+    test('should behave correctly, when discovered port cannot be connected',
+        () async {
+      fakeAsync((fake) {
+        // Setup socket to throw a socket exception next time
+        MockSocket.failAtNextConnect = true;
+
+        // Start a slave service
+        init();
+        slave.start();
+        fake.flushMicrotasks();
+
+        // Mock discovery of a bonjour service
+        mockDiscovery();
+        fake.flushMicrotasks();
+
+        // Connection should have failed.
+        expect(slave.connections.value.length, 0);
+        expect(slave.loggedData.last,
+            'SocketException: Connection refused, port = 12457');
       });
     });
   });

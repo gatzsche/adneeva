@@ -34,9 +34,8 @@ class _GgRouterExampleState extends State<GgRouterExample>
     with WidgetsBindingObserver {
   final List<Function()> _dispose = [];
   late StreamController<String> _logController;
-  late Application _localApp;
-  late Application _remoteApp;
   final List<String> _logMessages = [];
+  late Application _localApp;
 
   // ...........................................................................
   @override
@@ -67,11 +66,12 @@ class _GgRouterExampleState extends State<GgRouterExample>
   // ...........................................................................
   void _initLog() {
     _logController = StreamController<String>.broadcast();
+
     final s = _logController.stream.listen(
-      (message) => _logMessages.add(message),
+      (event) => _logMessages.add(event),
     );
-    _dispose.add(_logController.close);
     _dispose.add(s.cancel);
+    _dispose.add(_logController.close);
   }
 
   // ...........................................................................
@@ -80,7 +80,6 @@ class _GgRouterExampleState extends State<GgRouterExample>
 
     _localApp = Application(name: 'localApp', log: log);
     await Future.delayed(const Duration(seconds: 3));
-    _remoteApp = Application(name: 'remoteApp');
   }
 
   // ...........................................................................
@@ -138,6 +137,7 @@ class _GgRouterExampleState extends State<GgRouterExample>
             key: const ValueKey('mainRouter'),
             inAnimation: _zoomIn,
             outAnimation: _zoomOut,
+            animationDuration: const Duration(milliseconds: 150),
             semanticLabels: const {
               '_INDEX_': 'Navigate to Index Page',
               'tcp': 'Navigate to TCP Page',
@@ -295,6 +295,7 @@ class _GgRouterExampleState extends State<GgRouterExample>
         defaultRoute: 'measure',
         inAnimation: _moveIn,
         outAnimation: _moveOut,
+        animationDuration: const Duration(milliseconds: 150),
       ),
     );
   }
@@ -351,6 +352,7 @@ class _GgRouterExampleState extends State<GgRouterExample>
         defaultRoute: 'bus',
         inAnimation: _moveIn,
         outAnimation: _moveOut,
+        animationDuration: const Duration(milliseconds: 150),
       ),
     );
   }
@@ -408,6 +410,7 @@ class _GgRouterExampleState extends State<GgRouterExample>
         defaultRoute: 'airport',
         inAnimation: _moveIn,
         outAnimation: _moveOut,
+        animationDuration: const Duration(milliseconds: 150),
       ),
     );
   }
@@ -432,12 +435,11 @@ class _GgRouterExampleState extends State<GgRouterExample>
           color: Theme.of(context).disabledColor,
           child: Padding(
               padding: const EdgeInsets.all(20),
-              child: StreamBuilder<String>(
+              child: StreamBuilder(
+                stream: _logController.stream,
                 builder: (context, snapshot) {
                   return ListView(
-                    children: _logMessages.map((e) {
-                      return Text(e);
-                    }).toList(),
+                    children: _logMessages.map((e) => Text(e)).toList(),
                   );
                 },
               )),

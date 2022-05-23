@@ -11,8 +11,16 @@ import 'package:mocktail/mocktail.dart';
 
 class MockServerSocket extends Mock implements ServerSocket {
   // ...........................................................................
+  static bool failAtNextBind = false;
+
+  // ...........................................................................
   static Future<ServerSocket> bind(address, int port,
       {int backlog = 0, bool v6Only = false, bool shared = false}) {
+    if (failAtNextBind) {
+      failAtNextBind = false;
+      throw SocketException('Connection refused', address: address, port: port);
+    }
+
     return Future.value(MockServerSocket());
   }
 

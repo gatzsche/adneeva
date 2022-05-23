@@ -16,10 +16,12 @@ import 'connection.dart';
 // #############################################################################
 abstract class NetworkService<ServiceInfo,
     ResolvedServiceInfo extends ServiceInfo> {
-  NetworkService(
-      {required this.serviceInfo,
-      required this.role,
-      this.name = 'NetworkService'}) {
+  NetworkService({
+    required this.service,
+    required this.role,
+    this.name = 'NetworkService',
+    this.log,
+  }) {
     _init();
   }
 
@@ -38,7 +40,7 @@ abstract class NetworkService<ServiceInfo,
   Function(String)? log;
 
   // ...........................................................................
-  final ServiceInfo serviceInfo;
+  final ServiceInfo service;
   final EndpointRole role;
 
   // ...........................................................................
@@ -174,7 +176,7 @@ abstract class NetworkService<ServiceInfo,
           mockSocketMaster.dataOut.add(data);
         });
       },
-      serviceInfo: master.serviceInfo,
+      serviceInfo: master.service,
     );
 
     // slave listens to the master outgoing data stream
@@ -189,7 +191,7 @@ abstract class NetworkService<ServiceInfo,
           mockSocketSlave.dataOut.add(data);
         });
       },
-      serviceInfo: slave.serviceInfo,
+      serviceInfo: slave.service,
     );
   }
 
@@ -217,8 +219,19 @@ abstract class NetworkService<ServiceInfo,
     final c = connectionForService(serviceInfo);
     assert(c == null);
     if (c == null) {
-      connectToDiscoveredService(serviceInfo);
+      connectToDiscoveredService(serviceInfo).onError(
+        (error, stackTrace) {
+          log?.call('Error while connecting to a discovered service.');
+        },
+      );
     }
+  }
+
+  // ...........................................................................
+  @protected
+  void onLooseService(ResolvedServiceInfo serviceInfo) {
+    final c = connectionForService(serviceInfo);
+    c?.disconnect();
   }
 
   // ...........................................................................

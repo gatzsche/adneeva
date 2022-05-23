@@ -21,7 +21,7 @@ class FakeService
   // ...........................................................................
   FakeService({required EndpointRole slave})
       : super(
-          serviceInfo: FakeServiceInfo(),
+          service: FakeServiceInfo(),
           role: slave,
           name: slave == EndpointRole.master
               ? 'MasterFakeService'

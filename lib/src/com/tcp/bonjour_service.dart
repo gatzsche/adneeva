@@ -10,12 +10,12 @@ import 'dart:io';
 import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/material.dart';
 
-import '../../measure/types.dart';
 import '../../utils/is_test.dart';
 import 'mocks/mock_bonjour_service.dart';
 
 import '../shared/connection.dart';
 import '../shared/network_service.dart';
+import '../../measure/types.dart';
 
 // #############################################################################
 
@@ -33,17 +33,17 @@ class BonjourService
     extends NetworkService<BonsoirService, ResolvedBonsoirService> {
   // ...........................................................................
   BonjourService({
-    required BonsoirService service,
-    required EndpointRole mode,
-    Function(String)? log,
+    required super.service,
+    required super.role,
+    super.log,
     String? name,
+    BonjourServiceDeps? dependencies,
   })  : _bonsoirService = service,
-        super(
-          serviceInfo: service,
-          role: mode,
-          name: name ?? 'BonjourService',
-        ) {
-    _d = isTest ? const MockBonjourServiceDeps() : const BonjourServiceDeps();
+        super(name: name ?? 'BonjourService') {
+    log?.call(
+        'Set up bonjour "${service.name} - ${role == EndpointRole.master ? 'Master' : 'Slave'}"');
+    _d = dependencies ??
+        (isTest ? const MockBonjourServiceDeps() : const BonjourServiceDeps());
     _bonsoirBroadcast = _d.bonsoirBroadcast(service: _bonsoirService);
     _bonsoirDiscovery =
         _d.bonsoirDiscovery(type: '_mobile_network_evaluator._tcp');
@@ -79,11 +79,11 @@ class BonjourService
       return;
     }
 
-    log?.call('Binding to port ${serviceInfo.port}');
+    log?.call('Bind to port ${service.port}');
 
     _serverSocket = await _d.serverSocketBind(
       InternetAddress.anyIPv4,
-      serviceInfo.port,
+      service.port,
       shared: false,
     );
 
@@ -132,17 +132,22 @@ class BonjourService
             return;
           }
 
+          log?.call(
+              'Discovered service "${service.name}" on port ${service.port}');
+
           // Ignore own service
           bool isOwnIp = await isOwnIpAddress(ip);
-          if (isOwnIp && service.port == serviceInfo.port) {
+          if (isOwnIp && service.port == this.service.port) {
+            log?.call('Do not connect because its the own service.');
             return;
           }
 
-          log?.call('Discovered service on port ${service.port}');
-
           onDiscoverService(service);
         } else if (event.type ==
-            BonsoirDiscoveryEventType.DISCOVERY_SERVICE_LOST) {}
+            BonsoirDiscoveryEventType.DISCOVERY_SERVICE_LOST) {
+          log?.call('Lost service "${service.name}"');
+          onLooseService(event.service as ResolvedBonsoirService);
+        }
       });
       _dispose.add(() => _discoverySubscription?.cancel);
     }
@@ -156,11 +161,16 @@ class BonjourService
 
   // ...........................................................................
   @override
-  Future<Connection> connectToDiscoveredService(
-      ResolvedBonsoirService service) async {
-    final clientSocket =
-        await _connectClientSocket(ip: service.ip!, port: service.port);
-    return _initConnection(clientSocket);
+  Future<void> connectToDiscoveredService(
+    ResolvedBonsoirService service,
+  ) async {
+    try {
+      final clientSocket =
+          await _connectClientSocket(ip: service.ip!, port: service.port);
+      _initConnection(clientSocket);
+    } on SocketException catch (e) {
+      // log?.call(e.toString());
+    }
   }
 
   // ...........................................................................
@@ -215,18 +225,9 @@ class BonjourService
   // ...........................................................................
   Future<Socket> _connectClientSocket(
       {required String ip, required int port}) async {
-    try {
-      log?.call('Client connects to port $port');
-      final socket = await _d.clientSocketConnect(ip, port);
-      return socket;
-    }
-
-    // coverage:ignore-start
-    on SocketException catch (e) {
-      log?.call(e.toString());
-      rethrow;
-    }
-    // coverage:ignore-end
+    log?.call('Client connects to port $port');
+    final socket = await _d.clientSocketConnect(ip, port);
+    return socket;
   }
 
   // ...........................................................................
@@ -236,7 +237,7 @@ class BonjourService
       sendData: (data) async => socket.add(data),
       receiveData: socket.asBroadcastStream(),
       disconnect: socket.close,
-      serviceInfo: serviceInfo,
+      serviceInfo: service,
     );
   }
 }

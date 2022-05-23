@@ -174,21 +174,23 @@ class Application {
     log?.call('Init remote control service');
 
     final info = BonsoirService(
-      name: 'Mobile Network Evaluator',
+      name: 'Mobile Network Evaluator $port',
       port: port,
       type: '_mobile_network_evaluator._tcp',
     );
 
     final master = BonjourService(
       name: name,
-      mode: EndpointRole.master,
+      role: EndpointRole.master,
       service: info,
+      log: log,
     );
 
     final slave = BonjourService(
       name: name,
-      mode: EndpointRole.slave,
+      role: EndpointRole.slave,
       service: info,
+      log: log,
     );
 
     _remoteControlService = BipolarService<BonjourService>(

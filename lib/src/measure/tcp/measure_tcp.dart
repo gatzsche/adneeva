@@ -24,7 +24,7 @@ class MeasureTcp extends Measure {
                 port: randomPort(),
                 type: '_measuretcp._tcp',
               ),
-              mode: role == EndpointRole.master
+              role: role == EndpointRole.master
                   ? EndpointRole.master
                   : EndpointRole.slave),
         );
