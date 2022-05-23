@@ -52,6 +52,8 @@
     <key>NSBonjourServices</key>
     <array>
       <string>_mobile_network_evaluator._tcp</string>
+      <string>_mobile_network_evaluator_measure_tcp._tcp</string>
+      
       <string>_dartobservatory._tcp</string>
     </array>
   </dict>

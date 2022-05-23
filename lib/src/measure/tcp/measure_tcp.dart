@@ -13,20 +13,20 @@ import '../types.dart';
 
 class MeasureTcp extends Measure {
   MeasureTcp({
-    required EndpointRole role,
-    Log? log,
+    required super.role,
+    super.log,
   }) : super(
-          role: role,
-          log: log,
           networkService: BonjourService(
-              service: BonsoirService(
-                name: 'Measure TCP',
-                port: randomPort(),
-                type: '_measuretcp._tcp',
-              ),
-              role: role == EndpointRole.master
-                  ? EndpointRole.master
-                  : EndpointRole.slave),
+            service: BonsoirService(
+              name: 'Measure TCP ${randomPort()}',
+              port: randomPort(),
+              type: '_mobile_network_evaluator_measure_tcp._tcp',
+            ),
+            role: role == EndpointRole.master
+                ? EndpointRole.master
+                : EndpointRole.slave,
+            log: log,
+          ),
         );
 }
 

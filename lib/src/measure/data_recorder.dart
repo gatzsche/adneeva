@@ -29,7 +29,7 @@ class DataRecorder {
     required this.connection,
     required this.role,
     this.log,
-    this.maxNumMeasurements = 10,
+    this.maxNumMeasurements = 2,
     this.packageSizes = const [_oneKb, _oneMb, _tenMb],
   }) {
     _initMeasurementCycles();
@@ -82,13 +82,17 @@ class DataRecorder {
   // ...........................................................................
   StreamSubscription? _listenToDataFromMasterSubscription;
   Completer? _listenToDataCompleter;
+  int _receivedBytes = 0;
   Future<void> _listenToDataFromMasterAndAcknowledge() {
     _listenToDataCompleter = Completer();
 
     _listenToDataFromMasterSubscription = connection.receiveData.listen(
       (data) {
         final str = data.string;
+        _receivedBytes += data.lengthInBytes;
         if (str.endsWith(Messages.packetEnd)) {
+          log?.call('Acknowledging data of size $_receivedBytes');
+          _receivedBytes = 0;
           connection.sendData(Messages.acknowledgment.uint8List);
         }
       },
@@ -108,7 +112,7 @@ class DataRecorder {
     for (final packageSize in packageSizes) {
       _initResultArray(packageSize);
 
-      log?.call('Measuring data for packageSize $packageSize ...');
+      log?.call('Measuring data for packageSize $packageSize');
 
       for (var iteration = 0; iteration < maxNumMeasurements; iteration++) {
         if (_stop) {
@@ -134,7 +138,7 @@ class DataRecorder {
 
     if (!_stop) {
       log?.call('Exporting Measurement Results');
-      _exportMeasuredResults();
+      await _exportMeasuredResults();
     }
 
     log?.call('Done.');
@@ -185,7 +189,6 @@ class DataRecorder {
 
   // ...........................................................................
   void _stopTimeMeasurement() {
-    log?.call('Stop time measurement ...');
     _stopWatch.stop();
   }
 
@@ -205,7 +208,7 @@ class DataRecorder {
   String? _resultCsv;
 
   // ...........................................................................
-  void _exportMeasuredResults() async {
+  Future<void> _exportMeasuredResults() async {
     String csv = '';
 
     // table header

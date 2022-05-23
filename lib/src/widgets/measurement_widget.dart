@@ -112,7 +112,7 @@ class _MeasurementWidgetState extends State<MeasurementWidget> {
   Widget get _waitingForRemoteWidget {
     return const Center(
       key: Key('waitingForRemoteWidget'),
-      child: Text('Waiting for second device ...'),
+      child: Text('Waiting for second device'),
     );
   }
 
@@ -120,10 +120,16 @@ class _MeasurementWidgetState extends State<MeasurementWidget> {
   Widget get _slaveIsMeasuringWidget {
     return Center(
       key: const Key('slaveIsMeasuringWidget'),
-      child: Column(children: const [
-        CircularProgressIndicator(),
-        Text('Recording measurements ...')
-      ]),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: const [
+          CircularProgressIndicator(),
+          SizedBox(
+            height: 30,
+          ),
+          Text('Recording measurements'),
+        ],
+      ),
     );
   }
 
@@ -166,7 +172,7 @@ class _MeasurementWidgetState extends State<MeasurementWidget> {
   Widget get _stopButton {
     return ElevatedButton(
       key: const Key('stopButton'),
-      onPressed: widget.application.startMeasurements,
+      onPressed: widget.application.stopMeasurements,
       child: const Text('Stop'),
     );
   }

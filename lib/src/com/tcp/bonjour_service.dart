@@ -45,8 +45,7 @@ class BonjourService
     _d = dependencies ??
         (isTest ? const MockBonjourServiceDeps() : const BonjourServiceDeps());
     _bonsoirBroadcast = _d.bonsoirBroadcast(service: _bonsoirService);
-    _bonsoirDiscovery =
-        _d.bonsoirDiscovery(type: '_mobile_network_evaluator._tcp');
+    _bonsoirDiscovery = _d.bonsoirDiscovery(type: service.type);
   }
 
   // ######################
@@ -59,7 +58,8 @@ class BonjourService
     bool needsStart = !_bonsoirBroadcast.isReady || _bonsoirBroadcast.isStopped;
 
     await _bonsoirBroadcast.ready;
-    log?.call('Broadcasting on port ${_bonsoirBroadcast.service.port}');
+    log?.call(
+        'Broadcasting "${service.type}" on port ${_bonsoirBroadcast.service.port}');
 
     if (needsStart) {
       await _bonsoirBroadcast.start();
@@ -110,6 +110,8 @@ class BonjourService
 
   @override
   Future<void> startDiscovery() async {
+    log?.call('Start discovering service "${service.type}" ');
+
     bool needsStart = !_bonsoirDiscovery.isReady || _bonsoirDiscovery.isStopped;
 
     if (!_bonsoirDiscovery.isReady) {
@@ -157,6 +159,8 @@ class BonjourService
   @override
   Future<void> stopDiscovery() async {
     await _bonsoirDiscovery.stop();
+    _discoverySubscription?.cancel();
+    _discoverySubscription = null;
   }
 
   // ...........................................................................
@@ -168,7 +172,7 @@ class BonjourService
       final clientSocket =
           await _connectClientSocket(ip: service.ip!, port: service.port);
       _initConnection(clientSocket);
-    } on SocketException catch (e) {
+    } on SocketException catch (_) {
       // log?.call(e.toString());
     }
   }

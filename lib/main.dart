@@ -5,10 +5,14 @@
 // found in the LICENSE file in the root of this package.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:gg_router/gg_router.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart';
 
 import './src/application.dart';
 import 'src/measure/data_recorder.dart';
@@ -288,7 +292,7 @@ class _GgRouterExampleState extends State<GgRouterExample>
       body: GgRouter(
         {
           'measure': (c) => _measurePage,
-          'results': (c) => _bigIcon(c, Icons.sports_football),
+          'results': (c) => _sharePage,
           'info': (c) => _logPage,
         },
         key: const ValueKey('tcpRouter'),
@@ -427,26 +431,106 @@ class _GgRouterExampleState extends State<GgRouterExample>
   }
 
   // ...........................................................................
-  Widget get _logPage {
+  Future<String> _tmpPath(String fileName) async {
+    Directory tempDir = await getTemporaryDirectory();
+    final targetPath = join(tempDir.path, fileName);
+    return targetPath;
+  }
+
+  // ...........................................................................
+  Future<void> _writeDataToFile(String data, String targetPath) async {
+    File(targetPath).writeAsStringSync(data);
+  }
+
+  // ...........................................................................
+  Widget _shareButton(List<String> measurementResults) => ElevatedButton(
+        key: const Key('shareButton'),
+        onPressed: () async {
+          const fileName = 'measurement_result.csv';
+          final targetPath = await _tmpPath(fileName);
+          _writeDataToFile(measurementResults.last, targetPath);
+          Share.shareFiles([targetPath], text: 'Measurement results');
+        },
+        child: const Text('Share'),
+      );
+
+  // ...........................................................................
+  Widget get _sharePage {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(50),
-        child: Container(
-          color: Theme.of(context).disabledColor,
-          child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: StreamBuilder(
-                stream: _logController.stream,
-                builder: (context, snapshot) {
-                  return ListView(
-                    children: _logMessages.map((e) => Text(e)).toList(),
-                  );
-                },
-              )),
-        ),
+      child: StreamBuilder(
+        builder: (context, snapshot) {
+          final measurmentResults = _localApp.measurementResults.value;
+          return measurmentResults.isEmpty
+              ? const Text('No measurements available')
+              : _shareButton(measurmentResults);
+        },
       ),
     );
   }
+
+  // ...........................................................................
+  Widget get _logWidget => StreamBuilder(
+        stream: _logController.stream,
+        builder: (context, snapshot) {
+          scheduleMicrotask(
+            () => _logViewScrollController.animateTo(
+              _logViewScrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.fastOutSlowIn,
+            ),
+          );
+
+          return ListView(
+            controller: _logViewScrollController,
+            children: _logMessages.map((e) => Text(e)).toList(),
+          );
+        },
+      );
+
+  // ...........................................................................
+  Widget get _clearButton => Positioned(
+        bottom: 0,
+        right: 0,
+        child: GestureDetector(
+          onTapDown: (details) {},
+          child: IconButton(
+            icon: const Icon(Icons.clear),
+            color: Colors.white.withOpacity(0.2),
+            onPressed: () => setState(() {
+              _logMessages.clear();
+            }),
+          ),
+        ),
+      );
+
+  // ...........................................................................
+  final _logViewScrollController = ScrollController();
+
+  Widget get _logPage {
+    return Builder(
+      builder: (context) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(50),
+            child: Container(
+              color: Theme.of(context).disabledColor,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Stack(
+                  children: [
+                    _logWidget,
+                    _clearButton,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ...........................................................................
 
   // ...........................................................................
   Future<void> _saveState(String state) async {

@@ -80,6 +80,7 @@ class Application {
     _initMeasurement();
     await _measure.connect();
     await _measure.measure();
+    await stopMeasurements();
   }
 
   // ...........................................................................
@@ -90,7 +91,7 @@ class Application {
   }
 
   // ...........................................................................
-  void stopMeasurements() async {
+  Future<void> stopMeasurements() async {
     _measure.disconnect();
     _stopMeasurementOnOtherSide();
   }
