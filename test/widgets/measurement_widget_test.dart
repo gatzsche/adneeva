@@ -18,7 +18,6 @@ void main() {
     late Application localApp;
     late Application remoteApp;
     DataRecorder.delayMeasurements = const Duration(milliseconds: 100);
-    ;
 
     // ...........................................................................
     Finder startButton() => find.byKey(const Key('startButton'));
