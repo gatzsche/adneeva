@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import '../application.dart';
 import '../measure/types.dart';
 
-class MeasurementWidget extends StatelessWidget {
+class MeasurementWidget extends StatefulWidget {
   const MeasurementWidget({
     Key? key,
     required this.application,
@@ -19,14 +19,47 @@ class MeasurementWidget extends StatelessWidget {
   final Application application;
   final Stream<String>? log;
 
+  @override
+  State<MeasurementWidget> createState() => _MeasurementWidgetState();
+}
+
+class _MeasurementWidgetState extends State<MeasurementWidget> {
+  // ...........................................................................
+  @override
+  void dispose() {
+    for (final d in _dispose.reversed) {
+      d();
+    }
+    super.dispose();
+  }
+
+  // ...........................................................................
+  @override
+  void initState() {
+    _initLog();
+
+    super.initState();
+  }
+
+  // ...........................................................................
+  String _lastLogMessage = '';
+  void _initLog() {
+    final s = widget.log?.listen(
+      (event) => _lastLogMessage = event,
+    );
+    _dispose.add(
+      () => s?.cancel(),
+    );
+  }
+
   // ...........................................................................
   @override
   Widget build(BuildContext context) {
     final needsRebuild = StreamGroup.merge<dynamic>([
-      application.isConnected,
-      application.role.stream,
-      application.isMeasuring,
-      application.measurementResults,
+      widget.application.isConnected,
+      widget.application.role.stream,
+      widget.application.isMeasuring,
+      widget.application.measurementResults,
     ]);
 
     return StreamBuilder(
@@ -42,13 +75,16 @@ class MeasurementWidget extends StatelessWidget {
   }
 
   // ...........................................................................
+  final List<Function()> _dispose = [];
+
+  // ...........................................................................
   bool get _showSlaveMeasuringWidget {
-    return application.role.value == EndpointRole.slave &&
-        application.isMeasuring.value;
+    return widget.application.role.value == EndpointRole.slave &&
+        widget.application.isMeasuring.value;
   }
 
   // ...........................................................................
-  bool get _isConnected => application.isConnected.value;
+  bool get _isConnected => widget.application.isConnected.value;
 
   // ...........................................................................
   Widget get _contentWidget {
@@ -93,14 +129,14 @@ class MeasurementWidget extends StatelessWidget {
 
   // ...........................................................................
   Widget get _logWidget {
-    if (log == null) {
+    if (widget.log == null) {
       return const SizedBox();
     }
 
     return StreamBuilder<String>(
-      stream: log,
+      stream: widget.log,
       builder: (context, snapshot) {
-        return Text(snapshot.data ?? '');
+        return Text(_lastLogMessage);
       },
     );
   }
@@ -108,9 +144,11 @@ class MeasurementWidget extends StatelessWidget {
   // ...........................................................................
   Widget get _controlButton {
     return StreamBuilder(
-      stream: application.isMeasuring,
+      stream: widget.application.isMeasuring,
       builder: (context, snapshot) {
-        return application.isMeasuring.value ? _stopButton : _startButton;
+        return widget.application.isMeasuring.value
+            ? _stopButton
+            : _startButton;
       },
     );
   }
@@ -119,7 +157,7 @@ class MeasurementWidget extends StatelessWidget {
   Widget get _startButton {
     return ElevatedButton(
       key: const Key('startButton'),
-      onPressed: application.startMeasurements,
+      onPressed: widget.application.startMeasurements,
       child: const Text('Start'),
     );
   }
@@ -128,7 +166,7 @@ class MeasurementWidget extends StatelessWidget {
   Widget get _stopButton {
     return ElevatedButton(
       key: const Key('stopButton'),
-      onPressed: application.startMeasurements,
+      onPressed: widget.application.startMeasurements,
       child: const Text('Stop'),
     );
   }
@@ -136,9 +174,9 @@ class MeasurementWidget extends StatelessWidget {
   // ...........................................................................
   Widget get _measurementResults {
     return StreamBuilder(
-      stream: application.measurementResults,
+      stream: widget.application.measurementResults,
       builder: (context, snapshot) {
-        return application.measurementResults.value.isNotEmpty
+        return widget.application.measurementResults.value.isNotEmpty
             ?
             // ignore: prefer_const_constructors
             Text(
