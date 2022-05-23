@@ -17,7 +17,8 @@ void main() {
     final key = GlobalKey(debugLabel: 'MeasurementWidget');
     late Application localApp;
     late Application remoteApp;
-    DataRecorder.delayMeasurements = true;
+    DataRecorder.delayMeasurements = const Duration(milliseconds: 100);
+    ;
 
     // ...........................................................................
     Finder startButton() => find.byKey(const Key('startButton'));

@@ -13,9 +13,11 @@ class MeasurementWidget extends StatelessWidget {
   const MeasurementWidget({
     Key? key,
     required this.application,
+    this.log,
   }) : super(key: key);
 
   final Application application;
+  final Stream<String>? log;
 
   // ...........................................................................
   @override
@@ -50,22 +52,31 @@ class MeasurementWidget extends StatelessWidget {
 
   // ...........................................................................
   Widget get _contentWidget {
-    return Column(
-      children: [
-        _controlButton,
-        _measurementResults,
-      ],
+    return Center(
+      child: Column(
+        children: [
+          const Expanded(
+            child: SizedBox(),
+          ),
+          _controlButton,
+          const SizedBox(
+            height: 30,
+          ),
+          _logWidget,
+          _measurementResults,
+          const Expanded(
+            child: SizedBox(),
+          ),
+        ],
+      ),
     );
   }
 
   // ...........................................................................
   Widget get _waitingForRemoteWidget {
-    return Center(
-      key: const Key('waitingForRemoteWidget'),
-      child: Column(children: const [
-        CircularProgressIndicator(),
-        Text('Waiting for second device to connect ...')
-      ]),
+    return const Center(
+      key: Key('waitingForRemoteWidget'),
+      child: Text('Waiting for second device ...'),
     );
   }
 
@@ -81,30 +92,25 @@ class MeasurementWidget extends StatelessWidget {
   }
 
   // ...........................................................................
-  Widget get _controlButton {
-    return StreamBuilder(
-      stream: application.isMeasuring,
+  Widget get _logWidget {
+    if (log == null) {
+      return const SizedBox();
+    }
+
+    return StreamBuilder<String>(
+      stream: log,
       builder: (context, snapshot) {
-        return application.isMeasuring.value ? _stopButton : _startButton;
+        return Text(snapshot.data ?? '');
       },
     );
   }
 
   // ...........................................................................
-  Widget get _measurementResults {
+  Widget get _controlButton {
     return StreamBuilder(
-      stream: application.measurementResults,
+      stream: application.isMeasuring,
       builder: (context, snapshot) {
-        return application.measurementResults.value.isNotEmpty
-            ?
-            // ignore: prefer_const_constructors
-            Text(
-                key:
-                    // ignore: prefer_const_constructors
-                    Key('measurementResults'),
-                'Download measurement results',
-              )
-            : const SizedBox();
+        return application.isMeasuring.value ? _stopButton : _startButton;
       },
     );
   }
@@ -124,6 +130,25 @@ class MeasurementWidget extends StatelessWidget {
       key: const Key('stopButton'),
       onPressed: application.startMeasurements,
       child: const Text('Stop'),
+    );
+  }
+
+  // ...........................................................................
+  Widget get _measurementResults {
+    return StreamBuilder(
+      stream: application.measurementResults,
+      builder: (context, snapshot) {
+        return application.measurementResults.value.isNotEmpty
+            ?
+            // ignore: prefer_const_constructors
+            Text(
+                key:
+                    // ignore: prefer_const_constructors
+                    Key('measurementResults'),
+                'Download measurement results',
+              )
+            : const SizedBox();
+      },
     );
   }
 }

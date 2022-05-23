@@ -14,9 +14,9 @@ import 'data_recorder.dart';
 import 'types.dart';
 
 class MeasureLogMessages {
-  static String start(EndpointRole role) => 'Start measurement as $role';
-  static String measure(EndpointRole role) => 'Measure as $role';
-  static String stop(EndpointRole role) => 'Stop measurement as $role';
+  static String connect(EndpointRole role) => 'Connecting ...';
+  static String measure(EndpointRole role) => 'Measuring ...';
+  static String disconnect(EndpointRole role) => 'Disconnecting ...';
 }
 
 class Measure {
@@ -46,7 +46,7 @@ class Measure {
     if (_connection != null) {
       return;
     }
-    _logStart();
+    _logConnect();
     await _connect();
   }
 
@@ -79,7 +79,7 @@ class Measure {
   Future<void> disconnect() async {
     assert(_connection != null);
 
-    _logStop();
+    _logDisconnect();
 
     _dataRecorder?.stop();
     _dataRecorder = null;
@@ -124,8 +124,8 @@ class Measure {
   }
 
   // ...........................................................................
-  void _logStart() => log?.call(MeasureLogMessages.start(role));
-  void _logStop() => log?.call(MeasureLogMessages.stop(role));
+  void _logConnect() => log?.call(MeasureLogMessages.connect(role));
+  void _logDisconnect() => log?.call(MeasureLogMessages.disconnect(role));
   void _logMeasure() => log?.call(MeasureLogMessages.measure(role));
 }
 

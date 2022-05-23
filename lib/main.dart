@@ -11,6 +11,8 @@ import 'package:gg_router/gg_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import './src/application.dart';
+import 'src/measure/data_recorder.dart';
+import 'src/widgets/measurement_widget.dart';
 
 // coverage:ignore-start
 void main() {
@@ -28,19 +30,64 @@ class GgRouterExample extends StatefulWidget {
   State<GgRouterExample> createState() => _GgRouterExampleState();
 }
 
-class _GgRouterExampleState extends State<GgRouterExample> {
-  final _application = Application(name: 'application');
+class _GgRouterExampleState extends State<GgRouterExample>
+    with WidgetsBindingObserver {
+  final List<Function()> _dispose = [];
+  late StreamController<String> _logController;
+  late Application _localApp;
+  late Application _remoteApp;
+  final List<String> _logMessages = [];
 
   // ...........................................................................
   @override
   void initState() {
     super.initState();
+    _initLog();
+    _initApplications();
+    _fakeConnectApps();
+  }
+
+  // ...........................................................................
+  @override
+  void dispose() {
+    _localApp.dispose();
+    super.dispose();
   }
 
   @override
-  void dispose() {
-    _application.dispose();
-    super.dispose();
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print(state);
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+  }
+
+  // ...........................................................................
+  void _initLog() {
+    _logController = StreamController<String>.broadcast();
+    final s = _logController.stream.listen(
+      (message) => _logMessages.add(message),
+    );
+    _dispose.add(_logController.close);
+    _dispose.add(s.cancel);
+  }
+
+  // ...........................................................................
+  void _initApplications() async {
+    void log(String msg) => _logController.add(msg);
+
+    _localApp = Application(name: 'localApp', log: log);
+    await Future.delayed(const Duration(seconds: 3));
+    _remoteApp = Application(name: 'remoteApp');
+  }
+
+  // ...........................................................................
+  Future<void> _fakeConnectApps() async {
+    // await Future.delayed(const Duration(seconds: 3));
+    // Application.fakeConnect(_localApp, _remoteApp);
+    DataRecorder.delayMeasurements = const Duration(seconds: 1);
   }
 
   // ...........................................................................
@@ -219,7 +266,7 @@ class _GgRouterExampleState extends State<GgRouterExample> {
                   icon: Icon(Icons.sports_football),
                 ),
                 BottomNavigationBarItem(
-                  label: 'Info',
+                  label: 'Log',
                   icon: Icon(Icons.sports_handball),
                 ),
               ],
@@ -240,9 +287,9 @@ class _GgRouterExampleState extends State<GgRouterExample> {
           }),
       body: GgRouter(
         {
-          'measure': (c) => _bigIcon(c, Icons.sports_basketball),
+          'measure': (c) => _measurePage,
           'results': (c) => _bigIcon(c, Icons.sports_football),
-          'info': (c) => _bigIcon(c, Icons.sports_handball),
+          'info': (c) => _logPage,
         },
         key: const ValueKey('tcpRouter'),
         defaultRoute: 'measure',
@@ -361,6 +408,40 @@ class _GgRouterExampleState extends State<GgRouterExample> {
         defaultRoute: 'airport',
         inAnimation: _moveIn,
         outAnimation: _moveOut,
+      ),
+    );
+  }
+
+  // ...........................................................................
+  Widget get _measurePage {
+    final result = MeasurementWidget(
+      application: _localApp,
+      key: const Key('measurePage'),
+      log: _logController.stream,
+    );
+
+    return result;
+  }
+
+  // ...........................................................................
+  Widget get _logPage {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(50),
+        child: Container(
+          color: Theme.of(context).disabledColor,
+          child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: StreamBuilder<String>(
+                builder: (context, snapshot) {
+                  return ListView(
+                    children: _logMessages.map((e) {
+                      return Text(e);
+                    }).toList(),
+                  );
+                },
+              )),
+        ),
       ),
     );
   }

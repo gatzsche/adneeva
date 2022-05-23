@@ -35,7 +35,7 @@ class MockApplicationDeps implements ApplicationDeps {
 
 // #############################################################################
 class Application {
-  Application({required this.name}) {
+  Application({required this.name, this.log}) {
     _init();
   }
 
@@ -48,6 +48,7 @@ class Application {
 
   // ...........................................................................
   final String name;
+  final Log? log;
 
   // ...........................................................................
   Future<void> get waitUntilConnected async {
@@ -64,6 +65,7 @@ class Application {
 
   // ...........................................................................
   void waitForConnections() async {
+    log?.call('Wait for connections');
     await waitUntilConnected;
     _listenToEndpointRole();
     _listenForCommands();
@@ -83,6 +85,7 @@ class Application {
   // ...........................................................................
   Future<void> startMeasurements() async {
     role.value = EndpointRole.master;
+    _updateModeAtOtherSide();
     await _startMeasurements();
   }
 
@@ -153,31 +156,23 @@ class Application {
           );
 
   // ...........................................................................
-  void _initIsConnected() {
-    final s = isConnected.listen(
-      (isConnected) {
-        if (isConnected) {
-          _updateModeAtOtherSide();
-        }
-      },
-    );
-    _dispose.add(s.cancel);
-  }
-
-  // ...........................................................................
   final _isMeasuring = GgValue<bool>(seed: false);
 
   // ...........................................................................
   void _init() async {
+    log?.call('Init');
+
     await _initRemoteControlService();
     _initMeasurement();
-    _initIsConnected();
     _isInitialized.complete();
+    waitForConnections();
   }
 
   // ...........................................................................
   late BipolarService<BonjourService> _remoteControlService;
   Future<void> _initRemoteControlService() async {
+    log?.call('Init remote control service');
+
     final info = BonsoirService(
       name: 'Mobile Network Evaluator',
       port: port,
@@ -208,7 +203,7 @@ class Application {
   // ...........................................................................
   void _sendCommand(Command command) {
     _remoteControlService.master.connections.value.first.sendString(
-      command.toJsonString(),
+      '${command.toJsonString()}\n',
     );
   }
 
@@ -216,21 +211,25 @@ class Application {
   void _listenForCommands() {
     _remoteControlService.slave.connections.value.first.receiveData.listen(
       (uint8List) {
-        // Currently only master sends remote control commands
-
+        // Only slaves receive commands currently
         final string = String.fromCharCodes(uint8List);
-        final command = json.decode(string);
+        final commands = string.split('\n').where(
+              (e) => e.isNotEmpty,
+            );
+        for (final commandStr in commands) {
+          final command = json.decode(commandStr);
 
-        final id = command['id'];
+          final id = command['id'];
 
-        if (id == 'EndpointRoleCmd') {
-          final cmd = EndpointRoleCmd.fromJson(command);
-          role.value = cmd.role;
-          mode.value = cmd.mode;
-        } else if (id == 'StartMeasurementCmd') {
-          _startMeasurements();
-        } else if (id == 'StopMeasurementCmd') {
-          stopMeasurements();
+          if (id == 'EndpointRoleCmd') {
+            final cmd = EndpointRoleCmd.fromJson(command);
+            role.value = cmd.role;
+            mode.value = cmd.mode;
+          } else if (id == 'StartMeasurementCmd') {
+            _startMeasurements();
+          } else if (id == 'StopMeasurementCmd') {
+            stopMeasurements();
+          }
         }
       },
     );
@@ -259,9 +258,10 @@ class Application {
   StreamSubscription? _measureStreamSubscription;
   StreamSubscription? _measurementResultSubscription;
   void _initMeasurement() {
+    log?.call('Init measurement');
     _measureStreamSubscription?.cancel();
     _measureStreamSubscription?.cancel();
-    _measure = MeasureTcp(role: role.value);
+    _measure = MeasureTcp(role: role.value, log: log);
 
     _measureStreamSubscription = _measure.isMeasuring.listen(
       (value) => _isMeasuring.value = value,

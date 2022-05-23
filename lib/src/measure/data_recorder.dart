@@ -35,7 +35,7 @@ class DataRecorder {
     _initMeasurementCycles();
   }
 
-  static bool delayMeasurements = false;
+  static Duration? delayMeasurements;
 
   // ...........................................................................
   void dispose() {
@@ -124,8 +124,8 @@ class DataRecorder {
         _stopTimeMeasurement();
         _writeMeasuredTimes(packageSize);
 
-        if (delayMeasurements) {
-          await Future.delayed(const Duration(milliseconds: 100));
+        if (delayMeasurements != null) {
+          await Future.delayed(delayMeasurements!);
         }
       }
     }

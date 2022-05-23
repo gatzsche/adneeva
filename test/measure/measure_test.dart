@@ -65,9 +65,9 @@ void main() {
 
         // Stop master and slave
         measureMaster.disconnect();
-        expect(logs.last, MeasureLogMessages.stop(EndpointRole.master));
+        expect(logs.last, MeasureLogMessages.disconnect(EndpointRole.master));
         measureSlave.disconnect();
-        expect(logs.last, MeasureLogMessages.stop(EndpointRole.slave));
+        expect(logs.last, MeasureLogMessages.disconnect(EndpointRole.slave));
 
         // Get measurement results
         expect(measureMaster.measurementResults.value, isNotEmpty);

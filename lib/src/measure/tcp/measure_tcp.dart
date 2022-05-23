@@ -12,14 +12,17 @@ import '../measure.dart';
 import '../types.dart';
 
 class MeasureTcp extends Measure {
-  MeasureTcp({required EndpointRole role})
-      : super(
+  MeasureTcp({
+    required EndpointRole role,
+    Log? log,
+  }) : super(
           role: role,
+          log: log,
           networkService: BonjourService(
               service: BonsoirService(
                 name: 'Measure TCP',
                 port: randomPort(),
-                type: '_measure_tcp._tcp',
+                type: '_measuretcp._tcp',
               ),
               mode: role == EndpointRole.master
                   ? EndpointRole.master
