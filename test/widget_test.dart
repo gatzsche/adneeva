@@ -135,7 +135,7 @@ void main() {
 
     // .........................................................................
     Future<void> tearDown(WidgetTester tester) async {
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 100));
     }
 
     // .........................................................................
@@ -383,6 +383,8 @@ void main() {
       expect(tcpPage, isNull);
       expect(nearbyPage, isNotNull);
       expect(btlePage, isNull);
+
+      await tearDown(tester);
     });
 
     // .........................................................................
@@ -404,6 +406,8 @@ void main() {
       final preferences = await SharedPreferences.getInstance();
       expect(preferences.getString('lastApplicationState'),
           contains('"$stagedChildKey":"hospital"'));
+
+      await tearDown(tester);
     });
 
     // .........................................................................
@@ -413,6 +417,7 @@ void main() {
       expect(find.bySemanticsLabel('Navigate to TCP Page'), findsOneWidget);
       expect(find.bySemanticsLabel('Navigate to Nearby Page'), findsOneWidget);
       expect(find.bySemanticsLabel('Navigate to BTLE Page'), findsOneWidget);
+      await tearDown(tester);
     });
   });
 }

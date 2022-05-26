@@ -57,16 +57,6 @@ class _GgRouterExampleState extends State<GgRouterExample>
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    print(state);
-  }
-
-  @override
-  void reassemble() {
-    super.reassemble();
-  }
-
   // ...........................................................................
   void _initLog() {
     _logController = StreamController<String>.broadcast();

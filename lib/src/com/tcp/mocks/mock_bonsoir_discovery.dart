@@ -37,7 +37,7 @@ class MockBonsoirDiscovery extends Mock implements BonsoirDiscovery {
   Future<void> stop() async {}
 
   // ...........................................................................
-  final eventStreamIn = StreamController<BonsoirDiscoveryEvent>();
+  final eventStreamIn = StreamController<BonsoirDiscoveryEvent>.broadcast();
   @override
   Stream<BonsoirDiscoveryEvent>? get eventStream => eventStreamIn.stream;
 

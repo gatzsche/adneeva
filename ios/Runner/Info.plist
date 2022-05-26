@@ -47,13 +47,17 @@
     <true />
     <key>UIApplicationSupportsIndirectInputEvents</key>
     <true />
+    
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Looking for other instances to make QoS measurements</string>
+    
     <key>NSLocalNetworkUsageDescription</key>
     <string>Looking for other instances to make QoS measurements</string>
     <key>NSBonjourServices</key>
     <array>
-      <string>_mobile_network_evaluator._tcp</string>
+      <string>_mobile_network_evaluator_remote_control._tcp</string>
       <string>_mobile_network_evaluator_measure_tcp._tcp</string>
-      
+      <string>_mobile_network_evaluator_measure_nearby._tcp</string>
       <string>_dartobservatory._tcp</string>
     </array>
   </dict>

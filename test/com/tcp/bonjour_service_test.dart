@@ -4,6 +4,7 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
+import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:bonsoir/bonsoir.dart';
@@ -87,6 +88,7 @@ void main() {
   void startMasterAndSlave(FakeAsync fake) {
     master.start();
     slave.start();
+    fake.flushMicrotasks();
     mockDiscovery();
     fake.flushMicrotasks();
     mockSlaveConnectsToMaster();
@@ -163,6 +165,7 @@ void main() {
         // Slave discovers and connects a service
         master.start();
         slave.start();
+        fake.flushMicrotasks();
 
         // Slave should discover the service broadcasted by the server
         mockDiscovery();

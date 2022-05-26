@@ -28,7 +28,7 @@
     <string>We are using the local network to connect measurement devices.</string>
     <key>NSBonjourServices</key>
     <array>
-        <string>_mobile_network_evaluator._tcp</string>
+        <string>_mobile_network_evaluator_remote_control._tcp</string>
     </array>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
@@ -38,7 +38,7 @@
     <string>Looking for other instances to make QoS measurements</string>
     <key>NSBonjourServices</key>
     <array>
-        <string>_mobile_network_evaluator._tcp</string>
+        <string>_mobile_network_evaluator_remote_control._tcp</string>
         <string>_dartobservatory._tcp</string>
         <string>_mobile_network_evaluator_measure_tcp._tcp</string>
     </array>

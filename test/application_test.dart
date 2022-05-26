@@ -85,12 +85,17 @@ void main() {
         expect(appB.mode.value, MeasurementMode.tcp);
 
         // Set AppA into TCP master mode.
-        // AppB will be set into TCP slave mode.
+        // AppB stays in master mode.
         appA.role.value = EndpointRole.master;
         appA.mode.value = MeasurementMode.tcp;
         fake.flushMicrotasks();
         expect(appB.mode.value, MeasurementMode.tcp);
-        expect(appB.role.value, EndpointRole.slave);
+        expect(appB.role.value, EndpointRole.master);
+
+        // Start measuring at AppA
+        // AppB will switch to master mode.
+        appA.startMeasurements();
+        fake.flushMicrotasks();
 
         // AppB is in TCP slave mode.
         // Somebody sets the application to btle mode.
@@ -102,15 +107,16 @@ void main() {
         expect(appA.mode.value, MeasurementMode.tcp);
         expect(appA.role.value, EndpointRole.master);
 
-        // Now AppB is set to master mode.
+        // Now AppB starts measuring.
         // Set applications into Nearby mode.
-        // This will also change the other side because AppB is master now.
+        // This will also change the other side to slave mode.
         expect(appA.role.value, EndpointRole.master);
         expect(appA.mode.value, MeasurementMode.tcp);
         expect(appB.role.value, EndpointRole.slave);
         expect(appB.mode.value, MeasurementMode.btle);
-        appB.role.value = EndpointRole.master;
+        appB.startMeasurements();
         fake.flushMicrotasks();
+        expect(appB.role.value, EndpointRole.master);
         expect(appA.role.value, EndpointRole.slave);
         expect(appA.mode.value, MeasurementMode.btle);
 

@@ -42,6 +42,7 @@ dependencies:
   share_plus: ^4.0.4
   path_provider: ^2.0.10
   path: ^1.8.1
+  flutter_nearby_connections: ^1.1.1
 
 dev_dependencies:
   flutter_test:

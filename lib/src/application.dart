@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/material.dart';
 import 'package:gg_value/gg_value.dart';
-import 'package:async/async.dart';
 
 import 'com/shared/bipolar_service.dart';
 import 'com/shared/commands.dart';
@@ -64,10 +63,9 @@ class Application {
   late Measure _measure;
 
   // ...........................................................................
-  void waitForConnections() async {
+  Future<void> waitForConnections() async {
     log?.call('Wait for connections');
     await waitUntilConnected;
-    _listenToEndpointRole();
     _listenForCommands();
   }
 
@@ -76,6 +74,7 @@ class Application {
     if (_measure.isMeasuring.value == true) {
       return;
     }
+
     _startMeasurementOnOtherSide();
     _initMeasurement();
     await _measure.connect();
@@ -160,13 +159,12 @@ class Application {
   final _isMeasuring = GgValue<bool>(seed: false);
 
   // ...........................................................................
-  void _init() async {
+  Future<void> _init() async {
     log?.call('Init');
 
     await _initRemoteControlService();
     _initMeasurement();
     _isInitialized.complete();
-    waitForConnections();
   }
 
   // ...........................................................................
@@ -177,7 +175,7 @@ class Application {
     final info = BonsoirService(
       name: 'Mobile Network Evaluator $port',
       port: port,
-      type: '_mobile_network_evaluator._tcp',
+      type: '_mobile_network_evaluator_remote_control._tcp',
     );
 
     final master = BonjourService(
@@ -239,21 +237,14 @@ class Application {
   }
 
   // ...........................................................................
-  void _listenToEndpointRole() {
-    StreamGroup.merge([mode.stream, role.stream]).listen(
-      (value) {
-        _updateModeAtOtherSide();
-      },
-    );
-  }
-
-  // ...........................................................................
   void _updateModeAtOtherSide() {
     if (role.value == EndpointRole.master) {
-      _sendCommand(EndpointRoleCmd(
-        mode: mode.value,
-        role: EndpointRole.slave,
-      ));
+      _sendCommand(
+        EndpointRoleCmd(
+          mode: mode.value,
+          role: EndpointRole.slave,
+        ),
+      );
     }
   }
 

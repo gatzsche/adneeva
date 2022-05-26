@@ -110,8 +110,6 @@ class BonjourService
 
   @override
   Future<void> startDiscovery() async {
-    log?.call('Start discovering service "${service.type}" ');
-
     bool needsStart = !_bonsoirDiscovery.isReady || _bonsoirDiscovery.isStopped;
 
     if (!_bonsoirDiscovery.isReady) {
@@ -123,6 +121,8 @@ class BonjourService
     }
 
     if (_discoverySubscription == null) {
+      log?.call('Start discovering service "${service.type}" ');
+
       _discoverySubscription =
           _bonsoirDiscovery.eventStream?.listen((event) async {
         if (event.type ==
@@ -172,8 +172,8 @@ class BonjourService
       final clientSocket =
           await _connectClientSocket(ip: service.ip!, port: service.port);
       _initConnection(clientSocket);
-    } on SocketException catch (_) {
-      // log?.call(e.toString());
+    } on SocketException catch (e) {
+      log?.call(e.toString());
     }
   }
 

@@ -101,9 +101,13 @@ abstract class NetworkService<ServiceInfo,
   // ######################
 
   // ...........................................................................
-  Future<Connection> get firstConnection async => _connections.value.isNotEmpty
-      ? _connections.value.first
-      : await _newConnection.stream.first;
+  Future<Connection> get firstConnection {
+    if (_connections.value.isNotEmpty) {
+      return Future.value(_connections.value.first);
+    } else {
+      return _newConnection.stream.first;
+    }
+  }
 
   // ...........................................................................
   @protected

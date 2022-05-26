@@ -59,7 +59,7 @@ void main() {
       // ...........................
       // Now let's connect the apps.
       Application.fakeConnect(localApp, remoteApp);
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       // Spinner is gone
       expect(find.byKey(const Key('waitingForRemoteWidget')), findsNothing);
