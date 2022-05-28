@@ -96,11 +96,15 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
 
   // ...........................................................................
   @override
-  Future<void> startListeningForConnections() async {}
+  Future<void> startListeningForConnections() async {
+    await startDiscovery();
+  }
 
   // ...........................................................................
   @override
-  Future<void> stopListeningForConnections() async {}
+  Future<void> stopListeningForConnections() async {
+    await stopDiscovery();
+  }
 
   // ######################
   // Discovering / Scanner
@@ -214,6 +218,11 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
 
   // ...........................................................................
   void _handleDiscoveredDevices(List<Device> devices) {
+    // Only scanners are connecting discovered devices
+    if (role == EndpointRole.advertizer) {
+      return;
+    }
+
     final newDevices = devices.where(
       (device) => !_allDeviceIds.contains(device.deviceId),
     );

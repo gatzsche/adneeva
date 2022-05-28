@@ -32,11 +32,17 @@ void main() {
   final sampleData0 = 'Hello World'.uint8List;
   final sampleData1 = 'Hello World'.uint8List;
 
-  final device0 = Device('ScannerDeviceId0', 'Scanner Device Name 0',
-      MockNearbyService.notConnected);
+  final disconnectedDevice0 = Device('ScannerDeviceId0',
+      'Scanner Device Name 0', MockNearbyService.notConnected);
 
-  final device1 = Device('ScannerDeviceId1', 'Scanner Device Name 1',
-      MockNearbyService.notConnected);
+  final connectedDevice0 = Device(
+    disconnectedDevice0.deviceId,
+    disconnectedDevice0.deviceName,
+    MockNearbyService.connected,
+  );
+
+  final disconnectedDevice1 = Device('ScannerDeviceId1',
+      'Scanner Device Name 1', MockNearbyService.notConnected);
 
   // ...........................................................................
   void initServices() {
@@ -58,6 +64,7 @@ void main() {
 
   // ...........................................................................
   void init() {
+    MockNearbyService.instances.clear();
     expect(lastLoggedMessage, '');
     initServices();
   }
@@ -68,12 +75,12 @@ void main() {
     scannerNbService.dispose();
   }
 
-  /*group(
+  group(
     'NearbyService Advertizer ',
     (() {
       test('should work correctly', () {
         fakeAsync((fake) {
-          // Initialize both services
+          // Initialize
           init();
           fake.flushMicrotasks();
 
@@ -82,77 +89,25 @@ void main() {
           fake.flushMicrotasks();
 
           // Simulate the discovery of a disconnected device
-          mockAdvertizerNearbyService.addDevice(device0);
-          fake.flushMicrotasks();
-
           // No connection should have been created yet,
-          // because only browsers are initiating a connection.
-
-          // Now assume the browser connects the device.
-          // We are simulating this by
-
-          // Check if a connection has been created for the device
-          expect(scannerNbService.connections.value.length, 1);
-          final connection = scannerNbService.connections.value.first;
-
-          // Simulate sending data
-          connection.sendData(sampleData0);
+          // because only scanners are initiating a connection.
+          expect(disconnectedDevice0.state, SessionState.notConnected);
+          mockAdvertizerNearbyService.addDevice(disconnectedDevice0);
           fake.flushMicrotasks();
-          var lastSentObject = mockAdvertizerNearbyService.sentMessages.last;
-          final lastSentDeviceId = lastSentObject.deviceId;
-          final lastSentMessage = lastSentObject.data;
-          expect(
-            lastSentDeviceId,
-            (connection.serviceInfo as ResolvedNbServiceInfo).device.deviceId,
-          );
-          expect(lastSentMessage, sampleData0);
+          expect(advertizerNbService.connectedEndpoints.value.length, 0);
 
-          // Simulate receiving data
-          Uint8List? receivedData;
-          connection.receiveData.listen((d) => receivedData = d);
-          mockAdvertizerNearbyService.dataReceivedController.add({
-            'deviceID': device0.deviceId,
-            'message': base64Encode(sampleData0),
-          });
+          // Now the scanner on the other side connects.
+          // A connected device will arrive a the advertizer.
+          // Advertizer creates an endpoint for that connected device.
+          mockAdvertizerNearbyService.addDevice(connectedDevice0);
           fake.flushMicrotasks();
-          expect(receivedData, sampleData0);
-
-          // Check second device
-          mockAdvertizerNearbyService.addDevice(device1);
-          fake.flushMicrotasks();
-          expect(scannerNbService.connections.value.length, 2);
-          final connection1 = scannerNbService.connections.value.last;
-          connection1.sendData(sampleData1);
-          fake.flushMicrotasks();
-          lastSentObject = mockAdvertizerNearbyService.sentMessages.last;
-          expect(lastSentObject.deviceId, device1.deviceId);
-          expect(lastSentObject.data, sampleData1);
-          Uint8List? receivedData1;
-          connection1.receiveData.listen((d) => receivedData1 = d);
-          mockAdvertizerNearbyService.dataReceivedController.add({
-            'deviceID': device1.deviceId,
-            'message': base64Encode(sampleData1),
-          });
-          fake.flushMicrotasks();
-          expect(receivedData1, sampleData1);
-
-          // Disconnect device 0
-          mockAdvertizerNearbyService.replaceDevice(
-              device0.deviceId, MockNearbyService.notConnected);
-          fake.flushMicrotasks();
-          expect(scannerNbService.connections.value.length, 1);
-
-          // Device 1 disappears
-          mockAdvertizerNearbyService.removeDevice(device1.deviceId);
-          fake.flushMicrotasks();
-          expect(scannerNbService.connections.value.length, 0);
+          expect(advertizerNbService.connectedEndpoints.value.length, 1);
 
           dispose();
         });
       });
     }),
   );
-  */
 
   group(
     'NearbyService Scanner',
@@ -168,7 +123,7 @@ void main() {
           fake.flushMicrotasks();
 
           // Simulate the discovery of a disconnected device
-          mockScannerNearbyService.addDevice(device0);
+          mockScannerNearbyService.addDevice(disconnectedDevice0);
           fake.flushMicrotasks();
 
           // Check if a connection has been created for the device
@@ -191,26 +146,26 @@ void main() {
           Uint8List? receivedData;
           connection.receiveData.listen((d) => receivedData = d);
           mockScannerNearbyService.dataReceivedController.add({
-            'deviceID': device0.deviceId,
+            'deviceID': disconnectedDevice0.deviceId,
             'message': base64Encode(sampleData0),
           });
           fake.flushMicrotasks();
           expect(receivedData, sampleData0);
 
           // Check second device
-          mockScannerNearbyService.addDevice(device1);
+          mockScannerNearbyService.addDevice(disconnectedDevice1);
           fake.flushMicrotasks();
           expect(scannerNbService.connectedEndpoints.value.length, 2);
           final connection1 = scannerNbService.connectedEndpoints.value.last;
           connection1.sendData(sampleData1);
           fake.flushMicrotasks();
           lastSentObject = mockScannerNearbyService.sentMessages.last;
-          expect(lastSentObject.deviceId, device1.deviceId);
+          expect(lastSentObject.deviceId, disconnectedDevice1.deviceId);
           expect(lastSentObject.data, sampleData1);
           Uint8List? receivedData1;
           connection1.receiveData.listen((d) => receivedData1 = d);
           mockScannerNearbyService.dataReceivedController.add({
-            'deviceID': device1.deviceId,
+            'deviceID': disconnectedDevice1.deviceId,
             'message': base64Encode(sampleData1),
           });
           fake.flushMicrotasks();
@@ -218,12 +173,12 @@ void main() {
 
           // Disconnect device 0
           mockScannerNearbyService.replaceDevice(
-              device0.deviceId, MockNearbyService.notConnected);
+              disconnectedDevice0.deviceId, MockNearbyService.notConnected);
           fake.flushMicrotasks();
           expect(scannerNbService.connectedEndpoints.value.length, 1);
 
           // Device 1 disappears
-          mockScannerNearbyService.removeDevice(device1.deviceId);
+          mockScannerNearbyService.removeDevice(disconnectedDevice1.deviceId);
           fake.flushMicrotasks();
           expect(scannerNbService.connectedEndpoints.value.length, 0);
 
