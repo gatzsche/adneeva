@@ -26,11 +26,12 @@ class NbServiceDeps {
 // #############################################################################
 
 class NbServiceInfo {
-  const NbServiceInfo();
+  const NbServiceInfo({required this.type});
+  final String type;
 }
 
 class ResolvedNbServiceInfo extends NbServiceInfo {
-  ResolvedNbServiceInfo(this.device);
+  ResolvedNbServiceInfo({required this.device, required super.type});
   final receivedData = StreamController<Uint8List>.broadcast();
   final Device device;
 }
@@ -180,7 +181,7 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   void _initNearby() async {
     _nearbyService = _d.newNearbyService();
     await _nearbyService.init(
-      serviceType: 'mobile_network_evaluator_measure_nearby',
+      serviceType: serviceInfo.type,
       deviceName: role == EndpointRole.advertizer ? 'Advertizer' : 'Scanner',
       strategy: Strategy.P2P_CLUSTER,
       callback: (isRunning) async {
@@ -248,7 +249,10 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
     );
 
     for (final device in newConnectedDevices) {
-      onDiscoverService(ResolvedNbServiceInfo(device));
+      onDiscoverService(ResolvedNbServiceInfo(
+        device: device,
+        type: serviceInfo.type,
+      ));
     }
   }
 

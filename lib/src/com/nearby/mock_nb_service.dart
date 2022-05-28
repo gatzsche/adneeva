@@ -18,7 +18,9 @@ class MockNbServiceDeps implements NbServiceDeps {
 }
 
 // .............................................................................
-const serviceInfo = NbServiceInfo();
+const serviceInfo = NbServiceInfo(
+  type: 'mobile_network_evaluator_measure_nearby',
+);
 
 // .............................................................................
 class MockNbService extends NbService {

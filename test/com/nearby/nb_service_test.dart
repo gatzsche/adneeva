@@ -11,6 +11,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile_network_evaluator/src/com/nearby/mock_nb_service.dart';
 import 'package:mobile_network_evaluator/src/com/nearby/mock_nearby_service.dart';
 import 'package:mobile_network_evaluator/src/com/nearby/nb_service.dart';
 import 'package:mobile_network_evaluator/src/measure/types.dart';
@@ -49,13 +50,13 @@ void main() {
     advertizerNbService = NbService(
       role: EndpointRole.advertizer,
       log: writeToLog,
-      service: const NbServiceInfo(),
+      service: serviceInfo,
     );
 
     scannerNbService = NbService(
       role: EndpointRole.scanner,
       log: writeToLog,
-      service: const NbServiceInfo(),
+      service: serviceInfo,
     );
     expect(MockNearbyService.instances.length, 2);
     mockAdvertizerNearbyService = MockNearbyService.instances.first;
