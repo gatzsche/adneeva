@@ -87,7 +87,8 @@ void main() {
         expect(scannerFakeService1.isConnected, false);
 
         // Connect a scanner fake service to a advertizer fake service
-        NetworkService.fakeConnect(scannerFakeService0, advertizerFakeService);
+        NetworkService.fakeConnect<FakeServiceInfo>(
+            scannerFakeService0, advertizerFakeService);
         fake.flushMicrotasks();
         expect(advertizerFakeService.connections.value.length, 1);
         expect(scannerFakeService0.connections.value.length, 1);
@@ -98,7 +99,8 @@ void main() {
 
         // Connect a scanner fake service to a scanner fake service
         scannerFakeService1.start();
-        NetworkService.fakeConnect(scannerFakeService1, advertizerFakeService);
+        NetworkService.fakeConnect<FakeServiceInfo>(
+            scannerFakeService1, advertizerFakeService);
         fake.flushMicrotasks();
         expect(advertizerFakeService.connections.value.length, 2);
         expect(scannerFakeService1.connections.value.length, 1);
@@ -138,7 +140,8 @@ void main() {
         scannerFakeService0.start();
         advertizerFakeService.start();
 
-        NetworkService.fakeConnect(scannerFakeService0, advertizerFakeService);
+        NetworkService.fakeConnect<FakeServiceInfo>(
+            scannerFakeService0, advertizerFakeService);
         fake.flushMicrotasks();
 
         expect(firstAdvertizerConnection, isNotNull);
@@ -165,8 +168,10 @@ void main() {
         scannerFakeService1.start();
         advertizerFakeService.start();
 
-        NetworkService.fakeConnect(scannerFakeService0, advertizerFakeService);
-        NetworkService.fakeConnect(scannerFakeService1, advertizerFakeService);
+        NetworkService.fakeConnect<FakeServiceInfo>(
+            scannerFakeService0, advertizerFakeService);
+        NetworkService.fakeConnect<FakeServiceInfo>(
+            scannerFakeService1, advertizerFakeService);
         fake.flushMicrotasks();
 
         // Create a bunch of connections

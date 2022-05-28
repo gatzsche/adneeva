@@ -32,7 +32,7 @@ class FakeService
 
   // ...........................................................................
   @override
-  bool isSameService(ResolvedFakeServiceInfo a, ResolvedFakeServiceInfo b) {
+  bool isSameService(FakeServiceInfo a, FakeServiceInfo b) {
     return a == b;
   }
 

@@ -119,12 +119,12 @@ class Application {
 
   // ...........................................................................
   static void fakeConnect(Application appA, Application appB) {
-    NetworkService.fakeConnect(
+    NetworkService.fakeConnect<BonsoirService>(
       appA.remoteControlService.advertizer,
       appB.remoteControlService.scanner,
     );
 
-    NetworkService.fakeConnect(
+    NetworkService.fakeConnect<BonsoirService>(
       appB.remoteControlService.advertizer,
       appA.remoteControlService.scanner,
     );
@@ -135,7 +135,7 @@ class Application {
 
   // ...........................................................................
   static void fakeConnectMeasurementCore(Application appA, Application appB) {
-    NetworkService.fakeConnect(
+    NetworkService.fakeConnect<BonsoirService>(
       appA.measure.networkService,
       appB.measure.networkService,
     );

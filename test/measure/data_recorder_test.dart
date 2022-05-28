@@ -23,7 +23,8 @@ void main() {
     scannerService = FakeService.scanner;
     advertizerService.start();
     scannerService.start();
-    NetworkService.fakeConnect(scannerService, advertizerService);
+    NetworkService.fakeConnect<FakeServiceInfo>(
+        scannerService, advertizerService);
     await flushMicroTasks();
 
     advertizerDataRecorder = exampleAdvertizerDataRecorder(

@@ -6,6 +6,7 @@
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile_network_evaluator/src/com/fake/fake_service.dart';
 import 'package:mobile_network_evaluator/src/com/shared/network_service.dart';
 import 'package:mobile_network_evaluator/src/measure/measure.dart';
 import 'package:mobile_network_evaluator/src/measure/types.dart';
@@ -17,7 +18,7 @@ void main() {
 
   // ...........................................................................
   Future<void> connectAdvertizerAndScanner() async {
-    await NetworkService.fakeConnect(
+    await NetworkService.fakeConnect<FakeServiceInfo>(
       measureScanner.networkService,
       measureAdvertizer.networkService,
     );

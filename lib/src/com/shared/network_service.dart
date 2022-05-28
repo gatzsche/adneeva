@@ -79,7 +79,7 @@ abstract class NetworkService<ServiceInfo,
   bool get isConnected => connections.value.isNotEmpty;
 
   // ...........................................................................
-  bool isSameService(ResolvedServiceInfo a, ResolvedServiceInfo b);
+  bool isSameService(ServiceInfo a, ServiceInfo b);
 
   // ######################
   // Advertizing / Advertizer
@@ -117,7 +117,7 @@ abstract class NetworkService<ServiceInfo,
   Future<void> connectToDiscoveredService(ResolvedServiceInfo service);
 
   // ...........................................................................
-  void addConnection(Connection<ResolvedServiceInfo> connection) {
+  void addConnection(Connection<ServiceInfo> connection) {
     assert(!_connections.value.contains(connection));
     _newConnection.add(connection);
     _connections.value = [..._connections.value, connection];
@@ -131,12 +131,11 @@ abstract class NetworkService<ServiceInfo,
   }
 
   // ...........................................................................
-  GgValueStream<List<Connection<ResolvedServiceInfo>>> get connections =>
+  GgValueStream<List<Connection<ServiceInfo>>> get connections =>
       _connections.stream;
 
   // ...........................................................................
-  Connection<ResolvedServiceInfo>? connectionForService(
-      ResolvedServiceInfo serviceInfo) {
+  Connection<ServiceInfo>? connectionForService(ServiceInfo serviceInfo) {
     for (final c in connections.value) {
       if (isSameService(c.serviceInfo, serviceInfo)) {
         return c;
@@ -153,7 +152,7 @@ abstract class NetworkService<ServiceInfo,
   // ...........................................................................
   /// Implement this function to directly connect a advertizer service to a
   /// client service. This is needed for test purposes
-  static Future<void> fakeConnect(
+  static Future<void> fakeConnect<ServiceInfo>(
     NetworkService endpointA,
     NetworkService endpointB,
   ) async {
@@ -177,7 +176,7 @@ abstract class NetworkService<ServiceInfo,
     // advertizer listens to the scanners outgoing data stream
     // advertizer sends to its own outgoing data stream
     // ignore: unused_local_variable
-    final advertizerConnection = Connection(
+    final advertizerConnection = Connection<ServiceInfo>(
       parentService: advertizer,
       disconnect: mockSocketAdvertizer.close,
       receiveData: mockSocketAdvertizer.dataIn.stream,
@@ -192,7 +191,7 @@ abstract class NetworkService<ServiceInfo,
     // scanner listens to the advertizer outgoing data stream
     // scanner sends to its own outgoing data stream
     // ignore: unused_local_variable
-    final scannerConnection = Connection(
+    final scannerConnection = Connection<ServiceInfo>(
       parentService: scanner,
       disconnect: mockSocketScanner.close,
       receiveData: mockSocketScanner.dataIn.stream,
@@ -213,8 +212,8 @@ abstract class NetworkService<ServiceInfo,
     _initConnections();
   }
 
-  final _newConnection = StreamController<Connection>.broadcast();
-  final _connections = GgValue<List<Connection<ResolvedServiceInfo>>>(seed: []);
+  final _newConnection = StreamController<Connection<ServiceInfo>>.broadcast();
+  final _connections = GgValue<List<Connection<ServiceInfo>>>(seed: []);
   void _initConnections() {
     _dispose.add(_connections.dispose);
     _dispose.add(_newConnection.close);

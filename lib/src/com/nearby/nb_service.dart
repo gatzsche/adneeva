@@ -61,8 +61,13 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
 
   // ...........................................................................
   @override
-  bool isSameService(ResolvedNbServiceInfo a, ResolvedNbServiceInfo b) =>
-      a.device.deviceId == b.device.deviceId;
+  bool isSameService(NbServiceInfo a, NbServiceInfo b) {
+    if (a is ResolvedNbServiceInfo && b is ResolvedNbServiceInfo) {
+      return a.device.deviceId == b.device.deviceId;
+    } else {
+      return a == b;
+    }
+  }
 
   // ######################
   // Advertizing / Advertizer
@@ -134,7 +139,7 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   Future<void> connectToDiscoveredService(
     ResolvedNbServiceInfo service,
   ) async {
-    Connection(
+    Connection<NbServiceInfo>(
       parentService: this,
       sendData: (data) => _sendData(service.device.deviceId, data),
       receiveData: service.receivedData.stream,

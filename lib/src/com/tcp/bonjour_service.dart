@@ -50,8 +50,12 @@ class BonjourService
 
   // ...........................................................................
   @override
-  bool isSameService(ResolvedBonsoirService a, ResolvedBonsoirService b) {
-    return a.ip == b.ip && a.name == b.name && a.type == b.type;
+  bool isSameService(BonsoirService a, BonsoirService b) {
+    if (a is ResolvedBonsoirService && b is ResolvedBonsoirService) {
+      return a.ip == b.ip && a.name == b.name && a.type == b.type;
+    } else {
+      return a.name == b.name && a.type == b.type;
+    }
   }
 
   // ######################
@@ -242,7 +246,7 @@ class BonjourService
 
   // ...........................................................................
   Connection _initConnection(Socket socket) {
-    return Connection(
+    return Connection<BonsoirService>(
       parentService: this,
       sendData: (data) async => socket.add(data),
       receiveData: socket.asBroadcastStream(),

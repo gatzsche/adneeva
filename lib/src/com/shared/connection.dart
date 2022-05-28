@@ -81,11 +81,11 @@ Connection exampleConnection({
   Stream<Uint8List>? receiveData,
   DisconnectFunction? disconnect,
 }) {
-  return Connection(
+  return Connection<FakeServiceInfo>(
     parentService: parentService ?? FakeService.advertizer,
     sendData: sendData ?? (data) async {},
     receiveData: receiveData ?? StreamController<Uint8List>.broadcast().stream,
     disconnect: disconnect ?? () async {},
-    serviceInfo: const ExampleServiceDescription(),
+    serviceInfo: FakeServiceInfo(),
   );
 }
