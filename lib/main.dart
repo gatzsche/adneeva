@@ -87,7 +87,7 @@ class _GgRouterExampleState extends State<GgRouterExample>
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Mobile Adhoc Evaluator',
+      title: 'Mobile AdHoc Evaluator',
       routerDelegate: GgRouterDelegate(
         child: _appContent,
         saveState: _saveState,

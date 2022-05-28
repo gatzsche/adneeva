@@ -7,39 +7,39 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:mobile_network_evaluator/src/com/fake/fake_service.dart';
-import 'package:mobile_network_evaluator/src/com/shared/bipolar_service.dart';
+import 'package:mobile_network_evaluator/src/com/shared/adHoc_service.dart';
 import 'package:mobile_network_evaluator/src/measure/types.dart';
 
 void main() {
-  late BipolarService<FakeService> bipolarEndpoint;
+  late AdHocService<FakeService> adHocEndpoint;
 
   void init(FakeAsync fake) {
-    bipolarEndpoint = exampleBipolarEndpoint();
+    adHocEndpoint = exampleBipolarEndpoint();
     fake.flushMicrotasks();
   }
 
   void dispose(FakeAsync fake) {
-    bipolarEndpoint.dispose();
+    adHocEndpoint.dispose();
     fake.flushMicrotasks();
     fake.flushMicrotasks();
   }
 
-  group('AdhocEndpoint', () {
+  group('AdHocEndpoint', () {
     // #########################################################################
     test('should initialize both, a advertizer and a scanner endpoint', () {
       fakeAsync((fake) {
         init(fake);
-        expect(bipolarEndpoint, isNotNull);
-        expect(bipolarEndpoint.advertizer, isNotNull);
-        expect(bipolarEndpoint.scanner, isNotNull);
+        expect(adHocEndpoint, isNotNull);
+        expect(adHocEndpoint.advertizer, isNotNull);
+        expect(adHocEndpoint.scanner, isNotNull);
 
         expect(
-          bipolarEndpoint.service(EndpointRole.advertizer),
-          bipolarEndpoint.advertizer,
+          adHocEndpoint.service(EndpointRole.advertizer),
+          adHocEndpoint.advertizer,
         );
         expect(
-          bipolarEndpoint.service(EndpointRole.scanner),
-          bipolarEndpoint.scanner,
+          adHocEndpoint.service(EndpointRole.scanner),
+          adHocEndpoint.scanner,
         );
 
         dispose(fake);
@@ -49,17 +49,17 @@ void main() {
     test('should start and stop both, a advertizer and a scanner endpoint', () {
       fakeAsync((fake) {
         init(fake);
-        expect(bipolarEndpoint.advertizer.isStarted, false);
-        expect(bipolarEndpoint.scanner.isStarted, false);
-        bipolarEndpoint.start();
+        expect(adHocEndpoint.advertizer.isStarted, false);
+        expect(adHocEndpoint.scanner.isStarted, false);
+        adHocEndpoint.start();
         fake.flushMicrotasks();
-        expect(bipolarEndpoint.advertizer.isStarted, true);
-        expect(bipolarEndpoint.scanner.isStarted, true);
+        expect(adHocEndpoint.advertizer.isStarted, true);
+        expect(adHocEndpoint.scanner.isStarted, true);
 
-        bipolarEndpoint.stop();
+        adHocEndpoint.stop();
         fake.flushMicrotasks();
-        expect(bipolarEndpoint.advertizer.isStarted, false);
-        expect(bipolarEndpoint.scanner.isStarted, false);
+        expect(adHocEndpoint.advertizer.isStarted, false);
+        expect(adHocEndpoint.scanner.isStarted, false);
         dispose(fake);
       });
     });

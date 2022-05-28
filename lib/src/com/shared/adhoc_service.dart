@@ -8,8 +8,8 @@ import '../../measure/types.dart';
 import '../fake/fake_service.dart';
 import 'network_service.dart';
 
-class BipolarService<T extends NetworkService<dynamic, dynamic>> {
-  BipolarService({required this.advertizer, required this.scanner}) {
+class AdHocService<T extends NetworkService<dynamic, dynamic>> {
+  AdHocService({required this.advertizer, required this.scanner}) {
     _init();
   }
 
@@ -51,7 +51,7 @@ class BipolarService<T extends NetworkService<dynamic, dynamic>> {
 }
 
 // #############################################################################
-BipolarService<FakeService> exampleBipolarEndpoint() => BipolarService(
+AdHocService<FakeService> exampleBipolarEndpoint() => AdHocService(
       advertizer: FakeService(scanner: EndpointRole.advertizer),
       scanner: FakeService(scanner: EndpointRole.scanner),
     );

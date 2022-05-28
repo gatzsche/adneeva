@@ -12,7 +12,7 @@ import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/material.dart';
 import 'package:gg_value/gg_value.dart';
 
-import 'com/shared/bipolar_service.dart';
+import 'com/shared/adHoc_service.dart';
 import 'com/shared/commands.dart';
 import 'com/shared/network_service.dart';
 import 'com/tcp/bonjour_service.dart';
@@ -106,7 +106,7 @@ class Application {
 
   // ...........................................................................
   @visibleForTesting
-  BipolarService<BonjourService> get remoteControlService =>
+  AdHocService<BonjourService> get remoteControlService =>
       _remoteControlService;
 
   // ...........................................................................
@@ -168,7 +168,7 @@ class Application {
   }
 
   // ...........................................................................
-  late BipolarService<BonjourService> _remoteControlService;
+  late AdHocService<BonjourService> _remoteControlService;
   Future<void> _initRemoteControlService() async {
     log?.call('Init remote control service');
 
@@ -192,7 +192,7 @@ class Application {
       log: log,
     );
 
-    _remoteControlService = BipolarService<BonjourService>(
+    _remoteControlService = AdHocService<BonjourService>(
       advertizer: advertizer,
       scanner: scanner,
     );
