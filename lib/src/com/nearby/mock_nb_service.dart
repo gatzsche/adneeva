@@ -18,8 +18,8 @@ class MockNbServiceDeps implements NbServiceDeps {
 }
 
 // .............................................................................
-const serviceInfo = NbServiceInfo(
-  type: 'mobile_network_evaluator_measure_nearby',
+final serviceInfo = NbServiceInfo(
+  type: 'mne-measurenb',
 );
 
 // .............................................................................

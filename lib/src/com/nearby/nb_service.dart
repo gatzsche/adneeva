@@ -26,8 +26,16 @@ class NbServiceDeps {
 // #############################################################################
 
 class NbServiceInfo {
-  const NbServiceInfo({required this.type});
+  NbServiceInfo({required this.type}) {
+    _checkType();
+  }
   final String type;
+
+  void _checkType() {
+    assert(type.length <= 15);
+    assert('-'.allMatches(type).length <= 1);
+    assert(!type.contains('_'));
+  }
 }
 
 class ResolvedNbServiceInfo extends NbServiceInfo {
@@ -45,6 +53,7 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
     NbServiceDeps? dependencies,
   }) : _d = dependencies ??
             (isTest ? const MockNbServiceDeps() : const NbServiceDeps()) {
+    log?.call('Create NBService with role {$role}');
     _initNearby();
   }
 
@@ -71,12 +80,20 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   }
 
   // ######################
-  // Advertizing / Advertizer
+  // Advertizer
   // ######################
 
   // ...........................................................................
   @override
   Future<void> startAdvertizing() async {
+    await _startAdvertizing;
+    await _startScanningForPeers;
+  }
+
+  // ...........................................................................
+  Future<void> get _startAdvertizing async {
+    log?.call('Start advertizing');
+
     if (_isAdvertizing) {
       return;
     }
@@ -88,6 +105,13 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   // ...........................................................................
   @override
   Future<void> stopAdvertizing() async {
+    await _stopAdvertizing;
+    await _stopScanning;
+  }
+
+  // ...........................................................................
+  Future<void> get _stopAdvertizing async {
+    log?.call('Stop advertizing');
     if (!_isAdvertizing) {
       return;
     }
@@ -97,37 +121,46 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
 
   // ...........................................................................
   @override
-  Future<void> startListeningForConnections() async {
-    await startDiscovery();
-  }
+  Future<void> startListeningForConnections() async {}
 
   // ...........................................................................
   @override
-  Future<void> stopListeningForConnections() async {
-    await stopDiscovery();
-  }
+  Future<void> stopListeningForConnections() async {}
 
   // ######################
-  // Discovering / Scanner
+  // Scanner
   // ######################
 
   // ...........................................................................
   @override
-  Future<void> startDiscovery() async {
+  Future<void> startScanning() async {
+    await _startScanning();
+  }
+
+  // ...........................................................................
+  Future<void> _startScanning() async {
+    log?.call('Stop scanning');
     if (_isDiscovering) {
       return;
     }
     _isDiscovering = true;
 
     await _isInitialized.future;
-    await _startBrowsingForPeers;
+
+    await _startScanningForPeers;
     await _startListeningForData;
     _dispose.add(() => _discoverySubscription?.cancel);
   }
 
   // ...........................................................................
   @override
-  Future<void> stopDiscovery() async {
+  Future<void> stopScanning() async {
+    await _stopScanning;
+  }
+
+  // ...........................................................................
+  Future<void> get _stopScanning async {
+    log?.call('Stop scanning');
     if (!_isDiscovering) {
       return;
     }
@@ -179,6 +212,7 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   late NearbyService _nearbyService;
 
   void _initNearby() async {
+    log?.call('Init Nearby');
     _nearbyService = _d.newNearbyService();
     await _nearbyService.init(
       serviceType: serviceInfo.type,
@@ -199,7 +233,8 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   }
 
   // ...........................................................................
-  Future<void> get _startBrowsingForPeers async {
+  Future<void> get _startScanningForPeers async {
+    log?.call('Start scanning for peers');
     await _nearbyService.startBrowsingForPeers();
     _discoverySubscription =
         _nearbyService.stateChangedSubscription(callback: _updateDevices);
@@ -207,6 +242,7 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
 
   // ...........................................................................
   void _updateDevices(List<Device> devices) {
+    log?.call('Update devices');
     _handleDiscoveredDevices(devices);
     _handleConnectedDevices(devices);
     _handleDisconnectedDevices(devices);
@@ -295,6 +331,7 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
 
   // ...........................................................................
   Future<void> get _startListeningForData async {
+    log?.call('Start listening for data');
     _receiveDataSubscription =
         _nearbyService.dataReceivedSubscription(callback: (data) {
       final deviceId = data['deviceID'] as String;
@@ -309,6 +346,7 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
 
   // ...........................................................................
   Future<void> _sendData(String deviceId, Uint8List data) async {
+    log?.call('Send data');
     final base64Data = base64Encode(data);
     await _nearbyService.sendMessage(deviceId, base64Data);
   }

@@ -69,10 +69,10 @@ class FakeService
   // Discovery - Not implemented for fake service
 
   @override
-  Future<void> startDiscovery() async {}
+  Future<void> startScanning() async {}
 
   @override
-  Future<void> stopDiscovery() async {}
+  Future<void> stopScanning() async {}
 
   // ................
   // Connect services

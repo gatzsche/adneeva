@@ -14,8 +14,8 @@ class MeasureNb extends Measure {
     super.log,
   }) : super(
           networkService: NbService(
-            service: const NbServiceInfo(
-              type: 'mobile_network_evaluator_measure_nearby',
+            service: NbServiceInfo(
+              type: 'mne-measurenb',
             ),
             role: role,
             log: log,

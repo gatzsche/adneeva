@@ -18,6 +18,7 @@ import 'com/shared/network_service.dart';
 import 'com/tcp/bonjour_service.dart';
 import 'com/tcp/mocks/mock_network_interface.dart';
 import 'measure/measure.dart';
+import 'measure/nearby/measure_nb.dart';
 import 'measure/tcp/measure_tcp.dart';
 import 'measure/types.dart';
 import 'utils/utils.dart';

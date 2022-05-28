@@ -119,7 +119,7 @@ class BonjourService
   // ######################
 
   @override
-  Future<void> startDiscovery() async {
+  Future<void> startScanning() async {
     bool needsStart = !_bonsoirDiscovery.isReady || _bonsoirDiscovery.isStopped;
 
     if (!_bonsoirDiscovery.isReady) {
@@ -167,7 +167,7 @@ class BonjourService
 
   // ...........................................................................
   @override
-  Future<void> stopDiscovery() async {
+  Future<void> stopScanning() async {
     await _bonsoirDiscovery.stop();
     _discoverySubscription?.cancel();
     _discoverySubscription = null;

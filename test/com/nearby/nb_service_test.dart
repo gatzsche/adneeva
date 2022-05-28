@@ -77,6 +77,26 @@ void main() {
   }
 
   group(
+    'NearbyServiceInfo ',
+    (() {
+      group('type', () {
+        test('should not be longer then 15', () {
+          expect(() => NbServiceInfo(type: '1234567890ABCDEFG'),
+              throwsAssertionError);
+        });
+
+        test('should have maximum one hyphen', () {
+          expect(() => NbServiceInfo(type: 'a-b-c'), throwsAssertionError);
+        });
+
+        test('should not contain underscore', () {
+          expect(() => NbServiceInfo(type: 'a_c'), throwsAssertionError);
+        });
+      });
+    }),
+  );
+
+  group(
     'NearbyService Advertizer ',
     (() {
       test('should work correctly', () {

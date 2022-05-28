@@ -96,8 +96,8 @@ abstract class NetworkService<ServiceInfo,
   // ######################
 
   // ...........................................................................
-  Future<void> startDiscovery();
-  Future<void> stopDiscovery();
+  Future<void> startScanning();
+  Future<void> stopScanning();
 
   // ######################
   // Connection
@@ -253,12 +253,12 @@ abstract class NetworkService<ServiceInfo,
 
   // ...........................................................................
   Future<void> _startScanner() async {
-    await startDiscovery();
+    await startScanning();
   }
 
   // ...........................................................................
   Future<void> _stopScanner() async {
-    await stopDiscovery();
+    await stopScanning();
     await _disconnectAll();
   }
 
