@@ -42,7 +42,10 @@ dependencies:
   share_plus: ^4.0.4
   path_provider: ^2.0.10
   path: ^1.8.1
-  flutter_nearby_connections: ^1.1.1
+  flutter_nearby_connections: # ^1.1.1
+    git:
+      url: git@github.com:gatzsche/flutter_nearby_connections.git
+      ref: master
 
 dev_dependencies:
   flutter_test:

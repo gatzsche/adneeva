@@ -93,7 +93,8 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   Future<void> startAdvertizing() async {
     _initNearby();
     await _startAdvertizing;
-    await _startScanningForPeers;
+    await _listenForStateChanges;
+    await _startListeningForData;
   }
 
   // ...........................................................................
@@ -112,7 +113,6 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   @override
   Future<void> stopAdvertizing() async {
     await _stopAdvertizing;
-    await _stopScanning;
   }
 
   // ...........................................................................
@@ -156,6 +156,7 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
     await _isInitialized.future;
 
     await _startScanningForPeers;
+    await _listenForStateChanges;
     await _startListeningForData;
     _dispose.add(() => _discoverySubscription?.cancel);
   }
@@ -245,6 +246,10 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   Future<void> get _startScanningForPeers async {
     log?.call('Start scanning for peers');
     await _nearbyService.startBrowsingForPeers();
+  }
+
+  // ...........................................................................
+  Future<void> get _listenForStateChanges async {
     _discoverySubscription =
         _nearbyService.stateChangedSubscription(callback: _updateDevices);
   }
@@ -336,8 +341,8 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   // ...........................................................................
   void _disconnectDevice(Device device) {
     final serviceInfo = _serviceInfos[device.deviceId]!;
-    final connection = endpointForService(serviceInfo)!;
-    connection.disconnect();
+    final connection = endpointForService(serviceInfo);
+    connection?.disconnect();
     _serviceInfos.remove(device.deviceId);
   }
 
@@ -346,12 +351,8 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
     log?.call('Start listening for data');
     _receiveDataSubscription =
         _nearbyService.dataReceivedSubscription(callback: (data) {
-      final deviceId = data['deviceId'] as String;
-
-      // Workaround: Currently we are not able to assign the incoming data
-      // to one of the connections. Thus we take the first connection.
-      // final resolvedServiceInfo = _serviceInfo(deviceId);
-      final resolvedServiceInfo = _serviceInfos.values.first;
+      final senderDeviceId = data['senderDeviceId'] as String;
+      final resolvedServiceInfo = _serviceInfo(senderDeviceId);
       final messageString = data['message'];
       final messageBinary = base64Decode(messageString);
       resolvedServiceInfo.receivedData.add(messageBinary);

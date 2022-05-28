@@ -48,8 +48,9 @@ class _GgRouterExampleState extends State<GgRouterExample>
     super.initState();
     _initLog();
     _initApplications();
-    DataRecorder.delayMeasurements =
-        const Duration(seconds: 1); // Makes measurement slow to see progress
+    DataRecorder.delayMeasurements = const Duration(
+      milliseconds: 100,
+    ); // Makes measurement slow to see progress
   }
 
   // ...........................................................................
