@@ -16,6 +16,7 @@ import 'package:path/path.dart';
 
 import './src/application.dart';
 import 'src/measure/data_recorder.dart';
+import 'src/utils/is_test.dart';
 import 'src/widgets/measurement_widget.dart';
 
 // coverage:ignore-start
@@ -47,7 +48,8 @@ class _GgRouterExampleState extends State<GgRouterExample>
     super.initState();
     _initLog();
     _initApplications();
-    _fakeConnectApps();
+    DataRecorder.delayMeasurements =
+        const Duration(seconds: 1); // Makes measurement slow to see progress
   }
 
   // ...........................................................................
@@ -73,14 +75,9 @@ class _GgRouterExampleState extends State<GgRouterExample>
     void log(String msg) => _logController.add(msg);
 
     _localApp = Application(name: 'localApp', log: log);
-    await Future.delayed(const Duration(seconds: 3));
-  }
-
-  // ...........................................................................
-  Future<void> _fakeConnectApps() async {
-    // await Future.delayed(const Duration(seconds: 3));
-    // Application.fakeConnect(_localApp, _remoteApp);
-    DataRecorder.delayMeasurements = const Duration(seconds: 1);
+    if (!isTest) {
+      await _localApp.waitForConnections();
+    }
   }
 
   // ...........................................................................

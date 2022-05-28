@@ -66,6 +66,7 @@ void main() {
   // ...........................................................................
   void init() {
     MockNearbyService.instances.clear();
+    lastLoggedMessage = '';
     expect(lastLoggedMessage, '');
     initServices();
   }
