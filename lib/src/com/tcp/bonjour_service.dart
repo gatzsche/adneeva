@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 import '../../utils/is_test.dart';
 import 'mocks/mock_bonjour_service.dart';
 
-import '../shared/connection.dart';
+import '../shared/endpoint.dart';
 import '../shared/network_service.dart';
 import '../../measure/types.dart';
 
@@ -245,8 +245,8 @@ class BonjourService
   }
 
   // ...........................................................................
-  Connection _initConnection(Socket socket) {
-    return Connection<BonsoirService>(
+  Endpoint _initConnection(Socket socket) {
+    return Endpoint<BonsoirService>(
       parentService: this,
       sendData: (data) async => socket.add(data),
       receiveData: socket.asBroadcastStream(),

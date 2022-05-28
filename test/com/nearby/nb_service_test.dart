@@ -172,8 +172,8 @@ void main() {
           fake.flushMicrotasks();
 
           // Check if a connection has been created for the device
-          expect(scannerNbService.connections.value.length, 1);
-          final connection = scannerNbService.connections.value.first;
+          expect(scannerNbService.connectedEndpoints.value.length, 1);
+          final connection = scannerNbService.connectedEndpoints.value.first;
 
           // Simulate sending data
           connection.sendData(sampleData0);
@@ -200,8 +200,8 @@ void main() {
           // Check second device
           mockScannerNearbyService.addDevice(device1);
           fake.flushMicrotasks();
-          expect(scannerNbService.connections.value.length, 2);
-          final connection1 = scannerNbService.connections.value.last;
+          expect(scannerNbService.connectedEndpoints.value.length, 2);
+          final connection1 = scannerNbService.connectedEndpoints.value.last;
           connection1.sendData(sampleData1);
           fake.flushMicrotasks();
           lastSentObject = mockScannerNearbyService.sentMessages.last;
@@ -220,12 +220,12 @@ void main() {
           mockScannerNearbyService.replaceDevice(
               device0.deviceId, MockNearbyService.notConnected);
           fake.flushMicrotasks();
-          expect(scannerNbService.connections.value.length, 1);
+          expect(scannerNbService.connectedEndpoints.value.length, 1);
 
           // Device 1 disappears
           mockScannerNearbyService.removeDevice(device1.deviceId);
           fake.flushMicrotasks();
-          expect(scannerNbService.connections.value.length, 0);
+          expect(scannerNbService.connectedEndpoints.value.length, 0);
 
           dispose();
         });

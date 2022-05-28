@@ -7,7 +7,7 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_network_evaluator/src/com/fake/fake_service.dart';
-import 'package:mobile_network_evaluator/src/com/shared/connection.dart';
+import 'package:mobile_network_evaluator/src/com/shared/endpoint.dart';
 import 'package:mobile_network_evaluator/src/com/shared/network_service.dart';
 import 'package:mobile_network_evaluator/src/utils/utils.dart';
 
@@ -31,8 +31,8 @@ void main() {
   }
 
   void testSendingData({
-    required Connection from,
-    required Connection to,
+    required Endpoint from,
+    required Endpoint to,
     required FakeAsync fake,
   }) {
     // Listen to received data
@@ -60,8 +60,8 @@ void main() {
       () {
         fakeAsync((fake) {
           init(fake);
-          expect(advertizerFakeService.connections.value, isEmpty);
-          expect(scannerFakeService0.connections.value, isEmpty);
+          expect(advertizerFakeService.connectedEndpoints.value, isEmpty);
+          expect(scannerFakeService0.connectedEndpoints.value, isEmpty);
           dispose(fake);
         });
       },
@@ -90,9 +90,9 @@ void main() {
         NetworkService.fakeConnect<FakeServiceInfo>(
             scannerFakeService0, advertizerFakeService);
         fake.flushMicrotasks();
-        expect(advertizerFakeService.connections.value.length, 1);
-        expect(scannerFakeService0.connections.value.length, 1);
-        expect(scannerFakeService1.connections.value.length, 0);
+        expect(advertizerFakeService.connectedEndpoints.value.length, 1);
+        expect(scannerFakeService0.connectedEndpoints.value.length, 1);
+        expect(scannerFakeService1.connectedEndpoints.value.length, 0);
         expect(advertizerFakeService.isConnected, true);
         expect(scannerFakeService0.isConnected, true);
         expect(scannerFakeService1.isConnected, false);
@@ -102,9 +102,9 @@ void main() {
         NetworkService.fakeConnect<FakeServiceInfo>(
             scannerFakeService1, advertizerFakeService);
         fake.flushMicrotasks();
-        expect(advertizerFakeService.connections.value.length, 2);
-        expect(scannerFakeService1.connections.value.length, 1);
-        expect(scannerFakeService1.connections.value.length, 1);
+        expect(advertizerFakeService.connectedEndpoints.value.length, 2);
+        expect(scannerFakeService1.connectedEndpoints.value.length, 1);
+        expect(scannerFakeService1.connectedEndpoints.value.length, 1);
         expect(scannerFakeService0.isConnected, true);
         expect(scannerFakeService1.isConnected, true);
 
@@ -120,8 +120,8 @@ void main() {
         init(fake);
 
         // Listen to firstConnection
-        Connection? firstScannerConnection;
-        Connection? firstAdvertizerConnection;
+        Endpoint? firstScannerConnection;
+        Endpoint? firstAdvertizerConnection;
         scannerFakeService0.firstConnection.then(
           (c) => firstScannerConnection = c,
         );
@@ -148,7 +148,7 @@ void main() {
         expect(firstScannerConnection, isNotNull);
 
         // Lets listen to first connection again
-        Connection? firstScannerConnection2;
+        Endpoint? firstScannerConnection2;
         scannerFakeService0.firstConnection.then(
           (c) => firstScannerConnection2 = c,
         );
@@ -176,12 +176,13 @@ void main() {
 
         // Create a bunch of connections
         final advertizerScanner0 =
-            advertizerFakeService.connections.value.first;
+            advertizerFakeService.connectedEndpoints.value.first;
 
-        final advertizerScanner1 = advertizerFakeService.connections.value.last;
+        final advertizerScanner1 =
+            advertizerFakeService.connectedEndpoints.value.last;
 
-        final scanner0 = scannerFakeService0.connections.value.first;
-        final scanner1 = scannerFakeService1.connections.value.first;
+        final scanner0 = scannerFakeService0.connectedEndpoints.value.first;
+        final scanner1 = scannerFakeService1.connectedEndpoints.value.first;
 
         testSendingData(from: scanner0, to: advertizerScanner0, fake: fake);
         testSendingData(from: scanner1, to: advertizerScanner1, fake: fake);

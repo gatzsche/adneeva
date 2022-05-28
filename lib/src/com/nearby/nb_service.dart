@@ -10,7 +10,7 @@ import 'dart:typed_data';
 
 import '../../measure/types.dart';
 import '../../utils/is_test.dart';
-import '../shared/connection.dart';
+import '../shared/endpoint.dart';
 import '../shared/network_service.dart';
 import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 
@@ -139,7 +139,7 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   Future<void> connectToDiscoveredService(
     ResolvedNbServiceInfo service,
   ) async {
-    Connection<NbServiceInfo>(
+    Endpoint<NbServiceInfo>(
       parentService: this,
       sendData: (data) => _sendData(service.device.deviceId, data),
       receiveData: service.receivedData.stream,
@@ -275,7 +275,7 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   // ...........................................................................
   void _disconnectDevice(Device device) {
     final serviceInfo = _serviceInfos[device.deviceId]!;
-    final connection = connectionForService(serviceInfo)!;
+    final connection = endpointForService(serviceInfo)!;
     connection.disconnect();
     _serviceInfos.remove(device.deviceId);
   }

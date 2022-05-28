@@ -28,10 +28,10 @@ void main() {
     await flushMicroTasks();
 
     advertizerDataRecorder = exampleAdvertizerDataRecorder(
-      connection: advertizerService.connections.value.first,
+      connection: advertizerService.connectedEndpoints.value.first,
     );
     scannerDataRecorder = exampleScannerDataRecorder(
-      connection: scannerService.connections.value.first,
+      connection: scannerService.connectedEndpoints.value.first,
     );
 
     await flushMicroTasks();

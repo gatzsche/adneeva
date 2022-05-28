@@ -9,7 +9,7 @@ import 'dart:typed_data';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../com/shared/connection.dart';
+import '../com/shared/endpoint.dart';
 import '../utils/is_test.dart';
 import '../utils/utils.dart';
 import 'types.dart';
@@ -48,7 +48,7 @@ class DataRecorder {
   bool get isRunning => _isRunning;
 
   // ...........................................................................
-  final Connection connection;
+  final Endpoint connection;
   final EndpointRole role;
 
   // ######################
@@ -303,15 +303,14 @@ class DataRecorder {
 }
 
 // #############################################################################
-DataRecorder exampleAdvertizerDataRecorder({Connection? connection}) =>
+DataRecorder exampleAdvertizerDataRecorder({Endpoint? connection}) =>
     DataRecorder(
       connection: connection ?? exampleConnection(),
       role: EndpointRole.advertizer,
     );
 
 // #############################################################################
-DataRecorder exampleScannerDataRecorder({Connection? connection}) =>
-    DataRecorder(
+DataRecorder exampleScannerDataRecorder({Endpoint? connection}) => DataRecorder(
       connection: connection ?? exampleConnection(),
       role: EndpointRole.scanner,
     );

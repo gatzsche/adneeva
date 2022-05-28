@@ -151,7 +151,7 @@ class Application {
 
   // ...........................................................................
   GgValueStream<bool> get isConnected =>
-      remoteControlService.service(role.value).connections.map(
+      remoteControlService.service(role.value).connectedEndpoints.map(
             (p0) => p0.isNotEmpty,
           );
 
@@ -203,14 +203,15 @@ class Application {
 
   // ...........................................................................
   void _sendCommand(Command command) {
-    _remoteControlService.advertizer.connections.value.first.sendString(
+    _remoteControlService.advertizer.connectedEndpoints.value.first.sendString(
       '${command.toJsonString()}\n',
     );
   }
 
   // ...........................................................................
   void _listenForCommands() {
-    _remoteControlService.scanner.connections.value.first.receiveData.listen(
+    _remoteControlService.scanner.connectedEndpoints.value.first.receiveData
+        .listen(
       (uint8List) {
         // Only scanners receive commands currently
         final string = String.fromCharCodes(uint8List);

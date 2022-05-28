@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:gg_value/gg_value.dart';
 
 import '../com/fake/fake_service.dart';
-import '../com/shared/connection.dart';
+import '../com/shared/endpoint.dart';
 import '../com/shared/network_service.dart';
 import 'data_recorder.dart';
 import 'types.dart';
@@ -114,7 +114,7 @@ class Measure {
     _dispose.add(_isMeasuring.dispose);
   }
 
-  Connection? _connection;
+  Endpoint? _connection;
 
   // ...........................................................................
   DataRecorder? _dataRecorder;

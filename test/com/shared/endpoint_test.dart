@@ -10,11 +10,11 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:mobile_network_evaluator/src/com/fake/fake_service.dart';
-import 'package:mobile_network_evaluator/src/com/shared/connection.dart';
+import 'package:mobile_network_evaluator/src/com/shared/endpoint.dart';
 import 'package:mobile_network_evaluator/src/utils/utils.dart';
 
 void main() {
-  late Connection connection;
+  late Endpoint connection;
 
   // ...........................................................................
   Uint8List? lastSentData;
@@ -82,7 +82,8 @@ void main() {
     test('should add itself to parent service\'s connections', () {
       fakeAsync((fake) {
         init(fake);
-        expect(connection.parentService.connections.value.first, connection);
+        expect(connection.parentService.connectedEndpoints.value.first,
+            connection);
         dispose(fake);
       });
     });
@@ -92,10 +93,11 @@ void main() {
         () {
       fakeAsync((fake) {
         init(fake);
-        expect(connection.parentService.connections.value.first, connection);
+        expect(connection.parentService.connectedEndpoints.value.first,
+            connection);
         connection.disconnect();
         fake.flushMicrotasks();
-        expect(connection.parentService.connections.value, isEmpty);
+        expect(connection.parentService.connectedEndpoints.value, isEmpty);
         expect(isDisconnected, true);
 
         dispose(fake);
@@ -105,11 +107,12 @@ void main() {
     test('should disconnect if stream closes', () {
       fakeAsync((fake) {
         init(fake);
-        expect(connection.parentService.connections.value.first, connection);
+        expect(connection.parentService.connectedEndpoints.value.first,
+            connection);
         receiveData.add('data'.uint8List);
         receiveData.close();
         fake.flushMicrotasks();
-        expect(connection.parentService.connections.value, isEmpty);
+        expect(connection.parentService.connectedEndpoints.value, isEmpty);
         expect(isDisconnected, true);
         dispose(fake);
       });
@@ -118,11 +121,12 @@ void main() {
     test('should disconnect if stream yields an error', () {
       fakeAsync((fake) {
         init(fake);
-        expect(connection.parentService.connections.value.first, connection);
+        expect(connection.parentService.connectedEndpoints.value.first,
+            connection);
         receiveData.add('data'.uint8List);
         receiveData.addError('Stupid error');
         fake.flushMicrotasks();
-        expect(connection.parentService.connections.value, isEmpty);
+        expect(connection.parentService.connectedEndpoints.value, isEmpty);
         expect(isDisconnected, true);
         dispose(fake);
       });

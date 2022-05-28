@@ -11,7 +11,7 @@ import 'package:gg_value/gg_value.dart';
 
 import '../../measure/types.dart';
 import '../tcp/mocks/mock_socket.dart';
-import 'connection.dart';
+import 'endpoint.dart';
 
 // #############################################################################
 abstract class NetworkService<ServiceInfo,
@@ -76,7 +76,7 @@ abstract class NetworkService<ServiceInfo,
   }
 
   // ...........................................................................
-  bool get isConnected => connections.value.isNotEmpty;
+  bool get isConnected => connectedEndpoints.value.isNotEmpty;
 
   // ...........................................................................
   bool isSameService(ServiceInfo a, ServiceInfo b);
@@ -104,11 +104,11 @@ abstract class NetworkService<ServiceInfo,
   // ######################
 
   // ...........................................................................
-  Future<Connection> get firstConnection {
-    if (_connections.value.isNotEmpty) {
-      return Future.value(_connections.value.first);
+  Future<Endpoint> get firstConnection {
+    if (_connectedEndpoints.value.isNotEmpty) {
+      return Future.value(_connectedEndpoints.value.first);
     } else {
-      return _newConnection.stream.first;
+      return _newEndpoints.stream.first;
     }
   }
 
@@ -117,26 +117,27 @@ abstract class NetworkService<ServiceInfo,
   Future<void> connectToDiscoveredService(ResolvedServiceInfo service);
 
   // ...........................................................................
-  void addConnection(Connection<ServiceInfo> connection) {
-    assert(!_connections.value.contains(connection));
-    _newConnection.add(connection);
-    _connections.value = [..._connections.value, connection];
+  void addConnection(Endpoint<ServiceInfo> endpoint) {
+    assert(!_connectedEndpoints.value.contains(endpoint));
+    _newEndpoints.add(endpoint);
+    _connectedEndpoints.value = [..._connectedEndpoints.value, endpoint];
   }
 
   // ...........................................................................
-  void removeConnection(Connection connection) {
-    assert(_connections.value.contains(connection));
-    connection.disconnect();
-    _connections.value = [..._connections.value]..remove(connection);
+  void removeConnection(Endpoint endpoint) {
+    assert(_connectedEndpoints.value.contains(endpoint));
+    endpoint.disconnect();
+    _connectedEndpoints.value = [..._connectedEndpoints.value]
+      ..remove(endpoint);
   }
 
   // ...........................................................................
-  GgValueStream<List<Connection<ServiceInfo>>> get connections =>
-      _connections.stream;
+  GgValueStream<List<Endpoint<ServiceInfo>>> get connectedEndpoints =>
+      _connectedEndpoints.stream;
 
   // ...........................................................................
-  Connection<ServiceInfo>? connectionForService(ServiceInfo serviceInfo) {
-    for (final c in connections.value) {
+  Endpoint<ServiceInfo>? endpointForService(ServiceInfo serviceInfo) {
+    for (final c in connectedEndpoints.value) {
       if (isSameService(c.serviceInfo, serviceInfo)) {
         return c;
       }
@@ -176,7 +177,7 @@ abstract class NetworkService<ServiceInfo,
     // advertizer listens to the scanners outgoing data stream
     // advertizer sends to its own outgoing data stream
     // ignore: unused_local_variable
-    final advertizerConnection = Connection<ServiceInfo>(
+    final advertizerConnection = Endpoint<ServiceInfo>(
       parentService: advertizer,
       disconnect: mockSocketAdvertizer.close,
       receiveData: mockSocketAdvertizer.dataIn.stream,
@@ -191,7 +192,7 @@ abstract class NetworkService<ServiceInfo,
     // scanner listens to the advertizer outgoing data stream
     // scanner sends to its own outgoing data stream
     // ignore: unused_local_variable
-    final scannerConnection = Connection<ServiceInfo>(
+    final scannerConnection = Endpoint<ServiceInfo>(
       parentService: scanner,
       disconnect: mockSocketScanner.close,
       receiveData: mockSocketScanner.dataIn.stream,
@@ -212,11 +213,11 @@ abstract class NetworkService<ServiceInfo,
     _initConnections();
   }
 
-  final _newConnection = StreamController<Connection<ServiceInfo>>.broadcast();
-  final _connections = GgValue<List<Connection<ServiceInfo>>>(seed: []);
+  final _newEndpoints = StreamController<Endpoint<ServiceInfo>>.broadcast();
+  final _connectedEndpoints = GgValue<List<Endpoint<ServiceInfo>>>(seed: []);
   void _initConnections() {
-    _dispose.add(_connections.dispose);
-    _dispose.add(_newConnection.close);
+    _dispose.add(_connectedEndpoints.dispose);
+    _dispose.add(_newEndpoints.close);
   }
 
   final List<Function()> _dispose = [];
@@ -225,7 +226,7 @@ abstract class NetworkService<ServiceInfo,
   // ...........................................................................
   @protected
   void onDiscoverService(ResolvedServiceInfo serviceInfo) {
-    final c = connectionForService(serviceInfo);
+    final c = endpointForService(serviceInfo);
     assert(c == null);
     if (c == null) {
       connectToDiscoveredService(serviceInfo).onError(
@@ -239,13 +240,13 @@ abstract class NetworkService<ServiceInfo,
   // ...........................................................................
   @protected
   void onLooseService(ResolvedServiceInfo serviceInfo) {
-    final c = connectionForService(serviceInfo);
+    final c = endpointForService(serviceInfo);
     c?.disconnect();
   }
 
   // ...........................................................................
   Future<void> _disconnectAll() async {
-    for (final c in [...connections.value]) {
+    for (final c in [...connectedEndpoints.value]) {
       await c.disconnect();
     }
   }

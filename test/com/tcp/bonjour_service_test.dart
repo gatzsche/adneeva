@@ -55,7 +55,7 @@ void main() {
       eventType: BonsoirDiscoveryEventType.DISCOVERY_SERVICE_LOST);
 
   // ...........................................................................
-  List<MockSocket> connectedClientSockets() => (scanner.connections.value
+  List<MockSocket> connectedClientSockets() => (scanner.connectedEndpoints.value
       .map(
         (e) => e.receiveData as MockSocket,
       )
@@ -133,8 +133,8 @@ void main() {
 
         // No connections are available at the beginning
         expect(connectedClientSockets(), isEmpty);
-        expect(scanner.connections.value, isEmpty);
-        expect(advertizer.connections.value, isEmpty);
+        expect(scanner.connectedEndpoints.value, isEmpty);
+        expect(advertizer.connectedEndpoints.value, isEmpty);
 
         // ............
         // Start advertizer
@@ -172,13 +172,13 @@ void main() {
         fake.flushMicrotasks();
 
         // Scanner should connect to the server and create a connection
-        expect(scanner.connections.value.length, 1);
+        expect(scanner.connectedEndpoints.value.length, 1);
         mockScannerConnectsToAdvertizer();
         fake.flushMicrotasks();
 
         // Advertizer should accept the connection and create a connection
         // object also
-        expect(advertizer.connections.value.length, 1);
+        expect(advertizer.connectedEndpoints.value.length, 1);
 
         stopAdvertizerAndScanner(fake);
 
@@ -199,8 +199,8 @@ void main() {
         fake.flushMicrotasks();
 
         // There should not be a discovery of the own service
-        expect(scanner.connections.value.length, 0);
-        expect(advertizer.connections.value.length, 0);
+        expect(scanner.connectedEndpoints.value.length, 0);
+        expect(advertizer.connectedEndpoints.value.length, 0);
 
         stopAdvertizerAndScanner(fake);
         dispose();
@@ -214,8 +214,8 @@ void main() {
         // The connection object can be used to send data from scanner to advertizer
         startAdvertizerAndScanner(fake);
 
-        final advertizerConnection = advertizer.connections.value.first;
-        final scannerConnection = scanner.connections.value.first;
+        final advertizerConnection = advertizer.connectedEndpoints.value.first;
+        final scannerConnection = scanner.connectedEndpoints.value.first;
 
         final dataIn1 = Uint8List.fromList([1, 2, 3]);
         final dataIn2 = Uint8List.fromList([4, 5, 6]);
@@ -241,7 +241,7 @@ void main() {
 
         // Make some additional checks
         expect(
-          advertizer.connectionForService(advertizerConnection.serviceInfo),
+          advertizer.endpointForService(advertizerConnection.serviceInfo),
           advertizerConnection,
         );
 
@@ -288,20 +288,20 @@ void main() {
         init();
 
         startAdvertizerAndScanner(fake);
-        expect(scanner.connections.value.length, 1);
-        expect(advertizer.connections.value.length, 1);
+        expect(scanner.connectedEndpoints.value.length, 1);
+        expect(advertizer.connectedEndpoints.value.length, 1);
 
         // ..............................
         // Scanner disconnects a connection
 
-        scanner.connections.value.first.disconnect();
+        scanner.connectedEndpoints.value.first.disconnect();
         fake.flushMicrotasks();
 
         // The connection should be removed from the array of connections
-        expect(scanner.connections.value, isEmpty);
+        expect(scanner.connectedEndpoints.value, isEmpty);
 
         // Also on advertizer the connection should be disconnected
-        expect(advertizer.connections.value, isEmpty);
+        expect(advertizer.connectedEndpoints.value, isEmpty);
 
         // ......................
         // Stop advertizer and client
@@ -314,17 +314,17 @@ void main() {
         init();
 
         startAdvertizerAndScanner(fake);
-        expect(scanner.connections.value.length, 1);
-        expect(advertizer.connections.value.length, 1);
+        expect(scanner.connectedEndpoints.value.length, 1);
+        expect(advertizer.connectedEndpoints.value.length, 1);
 
         // ...............................
         // Advertizer disconnects a connection
-        advertizer.connections.value.first.disconnect();
+        advertizer.connectedEndpoints.value.first.disconnect();
         fake.flushMicrotasks();
 
         // On both sides: The connection should be removed
-        expect(scanner.connections.value, isEmpty);
-        expect(advertizer.connections.value, isEmpty);
+        expect(scanner.connectedEndpoints.value, isEmpty);
+        expect(advertizer.connectedEndpoints.value, isEmpty);
 
         // ......................
         // Stop advertizer and client
@@ -339,26 +339,26 @@ void main() {
         // .....
         // Start
         startAdvertizerAndScanner(fake);
-        expect(scanner.connections.value.length, 1);
-        expect(advertizer.connections.value.length, 1);
+        expect(scanner.connectedEndpoints.value.length, 1);
+        expect(advertizer.connectedEndpoints.value.length, 1);
 
         // ....
         // Stop
         stopAdvertizerAndScanner(fake);
-        expect(scanner.connections.value.length, 0);
-        expect(advertizer.connections.value.length, 0);
+        expect(scanner.connectedEndpoints.value.length, 0);
+        expect(advertizer.connectedEndpoints.value.length, 0);
 
         // .....
         // Start
         startAdvertizerAndScanner(fake);
-        expect(scanner.connections.value.length, 1);
-        expect(advertizer.connections.value.length, 1);
+        expect(scanner.connectedEndpoints.value.length, 1);
+        expect(advertizer.connectedEndpoints.value.length, 1);
 
         // ....
         // Stop
         stopAdvertizerAndScanner(fake);
-        expect(scanner.connections.value.length, 0);
-        expect(advertizer.connections.value.length, 0);
+        expect(scanner.connectedEndpoints.value.length, 0);
+        expect(advertizer.connectedEndpoints.value.length, 0);
       });
     });
 
@@ -378,7 +378,7 @@ void main() {
         fake.flushMicrotasks();
 
         // Connection should have failed.
-        expect(scanner.connections.value.length, 0);
+        expect(scanner.connectedEndpoints.value.length, 0);
         expect(scanner.loggedData.last,
             'SocketException: Connection refused, port = 12457');
       });

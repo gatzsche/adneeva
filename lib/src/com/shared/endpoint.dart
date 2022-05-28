@@ -14,8 +14,8 @@ typedef SendDataFunction = Future<void> Function(Uint8List);
 typedef ConnectFunction = Future<void> Function();
 typedef DisconnectFunction = Future<void> Function();
 
-class Connection<ServiceDescription> {
-  Connection({
+class Endpoint<ServiceDescription> {
+  Endpoint({
     required this.parentService,
     required this.sendData,
     required this.receiveData,
@@ -75,13 +75,13 @@ class ExampleServiceDescription {
   const ExampleServiceDescription();
 }
 
-Connection exampleConnection({
+Endpoint exampleConnection({
   NetworkService? parentService,
   SendDataFunction? sendData,
   Stream<Uint8List>? receiveData,
   DisconnectFunction? disconnect,
 }) {
-  return Connection<FakeServiceInfo>(
+  return Endpoint<FakeServiceInfo>(
     parentService: parentService ?? FakeService.advertizer,
     sendData: sendData ?? (data) async {},
     receiveData: receiveData ?? StreamController<Uint8List>.broadcast().stream,
