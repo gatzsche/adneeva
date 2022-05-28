@@ -16,6 +16,7 @@ import 'package:path/path.dart';
 
 import './src/application.dart';
 import 'src/measure/data_recorder.dart';
+import 'src/measure/types.dart';
 import 'src/utils/is_test.dart';
 import 'src/widgets/measurement_widget.dart';
 
@@ -41,6 +42,7 @@ class _GgRouterExampleState extends State<GgRouterExample>
   late StreamController<String> _logController;
   final List<String> _logMessages = [];
   late Application _localApp;
+  final rootNode = GgRouteTreeNode.newRoot;
 
   // ...........................................................................
   @override
@@ -48,6 +50,8 @@ class _GgRouterExampleState extends State<GgRouterExample>
     super.initState();
     _initLog();
     _initApplications();
+    _listenToRouteChanges();
+    _listenToModeChanges();
     DataRecorder.delayMeasurements = const Duration(
       milliseconds: 100,
     ); // Makes measurement slow to see progress
@@ -82,6 +86,31 @@ class _GgRouterExampleState extends State<GgRouterExample>
   }
 
   // ...........................................................................
+  void _listenToRouteChanges() {
+    rootNode.onChange.listen(
+      (_) {
+        final currentPath = rootNode.stagedChild?.name;
+        if (currentPath == MeasurementMode.nearby.string) {
+          _localApp.mode.value = MeasurementMode.nearby;
+        } else if (currentPath == MeasurementMode.tcp.string) {
+          _localApp.mode.value = MeasurementMode.tcp;
+        } else if (currentPath == MeasurementMode.btle.string) {
+          _localApp.mode.value = MeasurementMode.btle;
+        }
+      },
+    );
+  }
+
+  // ...........................................................................
+  void _listenToModeChanges() {
+    _localApp.mode.stream.listen(
+      (mode) {
+        rootNode.navigateTo(mode.string);
+      },
+    );
+  }
+
+  // ...........................................................................
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
@@ -91,6 +120,7 @@ class _GgRouterExampleState extends State<GgRouterExample>
         saveState: _saveState,
         restoreState: _restoreState,
         defaultRoute: '/tcp/measure',
+        root: rootNode,
       ),
       routeInformationParser: GgRouteInformationParser(),
       themeMode: ThemeMode.dark,
@@ -107,9 +137,9 @@ class _GgRouterExampleState extends State<GgRouterExample>
       appBar: AppBar(
         title: const Text('Mobile AdHoc Evaluator'),
         actions: <Widget>[
-          _routeButton('TCP', 'tcp'),
-          _routeButton('Nearby', 'nearby'),
-          _routeButton('BTLE', 'btle'),
+          _routeButton('TCP', MeasurementMode.tcp.string),
+          _routeButton('Nearby', MeasurementMode.nearby.string),
+          _routeButton('BTLE', MeasurementMode.btle.string),
           Container(
             width: debugShowCheckedModeBanner ? 50 : 0,
           ),
@@ -121,9 +151,9 @@ class _GgRouterExampleState extends State<GgRouterExample>
           return GgRouter(
             {
               '_INDEX_': _indexPage,
-              'tcp': _tcpPage,
-              'nearby': _nearbyPage,
-              'btle': _btlePage,
+              MeasurementMode.tcp.string: _tcpPage,
+              MeasurementMode.nearby.string: _nearbyPage,
+              MeasurementMode.btle.string: _btlePage,
               '*': _wildCardPage,
             },
             key: const ValueKey('mainRouter'),
@@ -134,7 +164,7 @@ class _GgRouterExampleState extends State<GgRouterExample>
               '_INDEX_': 'Navigate to Index Page',
               'tcp': 'Navigate to TCP Page',
               'nearby': 'Navigate to Nearby Page',
-              'btle': 'Navigate to BTLE Page',
+              'btle': 'o BTLE Page',
               '*': 'Another Page',
             },
           );

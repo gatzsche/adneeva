@@ -68,6 +68,7 @@ class Application {
     log?.call('Wait for connections');
     await waitUntilConnected;
     _listenForCommands();
+    _syncModeChanges();
   }
 
   // ...........................................................................
@@ -239,15 +240,24 @@ class Application {
   }
 
   // ...........................................................................
+  void _syncModeChanges() {
+    final s = mode.stream.listen(
+      (value) => _updateModeAtOtherSide(),
+    );
+
+    _dispose.add(s.cancel);
+  }
+
+  // ...........................................................................
   void _updateModeAtOtherSide() {
-    if (role.value == EndpointRole.advertizer) {
-      _sendCommand(
-        EndpointRoleCmd(
-          mode: mode.value,
-          role: EndpointRole.scanner,
-        ),
-      );
-    }
+    // if (role.value == EndpointRole.advertizer) {
+    _sendCommand(
+      EndpointRoleCmd(
+        mode: mode.value,
+        role: EndpointRole.scanner,
+      ),
+    );
+    // }
   }
 
   // ...........................................................................
