@@ -50,13 +50,13 @@ void main() {
     advertizerNbService = NbService(
       role: EndpointRole.advertizer,
       log: writeToLog,
-      service: serviceInfo,
+      service: mockServiceInfo,
     );
 
     scannerNbService = NbService(
       role: EndpointRole.scanner,
       log: writeToLog,
-      service: serviceInfo,
+      service: mockServiceInfo,
     );
     expect(MockNearbyService.instances.length, 2);
     mockAdvertizerNearbyService = MockNearbyService.instances.first;
@@ -82,16 +82,30 @@ void main() {
     (() {
       group('type', () {
         test('should not be longer then 15', () {
-          expect(() => NbServiceInfo(type: '1234567890ABCDEFG'),
+          expect(
+              () => NbServiceInfo(
+                    type: '1234567890ABCDEFG',
+                    deviceId: '123456',
+                  ),
               throwsAssertionError);
         });
 
         test('should have maximum one hyphen', () {
-          expect(() => NbServiceInfo(type: 'a-b-c'), throwsAssertionError);
+          expect(
+              () => NbServiceInfo(
+                    type: 'a-b-c',
+                    deviceId: '123456',
+                  ),
+              throwsAssertionError);
         });
 
         test('should not contain underscore', () {
-          expect(() => NbServiceInfo(type: 'a_c'), throwsAssertionError);
+          expect(
+              () => NbServiceInfo(
+                    type: 'a_c',
+                    deviceId: '123456',
+                  ),
+              throwsAssertionError);
         });
       });
     }),
@@ -160,7 +174,7 @@ void main() {
           final lastSentMessage = lastSentObject.data;
           expect(
             lastSentDeviceId,
-            (connection.serviceInfo as ResolvedNbServiceInfo).device.deviceId,
+            (connection.serviceInfo as ResolvedNbServiceInfo).deviceId,
           );
           expect(lastSentMessage, sampleData0);
 
@@ -168,7 +182,7 @@ void main() {
           Uint8List? receivedData;
           connection.receiveData.listen((d) => receivedData = d);
           mockScannerNearbyService.dataReceivedController.add({
-            'deviceID': disconnectedDevice0.deviceId,
+            'deviceId': disconnectedDevice0.deviceId,
             'message': base64Encode(sampleData0),
           });
           fake.flushMicrotasks();
@@ -187,7 +201,7 @@ void main() {
           Uint8List? receivedData1;
           connection1.receiveData.listen((d) => receivedData1 = d);
           mockScannerNearbyService.dataReceivedController.add({
-            'deviceID': disconnectedDevice1.deviceId,
+            'deviceId': disconnectedDevice1.deviceId,
             'message': base64Encode(sampleData1),
           });
           fake.flushMicrotasks();

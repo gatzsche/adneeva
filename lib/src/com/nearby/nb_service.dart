@@ -26,10 +26,14 @@ class NbServiceDeps {
 // #############################################################################
 
 class NbServiceInfo {
-  NbServiceInfo({required this.type}) {
+  NbServiceInfo({
+    required this.type,
+    required this.deviceId,
+  }) {
     _checkType();
   }
   final String type;
+  final String deviceId;
 
   void _checkType() {
     assert(type.length <= 15);
@@ -39,9 +43,11 @@ class NbServiceInfo {
 }
 
 class ResolvedNbServiceInfo extends NbServiceInfo {
-  ResolvedNbServiceInfo({required this.device, required super.type});
+  ResolvedNbServiceInfo({
+    required super.type,
+    required super.deviceId,
+  });
   final receivedData = StreamController<Uint8List>.broadcast();
-  final Device device;
 }
 
 // #############################################################################
@@ -54,7 +60,6 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   }) : _d = dependencies ??
             (isTest ? const MockNbServiceDeps() : const NbServiceDeps()) {
     log?.call('Create NBService with role {$role}');
-    _initNearby();
   }
 
   // ...........................................................................
@@ -73,7 +78,7 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   @override
   bool isSameService(NbServiceInfo a, NbServiceInfo b) {
     if (a is ResolvedNbServiceInfo && b is ResolvedNbServiceInfo) {
-      return a.device.deviceId == b.device.deviceId;
+      return a.deviceId == b.deviceId;
     } else {
       return a == b;
     }
@@ -86,6 +91,7 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   // ...........................................................................
   @override
   Future<void> startAdvertizing() async {
+    _initNearby();
     await _startAdvertizing;
     await _startScanningForPeers;
   }
@@ -134,7 +140,9 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   // ...........................................................................
   @override
   Future<void> startScanning() async {
+    _initNearby();
     await _startScanning();
+    await _startAdvertizing;
   }
 
   // ...........................................................................
@@ -179,15 +187,15 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   ) async {
     Endpoint<NbServiceInfo>(
       parentService: this,
-      sendData: (data) => _sendData(service.device.deviceId, data),
+      sendData: (data) => _sendData(service.deviceId, data),
       receiveData: service.receivedData.stream,
       disconnect: () async => await _nearbyService.disconnectPeer(
-        deviceID: service.device.deviceId,
+        deviceID: service.deviceId,
       ),
       serviceInfo: service,
     );
 
-    _serviceInfos[service.device.deviceId] = service;
+    _serviceInfos[service.deviceId] = service;
   }
 
   // ######################
@@ -214,9 +222,10 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   void _initNearby() async {
     log?.call('Init Nearby');
     _nearbyService = _d.newNearbyService();
+
     await _nearbyService.init(
-      serviceType: serviceInfo.type,
-      deviceName: role == EndpointRole.advertizer ? 'Advertizer' : 'Scanner',
+      serviceType: service.type,
+      deviceName: service.deviceId,
       strategy: Strategy.P2P_CLUSTER,
       callback: (isRunning) async {
         if (isRunning) {
@@ -256,9 +265,9 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   // ...........................................................................
   void _handleDiscoveredDevices(List<Device> devices) {
     // Only scanners are connecting discovered devices
-    if (role == EndpointRole.advertizer) {
-      return;
-    }
+    // if (role == EndpointRole.advertizer) {
+    //   return;
+    // }
 
     final newDevices = devices.where(
       (device) => !_allDeviceIds.contains(device.deviceId),
@@ -266,7 +275,10 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
 
     // Invite all discovered devices
     for (var device in newDevices) {
-      assert(device.state == SessionState.notConnected);
+      bool isZombi = device.state != SessionState.notConnected;
+      if (isZombi) {
+        continue;
+      }
       _nearbyService.invitePeer(
         deviceID: device.deviceId,
         deviceName: device.deviceName,
@@ -286,8 +298,8 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
 
     for (final device in newConnectedDevices) {
       onDiscoverService(ResolvedNbServiceInfo(
-        device: device,
-        type: serviceInfo.type,
+        deviceId: device.deviceId,
+        type: mockServiceInfo.type,
       ));
     }
   }
@@ -334,8 +346,12 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
     log?.call('Start listening for data');
     _receiveDataSubscription =
         _nearbyService.dataReceivedSubscription(callback: (data) {
-      final deviceId = data['deviceID'] as String;
-      final resolvedServiceInfo = _serviceInfo(deviceId);
+      final deviceId = data['deviceId'] as String;
+
+      // Workaround: Currently we are not able to assign the incoming data
+      // to one of the connections. Thus we take the first connection.
+      // final resolvedServiceInfo = _serviceInfo(deviceId);
+      final resolvedServiceInfo = _serviceInfos.values.first;
       final messageString = data['message'];
       final messageBinary = base64Decode(messageString);
       resolvedServiceInfo.receivedData.add(messageBinary);

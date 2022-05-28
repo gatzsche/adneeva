@@ -18,6 +18,7 @@ import 'com/shared/network_service.dart';
 import 'com/tcp/bonjour_service.dart';
 import 'com/tcp/mocks/mock_network_interface.dart';
 import 'measure/measure.dart';
+import 'measure/nearby/measure_nb.dart';
 import 'measure/tcp/measure_tcp.dart';
 import 'measure/types.dart';
 import 'utils/utils.dart';
@@ -256,7 +257,7 @@ class Application {
     log?.call('Init measurement');
     _measureStreamSubscription?.cancel();
     _measureStreamSubscription?.cancel();
-    _measure = MeasureTcp(role: role.value, log: log);
+    _measure = MeasureNb(role: role.value, log: log);
 
     _measureStreamSubscription = _measure.isMeasuring.listen(
       (value) => _isMeasuring.value = value,

@@ -18,8 +18,9 @@ class MockNbServiceDeps implements NbServiceDeps {
 }
 
 // .............................................................................
-final serviceInfo = NbServiceInfo(
+final mockServiceInfo = NbServiceInfo(
   type: 'mne-measurenb',
+  deviceId: 'mock-device',
 );
 
 // .............................................................................
@@ -28,7 +29,7 @@ class MockNbService extends NbService {
     required super.role,
     required super.log,
   }) : super(
-          service: serviceInfo,
+          service: mockServiceInfo,
         ) {
     log = (str) => loggedData.add(str);
   }

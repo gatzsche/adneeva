@@ -5,6 +5,7 @@
 // found in the LICENSE file in the root of this package.
 
 import '../../com/nearby/nb_service.dart';
+import '../../utils/utils.dart';
 import '../measure.dart';
 import '../types.dart';
 
@@ -16,6 +17,9 @@ class MeasureNb extends Measure {
           networkService: NbService(
             service: NbServiceInfo(
               type: 'mne-measurenb',
+              deviceId: role == EndpointRole.advertizer
+                  ? 'Advertizer ${randomPort()}'
+                  : 'Scanner ${randomPort()}',
             ),
             role: role,
             log: log,
