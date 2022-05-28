@@ -60,28 +60,14 @@ class Application {
   final role = GgValue<EndpointRole>(seed: EndpointRole.advertizer);
 
   // ...........................................................................
-  Measure get measure => _measure;
-  late Measure _measure;
+  Measure? get measure => _measure;
+  Measure? _measure;
 
   // ...........................................................................
   Future<void> waitForConnections() async {
-    log?.call('Wait for connections');
     await waitUntilConnected;
     _listenForCommands();
     _syncModeChanges();
-  }
-
-  // ...........................................................................
-  Future<void> _startMeasurements() async {
-    if (_measure.isMeasuring.value == true) {
-      return;
-    }
-
-    _startMeasurementOnOtherSide();
-    _initMeasurement();
-    await _measure.connect();
-    await _measure.measure();
-    await stopMeasurements();
   }
 
   // ...........................................................................
@@ -92,8 +78,27 @@ class Application {
   }
 
   // ...........................................................................
+  Future<void> _startMeasurements() async {
+    if (_measure?.isMeasuring.value == true) {
+      return;
+    }
+
+    _startMeasurementOnOtherSide();
+    _initMeasurement();
+    await _measure!.connect();
+    await _measure!.measure();
+    _measurementResult.value = _measure!.measurementResults.value;
+    await stopMeasurements();
+  }
+
+  // ...........................................................................
   Future<void> stopMeasurements() async {
-    _measure.disconnect();
+    if (_measure == null) {
+      return;
+    }
+    _measure!.disconnect();
+    _measure!.dispose();
+    _measure = null;
     _stopMeasurementOnOtherSide();
   }
 
@@ -135,14 +140,6 @@ class Application {
     appB.waitForConnections();
   }
 
-  // ...........................................................................
-  static void fakeConnectMeasurementCore(Application appA, Application appB) {
-    NetworkService.fakeConnect<BonsoirService>(
-      appA.measure.networkService,
-      appB.measure.networkService,
-    );
-  }
-
   // ######################
   // Private
   // ######################
@@ -162,18 +159,13 @@ class Application {
 
   // ...........................................................................
   Future<void> _init() async {
-    log?.call('Init');
-
     await _initRemoteControlService();
-    _initMeasurement();
     _isInitialized.complete();
   }
 
   // ...........................................................................
   late AdHocService<BonjourService> _remoteControlService;
   Future<void> _initRemoteControlService() async {
-    log?.call('Init remote control service');
-
     final info = BonsoirService(
       name: 'Mobile Network Evaluator $port',
       port: port,
@@ -261,32 +253,25 @@ class Application {
   }
 
   // ...........................................................................
-  bool _isFirstMeasureInit = true;
-
-  // ...........................................................................
   StreamSubscription? _measureStreamSubscription;
-  StreamSubscription? _measurementResultSubscription;
   void _initMeasurement() {
+    if (_measure != null) {
+      return;
+    }
+
     log?.call('Init measurement');
     _measureStreamSubscription?.cancel();
     _measureStreamSubscription?.cancel();
 
-    if (!_isFirstMeasureInit) {
-      _measure.dispose();
-      _measure.disconnect();
-    }
-
-    _isFirstMeasureInit = false;
-
-    final construct = mode.value == MeasurementMode.tcp
+    final newMeasure = mode.value == MeasurementMode.tcp
         ? MeasureTcp.new
         : mode.value == MeasurementMode.nearby
             ? MeasureNb.new
             : MeasureTcp.new;
 
-    _measure = construct(role: role.value, log: log);
+    _measure = newMeasure(role: role.value, log: log);
 
-    _measureStreamSubscription = _measure.isMeasuring.listen(
+    _measureStreamSubscription = _measure!.isMeasuring.listen(
       (value) => _isMeasuring.value = value,
       // coverage:ignore-start
       onDone: () => _isMeasuring.value = false,
@@ -294,11 +279,6 @@ class Application {
       // coverage:ignore-end
     );
     _dispose.add(_measureStreamSubscription!.cancel);
-
-    _measurementResultSubscription = _measure.measurementResults.listen(
-      (event) => _measurementResult.value = event,
-    );
-    _dispose.add(_measurementResultSubscription!.cancel);
   }
 
   // ...........................................................................
