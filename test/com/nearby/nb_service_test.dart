@@ -18,8 +18,8 @@ import 'package:mobile_network_evaluator/src/utils/utils.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  late NbService master;
-  late NbService slave;
+  late NbService masterNbService;
+  late NbService slaveNbService;
 
   late MockNearbyService mockMasterNearbyService;
   late MockNearbyService mockSlaveNearbyService;
@@ -39,13 +39,14 @@ void main() {
       'SlaveDeviceId1', 'Slave Device Name 1', MockNearbyService.notConnected);
 
   // ...........................................................................
-  void initMocks() {
-    master = NbService(
+  void initServices() {
+    masterNbService = NbService(
       role: EndpointRole.master,
       log: writeToLog,
       service: const NbServiceInfo(),
     );
-    slave = NbService(
+
+    slaveNbService = NbService(
       role: EndpointRole.slave,
       log: writeToLog,
       service: const NbServiceInfo(),
@@ -58,17 +59,17 @@ void main() {
   // ...........................................................................
   void init() {
     expect(lastLoggedMessage, '');
-    initMocks();
+    initServices();
   }
 
   // ...........................................................................
   void dispose() {
-    master.dispose();
-    slave.dispose();
+    masterNbService.dispose();
+    slaveNbService.dispose();
   }
 
   group(
-    'NearbyService',
+    'NearbyService Advertizer ',
     (() {
       test('should work correctly', () {
         fakeAsync((fake) {
@@ -76,9 +77,90 @@ void main() {
           init();
           fake.flushMicrotasks();
 
-          // Start master as well slave service
-          master.start();
-          slave.start();
+          // Start master service
+          masterNbService.start();
+          fake.flushMicrotasks();
+
+          // Simulate the discovery of a disconnected device
+          mockMasterNearbyService.addDevice(device0);
+          fake.flushMicrotasks();
+
+          // No connection should have been created yet,
+          // because only browsers are initiating a connection.
+
+          // Now assume the browser connects the device.
+          // We are simulating this by
+
+          // Check if a connection has been created for the device
+          expect(slaveNbService.connections.value.length, 1);
+          final connection = slaveNbService.connections.value.first;
+
+          // Simulate sending data
+          connection.sendData(sampleData0);
+          fake.flushMicrotasks();
+          var lastSentObject = mockMasterNearbyService.sentMessages.last;
+          final lastSentDeviceId = lastSentObject.deviceId;
+          final lastSentMessage = lastSentObject.data;
+          expect(lastSentDeviceId, connection.serviceInfo.device.deviceId);
+          expect(lastSentMessage, sampleData0);
+
+          // Simulate receiving data
+          Uint8List? receivedData;
+          connection.receiveData.listen((d) => receivedData = d);
+          mockMasterNearbyService.dataReceivedController.add({
+            'deviceID': device0.deviceId,
+            'message': base64Encode(sampleData0),
+          });
+          fake.flushMicrotasks();
+          expect(receivedData, sampleData0);
+
+          // Check second device
+          mockMasterNearbyService.addDevice(device1);
+          fake.flushMicrotasks();
+          expect(slaveNbService.connections.value.length, 2);
+          final connection1 = slaveNbService.connections.value.last;
+          connection1.sendData(sampleData1);
+          fake.flushMicrotasks();
+          lastSentObject = mockMasterNearbyService.sentMessages.last;
+          expect(lastSentObject.deviceId, device1.deviceId);
+          expect(lastSentObject.data, sampleData1);
+          Uint8List? receivedData1;
+          connection1.receiveData.listen((d) => receivedData1 = d);
+          mockMasterNearbyService.dataReceivedController.add({
+            'deviceID': device1.deviceId,
+            'message': base64Encode(sampleData1),
+          });
+          fake.flushMicrotasks();
+          expect(receivedData1, sampleData1);
+
+          // Disconnect device 0
+          mockMasterNearbyService.replaceDevice(
+              device0.deviceId, MockNearbyService.notConnected);
+          fake.flushMicrotasks();
+          expect(slaveNbService.connections.value.length, 1);
+
+          // Device 1 disappears
+          mockMasterNearbyService.removeDevice(device1.deviceId);
+          fake.flushMicrotasks();
+          expect(slaveNbService.connections.value.length, 0);
+
+          dispose();
+        });
+      });
+    }),
+  );
+
+  group(
+    'NearbyService Slave',
+    (() {
+      test('should work correctly', () {
+        fakeAsync((fake) {
+          // Initialize both services
+          init();
+          fake.flushMicrotasks();
+
+          // Start slave service
+          slaveNbService.start();
           fake.flushMicrotasks();
 
           // Simulate the discovery of a disconnected device
@@ -86,8 +168,8 @@ void main() {
           fake.flushMicrotasks();
 
           // Check if a connection has been created for the device
-          expect(slave.connections.value.length, 1);
-          final connection = slave.connections.value.first;
+          expect(slaveNbService.connections.value.length, 1);
+          final connection = slaveNbService.connections.value.first;
 
           // Simulate sending data
           connection.sendData(sampleData0);
@@ -111,8 +193,8 @@ void main() {
           // Check second device
           mockSlaveNearbyService.addDevice(device1);
           fake.flushMicrotasks();
-          expect(slave.connections.value.length, 2);
-          final connection1 = slave.connections.value.last;
+          expect(slaveNbService.connections.value.length, 2);
+          final connection1 = slaveNbService.connections.value.last;
           connection1.sendData(sampleData1);
           fake.flushMicrotasks();
           lastSentObject = mockSlaveNearbyService.sentMessages.last;
@@ -131,12 +213,12 @@ void main() {
           mockSlaveNearbyService.replaceDevice(
               device0.deviceId, MockNearbyService.notConnected);
           fake.flushMicrotasks();
-          expect(slave.connections.value.length, 1);
+          expect(slaveNbService.connections.value.length, 1);
 
           // Device 1 disappears
           mockSlaveNearbyService.removeDevice(device1.deviceId);
           fake.flushMicrotasks();
-          expect(slave.connections.value.length, 0);
+          expect(slaveNbService.connections.value.length, 0);
 
           dispose();
         });
