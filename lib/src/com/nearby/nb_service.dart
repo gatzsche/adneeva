@@ -104,7 +104,6 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   // ...........................................................................
   @override
   Future<void> startDiscovery() async {
-    // Prevent multiple starts of discovery
     if (_isDiscovering) {
       return;
     }
@@ -114,6 +113,79 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
     await _startBrowsingForPeers;
     await _startListeningForData;
     _dispose.add(() => _discoverySubscription?.cancel);
+  }
+
+  // ...........................................................................
+  @override
+  Future<void> stopDiscovery() async {
+    if (!_isDiscovering) {
+      return;
+    }
+    _isDiscovering = false;
+    await _nearbyService.stopBrowsingForPeers();
+  }
+
+  // ######################
+  // Common
+  // ######################
+
+  // ...........................................................................
+  @override
+  Future<void> connectToDiscoveredService(
+    ResolvedNbServiceInfo service,
+  ) async {
+    Connection(
+      parentService: this,
+      sendData: (data) => _sendData(service.device.deviceId, data),
+      receiveData: service.receivedData.stream,
+      disconnect: () async => await _nearbyService.disconnectPeer(
+        deviceID: service.device.deviceId,
+      ),
+      serviceInfo: service,
+    );
+
+    _serviceInfos[service.device.deviceId] = service;
+  }
+
+  // ######################
+  // Private
+  // ######################
+
+  final List<Function()> _dispose = [];
+  final _isInitialized = Completer<void>();
+  bool _isAdvertizing = false;
+  bool _isDiscovering = false;
+  StreamSubscription? _discoverySubscription;
+  StreamSubscription? _receiveDataSubscription;
+  var _connectedDevices = <Device>[];
+  var _allDevices = <Device>[];
+  final _serviceInfos = <String, ResolvedNbServiceInfo>{};
+
+  Iterable<String> get _allDeviceIds => _allDevices.map((e) => e.deviceId);
+  Iterable<String> get _connectedDeviceIds => _connectedDevices.map(
+        (e) => e.deviceId,
+      );
+
+  late NearbyService _nearbyService;
+
+  void _initNearby() async {
+    _nearbyService = _d.newNearbyService();
+    await _nearbyService.init(
+      serviceType: 'mobile_network_evaluator_measure_nearby',
+      deviceName: role == EndpointRole.master ? 'Master' : 'Slave',
+      strategy: Strategy.P2P_CLUSTER,
+      callback: (isRunning) async {
+        if (isRunning) {
+          _isInitialized.complete();
+        }
+      },
+    );
+  }
+
+  // ...........................................................................
+  ResolvedNbServiceInfo _serviceInfo(String deviceId) {
+    assert(_serviceInfos.containsKey(deviceId));
+    return _serviceInfos[deviceId]!;
   }
 
   // ...........................................................................
@@ -218,77 +290,8 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   }
 
   // ...........................................................................
-  ResolvedNbServiceInfo _serviceInfo(String deviceId) {
-    assert(_serviceInfos.containsKey(deviceId));
-    return _serviceInfos[deviceId]!;
-  }
-
-  // ...........................................................................
-  @override
-  Future<void> stopDiscovery() async {
-    if (!_isDiscovering) {
-      return;
-    }
-    _isDiscovering = false;
-    await _nearbyService.stopBrowsingForPeers();
-  }
-
-  // ...........................................................................
-  @override
-  Future<void> connectToDiscoveredService(
-    ResolvedNbServiceInfo service,
-  ) async {
-    Connection(
-      parentService: this,
-      sendData: (data) => _sendData(service.device.deviceId, data),
-      receiveData: service.receivedData.stream,
-      disconnect: () async => await _nearbyService.disconnectPeer(
-        deviceID: service.device.deviceId,
-      ),
-      serviceInfo: service,
-    );
-
-    _serviceInfos[service.device.deviceId] = service;
-  }
-
-  // ...........................................................................
   Future<void> _sendData(String deviceId, Uint8List data) async {
     final base64Data = base64Encode(data);
     await _nearbyService.sendMessage(deviceId, base64Data);
-  }
-
-  // ######################
-  // Private
-  // ######################
-
-  final List<Function()> _dispose = [];
-  final _isInitialized = Completer<void>();
-  bool _isAdvertizing = false;
-  bool _isDiscovering = false;
-  StreamSubscription? _discoverySubscription;
-  StreamSubscription? _receiveDataSubscription;
-  var _connectedDevices = <Device>[];
-  var _allDevices = <Device>[];
-  final _serviceInfos = <String, ResolvedNbServiceInfo>{};
-
-  Iterable<String> get _allDeviceIds => _allDevices.map((e) => e.deviceId);
-  Iterable<String> get _connectedDeviceIds => _connectedDevices.map(
-        (e) => e.deviceId,
-      );
-
-  late NearbyService _nearbyService;
-
-  void _initNearby() async {
-    _nearbyService = _d.newNearbyService();
-    await _nearbyService.init(
-      serviceType: 'mobile_network_evaluator_measure_nearby',
-      deviceName: role == EndpointRole.master ? 'Master' : 'Slave',
-      strategy: Strategy.P2P_CLUSTER,
-      callback: (isRunning) async {
-        if (isRunning) {
-          _isInitialized.complete();
-        }
-      },
-    );
   }
 }
