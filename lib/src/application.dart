@@ -261,13 +261,30 @@ class Application {
   }
 
   // ...........................................................................
+  bool _isFirstMeasureInit = true;
+
+  // ...........................................................................
   StreamSubscription? _measureStreamSubscription;
   StreamSubscription? _measurementResultSubscription;
   void _initMeasurement() {
     log?.call('Init measurement');
     _measureStreamSubscription?.cancel();
     _measureStreamSubscription?.cancel();
-    _measure = MeasureNb(role: role.value, log: log);
+
+    if (!_isFirstMeasureInit) {
+      _measure.dispose();
+      _measure.disconnect();
+    }
+
+    _isFirstMeasureInit = false;
+
+    final construct = mode.value == MeasurementMode.tcp
+        ? MeasureTcp.new
+        : mode.value == MeasurementMode.nearby
+            ? MeasureNb.new
+            : MeasureTcp.new;
+
+    _measure = construct(role: role.value, log: log);
 
     _measureStreamSubscription = _measure.isMeasuring.listen(
       (value) => _isMeasuring.value = value,

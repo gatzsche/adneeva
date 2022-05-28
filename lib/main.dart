@@ -81,6 +81,7 @@ class _GgRouterExampleState extends State<GgRouterExample>
 
     _localApp = Application(name: 'localApp', log: log);
     if (!isTest) {
+      await Future.delayed(const Duration(milliseconds: 500));
       await _localApp.waitForConnections();
     }
   }
@@ -151,9 +152,9 @@ class _GgRouterExampleState extends State<GgRouterExample>
           return GgRouter(
             {
               '_INDEX_': _indexPage,
-              MeasurementMode.tcp.string: _tcpPage,
-              MeasurementMode.nearby.string: _nearbyPage,
-              MeasurementMode.btle.string: _btlePage,
+              MeasurementMode.tcp.string: _detailPage,
+              MeasurementMode.nearby.string: _detailPage,
+              MeasurementMode.btle.string: _detailPage,
               '*': _wildCardPage,
             },
             key: const ValueKey('mainRouter'),
@@ -266,7 +267,7 @@ class _GgRouterExampleState extends State<GgRouterExample>
   }
 
   // ...........................................................................
-  Widget _tcpPage(BuildContext context) {
+  Widget _detailPage(BuildContext context) {
     final router = GgRouter.of(context);
 
     return Scaffold(
