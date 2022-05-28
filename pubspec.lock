@@ -241,7 +241,7 @@ packages:
       path: "."
       ref: master
       resolved-ref: "5a7f61e24d0d3695641254fb1d13afb007f66ea1"
-      url: "git@github.com:gatzsche/flutter_nearby_connections.git"
+      url: "https://github.com/gatzsche/flutter_nearby_connections.git"
     source: git
     version: "1.1.1"
   flutter_test:

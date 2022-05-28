@@ -72,7 +72,7 @@ void main() {
       await tester.tap(startButton());
 
       // Let's connect the measurement core
-      Application.fakeConnectMeasurementCore(localApp, remoteApp);
+      // Application.fakeConnectMeasurementCore(localApp, remoteApp);
       await tester.pump(const Duration(milliseconds: 50));
 
       // The start button turns into a stop button
@@ -104,7 +104,7 @@ void main() {
       // showing that the apps are not connected
       expect(find.byKey(const Key('waitingForRemoteWidget')), findsOneWidget);
 
-      // Now let's connect the apps.
+      // Now, let's connect the apps.
       Application.fakeConnect(localApp, remoteApp);
       await tester.pump();
 
@@ -113,7 +113,7 @@ void main() {
       await tester.pump();
 
       // Let's connect the measurement core
-      Application.fakeConnectMeasurementCore(localApp, remoteApp);
+      // Application.fakeConnectMeasurementCore(localApp, remoteApp);
       await tester.pump(const Duration(milliseconds: 50));
 
       // Now the local app should show an hint that currently recordings are made

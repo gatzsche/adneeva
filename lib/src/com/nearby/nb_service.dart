@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import '../../measure/types.dart';
 import '../../utils/is_test.dart';
 import '../shared/endpoint.dart';
 import '../shared/network_service.dart';

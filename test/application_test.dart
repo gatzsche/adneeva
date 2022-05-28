@@ -34,7 +34,7 @@ void main() {
 
   // ...........................................................................
   void connectMeasurementCore(FakeAsync fake) {
-    Application.fakeConnectMeasurementCore(appA, appB);
+    // Application.fakeConnectMeasurementCore(appA, appB);
     fake.flushMicrotasks();
   }
 

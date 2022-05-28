@@ -15,7 +15,6 @@ import 'mocks/mock_bonjour_service.dart';
 
 import '../shared/endpoint.dart';
 import '../shared/network_service.dart';
-import '../../measure/types.dart';
 
 // #############################################################################
 
@@ -40,8 +39,6 @@ class BonjourService
     BonjourServiceDeps? dependencies,
   })  : _bonsoirService = service,
         super(name: name ?? 'BonjourService') {
-    log?.call(
-        'Set up bonjour "${service.name} - ${role == EndpointRole.advertizer ? 'Advertizer' : 'Scanner'}"');
     _d = dependencies ??
         (isTest ? const MockBonjourServiceDeps() : const BonjourServiceDeps());
     _bonsoirBroadcast = _d.newBonsoirBroadcast(service: _bonsoirService);
@@ -68,10 +65,10 @@ class BonjourService
     bool needsStart = !_bonsoirBroadcast.isReady || _bonsoirBroadcast.isStopped;
 
     await _bonsoirBroadcast.ready;
-    log?.call(
-        'Broadcasting "${service.type}" on port ${_bonsoirBroadcast.service.port}');
 
     if (needsStart) {
+      await Future.delayed(const Duration(milliseconds: 1));
+      log?.call('Advertizing on port ${_bonsoirBroadcast.service.port}');
       await _bonsoirBroadcast.start();
     }
   }
@@ -88,8 +85,6 @@ class BonjourService
     if (_serverSocket != null) {
       return;
     }
-
-    log?.call('Bind to port ${service.port}');
 
     _serverSocket = await _d.bindServerSocket(
       InternetAddress.anyIPv4,
@@ -131,11 +126,10 @@ class BonjourService
     }
 
     if (_discoverySubscription == null) {
-      log?.call('Start discovering service "${service.type}" ');
-
       _discoverySubscription =
           _bonsoirDiscovery.eventStream?.listen((event) async {
-        if (event.type ==
+        if (event.type == BonsoirDiscoveryEventType.DISCOVERY_SERVICE_FOUND) {
+        } else if (event.type ==
             BonsoirDiscoveryEventType.DISCOVERY_SERVICE_RESOLVED) {
           final service = (event.service as ResolvedBonsoirService);
           final ip = service.ip;
@@ -144,21 +138,26 @@ class BonjourService
             return;
           }
 
-          log?.call(
-              'Discovered service "${service.name}" on port ${service.port}');
-
           // Ignore own service
           bool isOwnIp = await isOwnIpAddress(ip);
           if (isOwnIp && service.port == this.service.port) {
-            log?.call('Do not connect because its the own service.');
             return;
           }
 
+          log?.call('Resolved service on port ${service.port}');
           onDiscoverService(service);
         } else if (event.type ==
             BonsoirDiscoveryEventType.DISCOVERY_SERVICE_LOST) {
-          log?.call('Lost service "${service.name}"');
+          log?.call(
+              'Lost service on port ${(event.service as ResolvedBonsoirService).port}');
           onLooseService(event.service as ResolvedBonsoirService);
+        } else if (event.type ==
+            BonsoirDiscoveryEventType.DISCOVERY_SERVICE_RESOLVE_FAILED) {
+          log?.call('Resolving failed');
+        } else if (event.type == BonsoirDiscoveryEventType.DISCOVERY_STARTED) {
+          log?.call('Discovery sarted');
+        } else if (event.type == BonsoirDiscoveryEventType.DISCOVERY_STOPPED) {
+          log?.call('Discovery stopped');
         }
       });
       _dispose.add(() => _discoverySubscription?.cancel);
@@ -239,7 +238,6 @@ class BonjourService
   // ...........................................................................
   Future<Socket> _connectClientSocket(
       {required String ip, required int port}) async {
-    log?.call('Client connects to port $port');
     final socket = await _d.connectSocket(ip, port);
     return socket;
   }

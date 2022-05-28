@@ -81,8 +81,8 @@ class _GgRouterExampleState extends State<GgRouterExample>
 
     _localApp = Application(name: 'localApp', log: log);
     if (!isTest) {
-      await Future.delayed(const Duration(milliseconds: 500));
       await _localApp.waitForConnections();
+      await Future.delayed(const Duration(milliseconds: 100));
     }
   }
 
@@ -160,7 +160,7 @@ class _GgRouterExampleState extends State<GgRouterExample>
             key: const ValueKey('mainRouter'),
             inAnimation: _zoomIn,
             outAnimation: _zoomOut,
-            animationDuration: const Duration(milliseconds: 150),
+            animationDuration: const Duration(milliseconds: 300),
             semanticLabels: const {
               '_INDEX_': 'Navigate to Index Page',
               'tcp': 'Navigate to TCP Page',
@@ -200,17 +200,6 @@ class _GgRouterExampleState extends State<GgRouterExample>
       child: Text(
         text,
         style: TextStyle(color: isStaged ? onPrimary : onPrimaryInactive),
-      ),
-    );
-  }
-
-  // ...........................................................................
-  Widget _bigIcon(BuildContext context, IconData icon) {
-    return Center(
-      child: Icon(
-        icon,
-        size: 200,
-        color: const Color(0x33FFFFFF),
       ),
     );
   }
@@ -318,122 +307,7 @@ class _GgRouterExampleState extends State<GgRouterExample>
         defaultRoute: 'measure',
         inAnimation: _moveIn,
         outAnimation: _moveOut,
-        animationDuration: const Duration(milliseconds: 150),
-      ),
-    );
-  }
-
-  // ...........................................................................
-  Widget _nearbyPage(BuildContext context) {
-    final router = GgRouter.of(context);
-
-    return Scaffold(
-      key: const ValueKey('nearbyPage'),
-      bottomNavigationBar: StreamBuilder(
-          stream: router.onActiveChildChange,
-          builder: (context, snapshot) {
-            final index = router.indexOfActiveChild ?? 0;
-
-            return BottomNavigationBar(
-              currentIndex: index,
-              items: const [
-                BottomNavigationBarItem(
-                  label: 'Bus',
-                  icon: Icon(Icons.directions_bus),
-                ),
-                BottomNavigationBarItem(
-                  label: 'Bike',
-                  icon: Icon(Icons.directions_bike),
-                ),
-                BottomNavigationBarItem(
-                  label: 'Car',
-                  icon: Icon(Icons.directions_car),
-                ),
-              ],
-              onTap: (index) {
-                switch (index) {
-                  case 0:
-                    router.navigateTo('bus');
-                    break;
-                  case 1:
-                    router.navigateTo('bike');
-                    break;
-                  case 2:
-                    router.navigateTo('car');
-                    break;
-                }
-              },
-            );
-          }),
-      body: GgRouter(
-        {
-          'bus': (c) => _bigIcon(c, Icons.directions_bus),
-          'bike': (c) => _bigIcon(c, Icons.directions_bike),
-          'car': (c) => _bigIcon(c, Icons.directions_car),
-        },
-        key: const ValueKey('/nearby'),
-        defaultRoute: 'bus',
-        inAnimation: _moveIn,
-        outAnimation: _moveOut,
-        animationDuration: const Duration(milliseconds: 150),
-      ),
-    );
-  }
-
-// ...........................................................................
-  Widget _btlePage(BuildContext context) {
-    final router = GgRouter.of(context);
-    // return Container(color: Colors.green);
-
-    return Scaffold(
-      bottomNavigationBar: StreamBuilder(
-          key: const ValueKey('btlePage'),
-          stream: router.onActiveChildChange,
-          builder: (context, snapshot) {
-            final index = router.indexOfActiveChild ?? 0;
-
-            return BottomNavigationBar(
-              currentIndex: index,
-              items: const [
-                BottomNavigationBarItem(
-                  label: 'Airpot',
-                  icon: Icon(Icons.airplanemode_active),
-                ),
-                BottomNavigationBarItem(
-                  label: 'Park',
-                  icon: Icon(Icons.park),
-                ),
-                BottomNavigationBarItem(
-                  label: 'Hospital',
-                  icon: Icon(Icons.local_hospital),
-                ),
-              ],
-              onTap: (index) {
-                switch (index) {
-                  case 0:
-                    router.navigateTo('airport');
-                    break;
-                  case 1:
-                    router.navigateTo('park');
-                    break;
-                  case 2:
-                    router.navigateTo('hospital');
-                    break;
-                }
-              },
-            );
-          }),
-      body: GgRouter(
-        {
-          'airport': (c) => _bigIcon(c, Icons.airplanemode_active),
-          'park': (c) => _bigIcon(c, Icons.park),
-          'hospital': (c) => _bigIcon(c, Icons.local_hospital),
-        },
-        key: const ValueKey('/btle'),
-        defaultRoute: 'airport',
-        inAnimation: _moveIn,
-        outAnimation: _moveOut,
-        animationDuration: const Duration(milliseconds: 150),
+        animationDuration: const Duration(milliseconds: 300),
       ),
     );
   }
