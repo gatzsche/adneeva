@@ -21,10 +21,10 @@ import '../../measure/types.dart';
 
 class BonjourServiceDeps {
   const BonjourServiceDeps();
-  final bonsoirBroadcast = BonsoirBroadcast.new;
-  final bonsoirDiscovery = BonsoirDiscovery.new;
-  final serverSocketBind = ServerSocket.bind;
-  final clientSocketConnect = Socket.connect;
+  final newBonsoirBroadcast = BonsoirBroadcast.new;
+  final newBonsoirDiscovery = BonsoirDiscovery.new;
+  final bindServerSocket = ServerSocket.bind;
+  final connectSocket = Socket.connect;
   final listNetworkInterface = NetworkInterface.list;
 }
 
@@ -44,8 +44,14 @@ class BonjourService
         'Set up bonjour "${service.name} - ${role == EndpointRole.master ? 'Master' : 'Slave'}"');
     _d = dependencies ??
         (isTest ? const MockBonjourServiceDeps() : const BonjourServiceDeps());
-    _bonsoirBroadcast = _d.bonsoirBroadcast(service: _bonsoirService);
-    _bonsoirDiscovery = _d.bonsoirDiscovery(type: service.type);
+    _bonsoirBroadcast = _d.newBonsoirBroadcast(service: _bonsoirService);
+    _bonsoirDiscovery = _d.newBonsoirDiscovery(type: service.type);
+  }
+
+  // ...........................................................................
+  @override
+  bool isSameService(ResolvedBonsoirService a, ResolvedBonsoirService b) {
+    return a.ip == b.ip && a.name == b.name && a.type == b.type;
   }
 
   // ######################
@@ -81,7 +87,7 @@ class BonjourService
 
     log?.call('Bind to port ${service.port}');
 
-    _serverSocket = await _d.serverSocketBind(
+    _serverSocket = await _d.bindServerSocket(
       InternetAddress.anyIPv4,
       service.port,
       shared: false,
@@ -230,7 +236,7 @@ class BonjourService
   Future<Socket> _connectClientSocket(
       {required String ip, required int port}) async {
     log?.call('Client connects to port $port');
-    final socket = await _d.clientSocketConnect(ip, port);
+    final socket = await _d.connectSocket(ip, port);
     return socket;
   }
 

@@ -32,6 +32,12 @@ class FakeService
 
   // ...........................................................................
   @override
+  bool isSameService(ResolvedFakeServiceInfo a, ResolvedFakeServiceInfo b) {
+    return a == b;
+  }
+
+  // ...........................................................................
+  @override
   void dispose() {
     for (final d in _dispose.reversed) {
       d();

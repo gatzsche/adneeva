@@ -78,6 +78,9 @@ abstract class NetworkService<ServiceInfo,
   // ...........................................................................
   bool get isConnected => connections.value.isNotEmpty;
 
+  // ...........................................................................
+  bool isSameService(ResolvedServiceInfo a, ResolvedServiceInfo b);
+
   // ######################
   // Advertizing / Master
   // ######################
@@ -114,7 +117,7 @@ abstract class NetworkService<ServiceInfo,
   Future<void> connectToDiscoveredService(ResolvedServiceInfo service);
 
   // ...........................................................................
-  void addConnection(Connection connection) {
+  void addConnection(Connection<ResolvedServiceInfo> connection) {
     assert(!_connections.value.contains(connection));
     _newConnection.add(connection);
     _connections.value = [..._connections.value, connection];
@@ -128,12 +131,14 @@ abstract class NetworkService<ServiceInfo,
   }
 
   // ...........................................................................
-  GgValueStream<List<Connection>> get connections => _connections.stream;
+  GgValueStream<List<Connection<ResolvedServiceInfo>>> get connections =>
+      _connections.stream;
 
   // ...........................................................................
-  Connection? connectionForService(ServiceInfo serviceInfo) {
+  Connection<ResolvedServiceInfo>? connectionForService(
+      ResolvedServiceInfo serviceInfo) {
     for (final c in connections.value) {
-      if (c.serviceInfo == serviceInfo) {
+      if (isSameService(c.serviceInfo, serviceInfo)) {
         return c;
       }
     }
@@ -208,7 +213,7 @@ abstract class NetworkService<ServiceInfo,
   }
 
   final _newConnection = StreamController<Connection>.broadcast();
-  final _connections = GgValue<List<Connection>>(seed: []);
+  final _connections = GgValue<List<Connection<ResolvedServiceInfo>>>(seed: []);
   void _initConnections() {
     _dispose.add(_connections.dispose);
     _dispose.add(_newConnection.close);

@@ -8,7 +8,6 @@
 
 import 'package:bonsoir/bonsoir.dart';
 
-import '../../../measure/types.dart';
 import '../bonjour_service.dart';
 import 'mock_bonsoir_broadcast.dart';
 import 'mock_bonsoir_discovery.dart';
@@ -21,16 +20,16 @@ class MockBonjourServiceDeps implements BonjourServiceDeps {
   const MockBonjourServiceDeps();
 
   @override
-  final bonsoirBroadcast = MockBonsoirBroadcast.new;
+  final newBonsoirBroadcast = MockBonsoirBroadcast.new;
 
   @override
-  final bonsoirDiscovery = MockBonsoirDiscovery.new;
+  final newBonsoirDiscovery = MockBonsoirDiscovery.new;
 
   @override
-  final serverSocketBind = MockServerSocket.bind;
+  final bindServerSocket = MockServerSocket.bind;
 
   @override
-  final clientSocketConnect = MockSocket.connect;
+  final connectSocket = MockSocket.connect;
 
   @override
   final listNetworkInterface = MockNetworkInterface.list;
@@ -46,10 +45,9 @@ const description = BonsoirService(
 // .............................................................................
 class MockBonjourService extends BonjourService {
   MockBonjourService({
-    required EndpointRole mode,
+    required super.role,
   }) : super(
           service: description,
-          role: mode,
         ) {
     log = (str) => loggedData.add(str);
   }

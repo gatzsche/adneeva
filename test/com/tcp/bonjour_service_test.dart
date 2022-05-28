@@ -4,7 +4,6 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
-import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:bonsoir/bonsoir.dart';
@@ -78,8 +77,8 @@ void main() {
 
   // ...........................................................................
   void initMocks() {
-    master = MockBonjourService(mode: EndpointRole.master);
-    slave = MockBonjourService(mode: EndpointRole.slave);
+    master = MockBonjourService(role: EndpointRole.master);
+    slave = MockBonjourService(role: EndpointRole.slave);
     bonsoirDiscovery = slave.bonsoirDiscovery as MockBonsoirDiscovery;
     bonsoirBroadcast = master.bonsoirBroadcast as MockBonsoirBroadcast;
   }
