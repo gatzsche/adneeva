@@ -22,9 +22,9 @@ class MeasureTcp extends Measure {
               port: randomPort(),
               type: '_mobile_network_evaluator_measure_tcp._tcp',
             ),
-            role: role == EndpointRole.master
-                ? EndpointRole.master
-                : EndpointRole.slave,
+            role: role == EndpointRole.advertizer
+                ? EndpointRole.advertizer
+                : EndpointRole.scanner,
             log: log,
           ),
         );
@@ -32,6 +32,6 @@ class MeasureTcp extends Measure {
 
 // #############################################################################
 MeasureTcp exampleMeasureTcp({
-  EndpointRole role = EndpointRole.master,
+  EndpointRole role = EndpointRole.advertizer,
 }) =>
     MeasureTcp(role: role);

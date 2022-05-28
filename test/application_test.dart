@@ -84,40 +84,40 @@ void main() {
         expect(appA.mode.value, MeasurementMode.tcp);
         expect(appB.mode.value, MeasurementMode.tcp);
 
-        // Set AppA into TCP master mode.
-        // AppB stays in master mode.
-        appA.role.value = EndpointRole.master;
+        // Set AppA into TCP advertizer mode.
+        // AppB stays in advertizer mode.
+        appA.role.value = EndpointRole.advertizer;
         appA.mode.value = MeasurementMode.tcp;
         fake.flushMicrotasks();
         expect(appB.mode.value, MeasurementMode.tcp);
-        expect(appB.role.value, EndpointRole.master);
+        expect(appB.role.value, EndpointRole.advertizer);
 
         // Start measuring at AppA
-        // AppB will switch to master mode.
+        // AppB will switch to advertizer mode.
         appA.startMeasurements();
         fake.flushMicrotasks();
 
-        // AppB is in TCP slave mode.
+        // AppB is in TCP scanner mode.
         // Somebody sets the application to btle mode.
-        // This will not change AppA, because a slave will not control master.
-        expect(appB.role.value, EndpointRole.slave);
+        // This will not change AppA, because a scanner will not control advertizer.
+        expect(appB.role.value, EndpointRole.scanner);
         expect(appB.mode.value, MeasurementMode.tcp);
         appB.mode.value = MeasurementMode.btle;
         fake.flushMicrotasks();
         expect(appA.mode.value, MeasurementMode.tcp);
-        expect(appA.role.value, EndpointRole.master);
+        expect(appA.role.value, EndpointRole.advertizer);
 
         // Now AppB starts measuring.
         // Set applications into Nearby mode.
-        // This will also change the other side to slave mode.
-        expect(appA.role.value, EndpointRole.master);
+        // This will also change the other side to scanner mode.
+        expect(appA.role.value, EndpointRole.advertizer);
         expect(appA.mode.value, MeasurementMode.tcp);
-        expect(appB.role.value, EndpointRole.slave);
+        expect(appB.role.value, EndpointRole.scanner);
         expect(appB.mode.value, MeasurementMode.btle);
         appB.startMeasurements();
         fake.flushMicrotasks();
-        expect(appB.role.value, EndpointRole.master);
-        expect(appA.role.value, EndpointRole.slave);
+        expect(appB.role.value, EndpointRole.advertizer);
+        expect(appA.role.value, EndpointRole.scanner);
         expect(appA.mode.value, MeasurementMode.btle);
 
         dispose();

@@ -19,13 +19,13 @@ class ResolvedFakeServiceInfo extends FakeServiceInfo {}
 class FakeService
     extends NetworkService<FakeServiceInfo, ResolvedFakeServiceInfo> {
   // ...........................................................................
-  FakeService({required EndpointRole slave})
+  FakeService({required EndpointRole scanner})
       : super(
           service: FakeServiceInfo(),
-          role: slave,
-          name: slave == EndpointRole.master
-              ? 'MasterFakeService'
-              : 'SlaveFakeService',
+          role: scanner,
+          name: scanner == EndpointRole.advertizer
+              ? 'AdvertizerFakeService'
+              : 'ScannerFakeService',
         ) {
     _init();
   }
@@ -47,10 +47,11 @@ class FakeService
   }
 
   // ...............................................
-  // Provide references to master and slave services
+  // Provide references to advertizer and scanner services
 
-  static FakeService get master => FakeService(slave: EndpointRole.master);
-  static FakeService get slave => FakeService(slave: EndpointRole.slave);
+  static FakeService get advertizer =>
+      FakeService(scanner: EndpointRole.advertizer);
+  static FakeService get scanner => FakeService(scanner: EndpointRole.scanner);
 
   // ..............................................
   // Advertize - Not implemented for fake service

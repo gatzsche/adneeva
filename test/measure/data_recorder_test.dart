@@ -12,25 +12,25 @@ import 'package:mobile_network_evaluator/src/measure/types.dart';
 import 'package:mobile_network_evaluator/src/utils/utils.dart';
 
 void main() {
-  late DataRecorder masterDataRecorder;
-  late DataRecorder slaveDataRecorder;
-  late FakeService masterService;
-  late FakeService slaveService;
+  late DataRecorder advertizerDataRecorder;
+  late DataRecorder scannerDataRecorder;
+  late FakeService advertizerService;
+  late FakeService scannerService;
 
   // ...........................................................................
   Future<void> init() async {
-    masterService = FakeService.master;
-    slaveService = FakeService.slave;
-    masterService.start();
-    slaveService.start();
-    NetworkService.fakeConnect(slaveService, masterService);
+    advertizerService = FakeService.advertizer;
+    scannerService = FakeService.scanner;
+    advertizerService.start();
+    scannerService.start();
+    NetworkService.fakeConnect(scannerService, advertizerService);
     await flushMicroTasks();
 
-    masterDataRecorder = exampleMasterDataRecorder(
-      connection: masterService.connections.value.first,
+    advertizerDataRecorder = exampleAdvertizerDataRecorder(
+      connection: advertizerService.connections.value.first,
     );
-    slaveDataRecorder = exampleSlaveDataRecorder(
-      connection: slaveService.connections.value.first,
+    scannerDataRecorder = exampleScannerDataRecorder(
+      connection: scannerService.connections.value.first,
     );
 
     await flushMicroTasks();
@@ -38,37 +38,39 @@ void main() {
 
   // ...........................................................................
   void dispose() {
-    masterDataRecorder.dispose();
-    slaveDataRecorder.dispose();
+    advertizerDataRecorder.dispose();
+    scannerDataRecorder.dispose();
   }
 
   group('DataRecorder', () {
     // #########################################################################
 
-    test('should send data packages as master and acknowledge as slave',
+    test('should send data packages as advertizer and acknowledge as scanner',
         () async {
       await init();
 
-      slaveDataRecorder.record();
-      await masterDataRecorder.record();
+      scannerDataRecorder.record();
+      await advertizerDataRecorder.record();
 
-      expect(slaveDataRecorder.role, EndpointRole.slave);
+      expect(scannerDataRecorder.role, EndpointRole.scanner);
 
       const headerRow = 1;
-      final rows = masterDataRecorder.resultCsv!.split('\n');
+      final rows = advertizerDataRecorder.resultCsv!.split('\n');
 
       const headerCol = 1;
       final cols = rows.first.split(',');
 
-      expect(rows.length, masterDataRecorder.maxNumMeasurements + headerRow);
-      expect(cols.length, masterDataRecorder.packageSizes.length + headerCol);
+      expect(
+          rows.length, advertizerDataRecorder.maxNumMeasurements + headerRow);
+      expect(
+          cols.length, advertizerDataRecorder.packageSizes.length + headerCol);
 
       dispose();
     });
 
     test('should complete code coverage', () {
-      exampleMasterDataRecorder();
-      exampleSlaveDataRecorder();
+      exampleAdvertizerDataRecorder();
+      exampleScannerDataRecorder();
     });
 
     test('should allow to interrupt measurements with stop', () async {
@@ -78,35 +80,35 @@ void main() {
 
       // Listen to measurement cycles and
       // stop after second measurement cycle
-      masterDataRecorder.measurementCycles.listen(
+      advertizerDataRecorder.measurementCycles.listen(
         (event) {
-          // Assume master data recorder is running
-          expect(masterDataRecorder.isRunning, true);
+          // Assume advertizer data recorder is running
+          expect(advertizerDataRecorder.isRunning, true);
 
-          // Stop the master data recorder
-          masterDataRecorder.stop();
+          // Stop the advertizer data recorder
+          advertizerDataRecorder.stop();
         },
       );
 
       // Run the measurements
-      slaveDataRecorder.record();
-      await masterDataRecorder.record();
+      scannerDataRecorder.record();
+      await advertizerDataRecorder.record();
 
       // Expect it is stopped and no data have been written
-      expect(masterDataRecorder.isRunning, false);
-      expect(masterDataRecorder.resultCsv, null);
+      expect(advertizerDataRecorder.isRunning, false);
+      expect(advertizerDataRecorder.resultCsv, null);
 
       DataRecorder.delayMeasurements = const Duration(milliseconds: 100);
 
       dispose();
     });
 
-    test('should record on slave side until stop is received', () async {
+    test('should record on scanner side until stop is received', () async {
       await init();
 
       // Listen until recording was stopped
       bool isRecording = true;
-      slaveDataRecorder.record().then(
+      scannerDataRecorder.record().then(
             (_) => isRecording = false,
           );
 
@@ -116,7 +118,7 @@ void main() {
       expect(isRecording, true);
 
       // Now let's stop the recording
-      slaveDataRecorder.stop();
+      scannerDataRecorder.stop();
       await flushMicroTasks();
 
       // The record future should have completed

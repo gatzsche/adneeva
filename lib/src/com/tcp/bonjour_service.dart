@@ -41,7 +41,7 @@ class BonjourService
   })  : _bonsoirService = service,
         super(name: name ?? 'BonjourService') {
     log?.call(
-        'Set up bonjour "${service.name} - ${role == EndpointRole.master ? 'Master' : 'Slave'}"');
+        'Set up bonjour "${service.name} - ${role == EndpointRole.advertizer ? 'Advertizer' : 'Scanner'}"');
     _d = dependencies ??
         (isTest ? const MockBonjourServiceDeps() : const BonjourServiceDeps());
     _bonsoirBroadcast = _d.newBonsoirBroadcast(service: _bonsoirService);
@@ -55,7 +55,7 @@ class BonjourService
   }
 
   // ######################
-  // Advertizing / Master
+  // Advertizing / Advertizer
   // ######################
 
   // ...........................................................................
@@ -111,7 +111,7 @@ class BonjourService
   }
 
   // ######################
-  // Discovering / Slave
+  // Discovering / Scanner
   // ######################
 
   @override

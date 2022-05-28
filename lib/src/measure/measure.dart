@@ -140,19 +140,19 @@ class Measure {
 
 // #############################################################################
 
-Measure exampleMeasureMaster({Log? log}) {
+Measure exampleMeasureAdvertizer({Log? log}) {
   return Measure(
-    role: EndpointRole.master,
+    role: EndpointRole.advertizer,
     log: log,
-    networkService: FakeService.master,
+    networkService: FakeService.advertizer,
   );
 }
 
-Measure exampleMeasureSlave({Log? log}) {
+Measure exampleMeasureScanner({Log? log}) {
   return Measure(
-    role: EndpointRole.slave,
+    role: EndpointRole.scanner,
     log: log,
-    networkService: FakeService.slave,
+    networkService: FakeService.scanner,
   );
 }
 //

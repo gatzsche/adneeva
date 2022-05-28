@@ -65,8 +65,8 @@ class _MeasurementWidgetState extends State<MeasurementWidget> {
     return StreamBuilder(
       stream: needsRebuild,
       builder: (context, _) {
-        return _showSlaveMeasuringWidget
-            ? _slaveIsMeasuringWidget
+        return _showScannerMeasuringWidget
+            ? _scannerIsMeasuringWidget
             : _isConnected
                 ? _contentWidget
                 : _waitingForRemoteWidget;
@@ -78,8 +78,8 @@ class _MeasurementWidgetState extends State<MeasurementWidget> {
   final List<Function()> _dispose = [];
 
   // ...........................................................................
-  bool get _showSlaveMeasuringWidget {
-    return widget.application.role.value == EndpointRole.slave &&
+  bool get _showScannerMeasuringWidget {
+    return widget.application.role.value == EndpointRole.scanner &&
         widget.application.isMeasuring.value;
   }
 
@@ -117,9 +117,9 @@ class _MeasurementWidgetState extends State<MeasurementWidget> {
   }
 
   // ...........................................................................
-  Widget get _slaveIsMeasuringWidget {
+  Widget get _scannerIsMeasuringWidget {
     return Center(
-      key: const Key('slaveIsMeasuringWidget'),
+      key: const Key('scannerIsMeasuringWidget'),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: const [

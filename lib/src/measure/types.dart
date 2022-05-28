@@ -17,8 +17,8 @@ extension MeasurementModeToString on MeasurementMode {
 
 // .............................................................................
 enum EndpointRole {
-  master,
-  slave,
+  advertizer,
+  scanner,
 }
 
 extension EndpointRoleToString on EndpointRole {

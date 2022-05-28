@@ -10,8 +10,8 @@ import 'package:mobile_network_evaluator/src/measure/types.dart';
 void main() {
   group('EndpointRole', () {
     test('.string should return the role as string', () {
-      expect(EndpointRole.master.string, 'master');
-      expect(EndpointRole.slave.string, 'slave');
+      expect(EndpointRole.advertizer.string, 'advertizer');
+      expect(EndpointRole.scanner.string, 'scanner');
     });
   });
 

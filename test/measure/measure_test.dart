@@ -11,15 +11,15 @@ import 'package:mobile_network_evaluator/src/measure/measure.dart';
 import 'package:mobile_network_evaluator/src/measure/types.dart';
 
 void main() {
-  late Measure measureMaster;
-  late Measure measureSlave;
+  late Measure measureAdvertizer;
+  late Measure measureScanner;
   late List<String> logs;
 
   // ...........................................................................
-  Future<void> connectMasterAndSlave() async {
+  Future<void> connectAdvertizerAndScanner() async {
     await NetworkService.fakeConnect(
-      measureSlave.networkService,
-      measureMaster.networkService,
+      measureScanner.networkService,
+      measureAdvertizer.networkService,
     );
   }
 
@@ -30,17 +30,17 @@ void main() {
       logs.add(m);
     }
 
-    // Create a master and a slave instance
-    measureMaster = exampleMeasureMaster(log: log);
-    measureSlave = exampleMeasureSlave(log: log);
+    // Create a advertizer and a scanner instance
+    measureAdvertizer = exampleMeasureAdvertizer(log: log);
+    measureScanner = exampleMeasureScanner(log: log);
   }
 
   // ...........................................................................
   void dispose(FakeAsync fake) async {
-    measureMaster.disconnect();
-    measureSlave.disconnect();
-    measureMaster.dispose();
-    measureSlave.dispose();
+    measureAdvertizer.disconnect();
+    measureScanner.disconnect();
+    measureAdvertizer.dispose();
+    measureScanner.dispose();
     fake.flushMicrotasks();
   }
 
@@ -49,29 +49,30 @@ void main() {
 
     test(
         'should allow to measure data rate and latency '
-        'when exchanging data between a master and a slave ', () {
+        'when exchanging data between a advertizer and a scanner ', () {
       fakeAsync((fake) {
         init();
-        // Start master and slave
-        measureMaster.connect();
-        measureSlave.connect();
-        connectMasterAndSlave();
+        // Start advertizer and scanner
+        measureAdvertizer.connect();
+        measureScanner.connect();
+        connectAdvertizerAndScanner();
         fake.flushMicrotasks();
 
         // Perform measurements
-        measureSlave.measure();
-        measureMaster.measure();
+        measureScanner.measure();
+        measureAdvertizer.measure();
         fake.flushMicrotasks();
 
-        // Stop master and slave
-        measureMaster.disconnect();
-        expect(logs.last, MeasureLogMessages.disconnect(EndpointRole.master));
-        measureSlave.disconnect();
-        expect(logs.last, MeasureLogMessages.disconnect(EndpointRole.slave));
+        // Stop advertizer and scanner
+        measureAdvertizer.disconnect();
+        expect(
+            logs.last, MeasureLogMessages.disconnect(EndpointRole.advertizer));
+        measureScanner.disconnect();
+        expect(logs.last, MeasureLogMessages.disconnect(EndpointRole.scanner));
 
         // Get measurement results
-        expect(measureMaster.measurementResults.value, isNotEmpty);
-        expect(measureSlave.measurementResults.value, isEmpty);
+        expect(measureAdvertizer.measurementResults.value, isNotEmpty);
+        expect(measureScanner.measurementResults.value, isEmpty);
 
         dispose(fake);
       });

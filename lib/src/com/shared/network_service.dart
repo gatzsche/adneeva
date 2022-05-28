@@ -51,12 +51,12 @@ abstract class NetworkService<ServiceInfo,
     assert(!_isStarted);
     _isStarted = true;
 
-    if (role == EndpointRole.master) {
-      await _startMaster();
+    if (role == EndpointRole.advertizer) {
+      await _startAdvertizer();
     }
 
-    if (role == EndpointRole.slave) {
-      await _startSlave();
+    if (role == EndpointRole.scanner) {
+      await _startScanner();
     }
   }
 
@@ -64,12 +64,12 @@ abstract class NetworkService<ServiceInfo,
   Future<void> stop() async {
     assert(_isStarted);
 
-    if (role == EndpointRole.master) {
-      await _stopMaster();
+    if (role == EndpointRole.advertizer) {
+      await _stopAdvertizer();
     }
 
-    if (role == EndpointRole.slave) {
-      await _stopSlave();
+    if (role == EndpointRole.scanner) {
+      await _stopScanner();
     }
 
     _isStarted = false;
@@ -82,7 +82,7 @@ abstract class NetworkService<ServiceInfo,
   bool isSameService(ResolvedServiceInfo a, ResolvedServiceInfo b);
 
   // ######################
-  // Advertizing / Master
+  // Advertizing / Advertizer
   // ######################
 
   // ...........................................................................
@@ -92,7 +92,7 @@ abstract class NetworkService<ServiceInfo,
   Future<void> stopListeningForConnections();
 
   // ######################
-  // Scanning / Slave
+  // Scanning / Scanner
   // ######################
 
   // ...........................................................................
@@ -151,7 +151,7 @@ abstract class NetworkService<ServiceInfo,
   // ######################
 
   // ...........................................................................
-  /// Implement this function to directly connect a master service to a
+  /// Implement this function to directly connect a advertizer service to a
   /// client service. This is needed for test purposes
   static Future<void> fakeConnect(
     NetworkService endpointA,
@@ -162,45 +162,46 @@ abstract class NetworkService<ServiceInfo,
     assert(endpointA.isStarted);
     assert(endpointB.isStarted);
 
-    // Identify master and slave service
-    final master =
-        endpointA.role == EndpointRole.master ? endpointA : endpointB;
-    final slave = endpointA.role == EndpointRole.master ? endpointB : endpointA;
+    // Identify advertizer and scanner service
+    final advertizer =
+        endpointA.role == EndpointRole.advertizer ? endpointA : endpointB;
+    final scanner =
+        endpointA.role == EndpointRole.advertizer ? endpointB : endpointA;
 
     // Create a mock socket
-    final MockSocket mockSocketMaster =
+    final MockSocket mockSocketAdvertizer =
         await MockSocket.connect('123.123.123.123', 12345);
-    final mockSocketSlave = mockSocketMaster.otherEndpoint;
+    final mockSocketScanner = mockSocketAdvertizer.otherEndpoint;
 
     // Create two connections
-    // master listens to the slaves outgoing data stream
-    // master sends to its own outgoing data stream
+    // advertizer listens to the scanners outgoing data stream
+    // advertizer sends to its own outgoing data stream
     // ignore: unused_local_variable
-    final masterConnection = Connection(
-      parentService: master,
-      disconnect: mockSocketMaster.close,
-      receiveData: mockSocketMaster.dataIn.stream,
+    final advertizerConnection = Connection(
+      parentService: advertizer,
+      disconnect: mockSocketAdvertizer.close,
+      receiveData: mockSocketAdvertizer.dataIn.stream,
       sendData: (data) async {
         scheduleMicrotask(() {
-          mockSocketMaster.dataOut.add(data);
+          mockSocketAdvertizer.dataOut.add(data);
         });
       },
-      serviceInfo: master.service,
+      serviceInfo: advertizer.service,
     );
 
-    // slave listens to the master outgoing data stream
-    // slave sends to its own outgoing data stream
+    // scanner listens to the advertizer outgoing data stream
+    // scanner sends to its own outgoing data stream
     // ignore: unused_local_variable
-    final slaveConnection = Connection(
-      parentService: slave,
-      disconnect: mockSocketSlave.close,
-      receiveData: mockSocketSlave.dataIn.stream,
+    final scannerConnection = Connection(
+      parentService: scanner,
+      disconnect: mockSocketScanner.close,
+      receiveData: mockSocketScanner.dataIn.stream,
       sendData: (data) async {
         scheduleMicrotask(() {
-          mockSocketSlave.dataOut.add(data);
+          mockSocketScanner.dataOut.add(data);
         });
       },
-      serviceInfo: slave.service,
+      serviceInfo: scanner.service,
     );
   }
 
@@ -251,24 +252,24 @@ abstract class NetworkService<ServiceInfo,
   }
 
   // ...........................................................................
-  Future<void> _startSlave() async {
+  Future<void> _startScanner() async {
     await startDiscovery();
   }
 
   // ...........................................................................
-  Future<void> _stopSlave() async {
+  Future<void> _stopScanner() async {
     await stopDiscovery();
     await _disconnectAll();
   }
 
   // ...........................................................................
-  Future<void> _startMaster() async {
+  Future<void> _startAdvertizer() async {
     await startListeningForConnections();
     await startAdvertizing();
   }
 
   // ...........................................................................
-  Future<void> _stopMaster() async {
+  Future<void> _stopAdvertizer() async {
     await stopAdvertizing();
     await stopListeningForConnections();
     await _disconnectAll();

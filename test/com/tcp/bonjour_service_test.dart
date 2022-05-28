@@ -20,8 +20,8 @@ import 'package:mobile_network_evaluator/src/measure/types.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  late MockBonjourService master;
-  late MockBonjourService slave;
+  late MockBonjourService advertizer;
+  late MockBonjourService scanner;
   late MockBonsoirDiscovery bonsoirDiscovery;
   late MockBonsoirBroadcast bonsoirBroadcast;
 
@@ -31,7 +31,7 @@ void main() {
     bool noIpAddress = false,
     String ip = '123.456.789.123',
   }) {
-    final description = master.service;
+    final description = advertizer.service;
 
     bonsoirDiscovery.mockDiscovery(
       eventType: eventType,
@@ -55,17 +55,18 @@ void main() {
       eventType: BonsoirDiscoveryEventType.DISCOVERY_SERVICE_LOST);
 
   // ...........................................................................
-  List<MockSocket> connectedClientSockets() => (slave.connections.value
+  List<MockSocket> connectedClientSockets() => (scanner.connections.value
       .map(
         (e) => e.receiveData as MockSocket,
       )
       .toList());
 
   // ...........................................................................
-  MockServerSocket? serverSocket() => master.serverSocket as MockServerSocket?;
+  MockServerSocket? serverSocket() =>
+      advertizer.serverSocket as MockServerSocket?;
 
   // ...........................................................................
-  void mockSlaveConnectsToMaster() {
+  void mockScannerConnectsToAdvertizer() {
     final clntSockets = connectedClientSockets();
     final srvSocket = serverSocket();
 
@@ -77,27 +78,27 @@ void main() {
 
   // ...........................................................................
   void initMocks() {
-    master = MockBonjourService(role: EndpointRole.master);
-    slave = MockBonjourService(role: EndpointRole.slave);
-    bonsoirDiscovery = slave.bonsoirDiscovery as MockBonsoirDiscovery;
-    bonsoirBroadcast = master.bonsoirBroadcast as MockBonsoirBroadcast;
+    advertizer = MockBonjourService(role: EndpointRole.advertizer);
+    scanner = MockBonjourService(role: EndpointRole.scanner);
+    bonsoirDiscovery = scanner.bonsoirDiscovery as MockBonsoirDiscovery;
+    bonsoirBroadcast = advertizer.bonsoirBroadcast as MockBonsoirBroadcast;
   }
 
   // ...........................................................................
-  void startMasterAndSlave(FakeAsync fake) {
-    master.start();
-    slave.start();
+  void startAdvertizerAndScanner(FakeAsync fake) {
+    advertizer.start();
+    scanner.start();
     fake.flushMicrotasks();
     mockDiscovery();
     fake.flushMicrotasks();
-    mockSlaveConnectsToMaster();
+    mockScannerConnectsToAdvertizer();
     fake.flushMicrotasks();
   }
 
   // ...........................................................................
-  void stopMasterAndSlave(FakeAsync fake) {
-    master.stop();
-    slave.stop();
+  void stopAdvertizerAndScanner(FakeAsync fake) {
+    advertizer.stop();
+    scanner.stop();
     fake.flushMicrotasks();
   }
 
@@ -107,8 +108,8 @@ void main() {
     }
 
     void dispose() {
-      master.dispose();
-      slave.dispose();
+      advertizer.dispose();
+      scanner.dispose();
     }
 
     test('should initialize correctly', () {
@@ -119,38 +120,38 @@ void main() {
         expect(bonsoirDiscovery, isNotNull);
 
         // ......................................
-        // Initializes master and slave correctly
-        expect(master, isNotNull);
-        expect(slave, isNotNull);
+        // Initializes advertizer and scanner correctly
+        expect(advertizer, isNotNull);
+        expect(scanner, isNotNull);
         fake.flushMicrotasks();
 
         // ...........
-        // Start slave
-        // => Slave should scan for the service
-        slave.start();
+        // Start scanner
+        // => Scanner should scan for the service
+        scanner.start();
         fake.flushMicrotasks();
 
         // No connections are available at the beginning
         expect(connectedClientSockets(), isEmpty);
-        expect(slave.connections.value, isEmpty);
-        expect(master.connections.value, isEmpty);
+        expect(scanner.connections.value, isEmpty);
+        expect(advertizer.connections.value, isEmpty);
 
         // ............
-        // Start master
+        // Start advertizer
 
         // At the beginning we don't have a server socket listening for
         // incoming connections
         expect(serverSocket(), isNull);
 
-        // Let's start the master.
-        master.start();
+        // Let's start the advertizer.
+        advertizer.start();
         fake.flushMicrotasks();
 
-        // This means that the master creates a tcp server that listens to
+        // This means that the advertizer creates a tcp server that listens to
         // incoming connections.
         expect(serverSocket(), isNotNull);
 
-        stopMasterAndSlave(fake);
+        stopAdvertizerAndScanner(fake);
 
         dispose();
       });
@@ -161,25 +162,25 @@ void main() {
         init();
 
         // ......................................
-        // Slave discovers and connects a service
-        master.start();
-        slave.start();
+        // Scanner discovers and connects a service
+        advertizer.start();
+        scanner.start();
         fake.flushMicrotasks();
 
-        // Slave should discover the service broadcasted by the server
+        // Scanner should discover the service broadcasted by the server
         mockDiscovery();
         fake.flushMicrotasks();
 
-        // Slave should connect to the server and create a connection
-        expect(slave.connections.value.length, 1);
-        mockSlaveConnectsToMaster();
+        // Scanner should connect to the server and create a connection
+        expect(scanner.connections.value.length, 1);
+        mockScannerConnectsToAdvertizer();
         fake.flushMicrotasks();
 
-        // Master should accept the connection and create a connection
+        // Advertizer should accept the connection and create a connection
         // object also
-        expect(master.connections.value.length, 1);
+        expect(advertizer.connections.value.length, 1);
 
-        stopMasterAndSlave(fake);
+        stopAdvertizerAndScanner(fake);
 
         dispose();
       });
@@ -189,64 +190,64 @@ void main() {
       fakeAsync((fake) {
         init();
 
-        // Slave discovers and connects a service
-        master.start();
-        slave.start();
+        // Scanner discovers and connects a service
+        advertizer.start();
+        scanner.start();
 
-        // Slave should discover the service broadcasted by the server
+        // Scanner should discover the service broadcasted by the server
         mockDiscoverOwnService();
         fake.flushMicrotasks();
 
         // There should not be a discovery of the own service
-        expect(slave.connections.value.length, 0);
-        expect(master.connections.value.length, 0);
+        expect(scanner.connections.value.length, 0);
+        expect(advertizer.connections.value.length, 0);
 
-        stopMasterAndSlave(fake);
+        stopAdvertizerAndScanner(fake);
         dispose();
       });
     });
 
-    test('should exchange data betwen master and slave correctly', () {
+    test('should exchange data betwen advertizer and scanner correctly', () {
       fakeAsync((fake) {
         init();
 
-        // The connection object can be used to send data from slave to master
-        startMasterAndSlave(fake);
+        // The connection object can be used to send data from scanner to advertizer
+        startAdvertizerAndScanner(fake);
 
-        final masterConnection = master.connections.value.first;
-        final slaveConnection = slave.connections.value.first;
+        final advertizerConnection = advertizer.connections.value.first;
+        final scannerConnection = scanner.connections.value.first;
 
         final dataIn1 = Uint8List.fromList([1, 2, 3]);
         final dataIn2 = Uint8List.fromList([4, 5, 6]);
 
-        Uint8List? dataReceivedAtMaster;
-        Uint8List? dataReceivedAtSlave;
-        masterConnection.receiveData.listen(
-          (data) => dataReceivedAtMaster = data,
+        Uint8List? dataReceivedAtAdvertizer;
+        Uint8List? dataReceivedAtScanner;
+        advertizerConnection.receiveData.listen(
+          (data) => dataReceivedAtAdvertizer = data,
         );
-        slaveConnection.receiveData.listen(
-          (data) => dataReceivedAtSlave = data,
+        scannerConnection.receiveData.listen(
+          (data) => dataReceivedAtScanner = data,
         );
 
-        // Send data from master to slave
-        masterConnection.sendData(dataIn1);
+        // Send data from advertizer to scanner
+        advertizerConnection.sendData(dataIn1);
         fake.flushMicrotasks();
-        expect(dataReceivedAtSlave, dataIn1);
+        expect(dataReceivedAtScanner, dataIn1);
 
-        // Send data from slave to master
-        slaveConnection.sendData(dataIn2);
+        // Send data from scanner to advertizer
+        scannerConnection.sendData(dataIn2);
         fake.flushMicrotasks();
-        expect(dataReceivedAtMaster, dataIn2);
+        expect(dataReceivedAtAdvertizer, dataIn2);
 
         // Make some additional checks
         expect(
-          master.connectionForService(masterConnection.serviceInfo),
-          masterConnection,
+          advertizer.connectionForService(advertizerConnection.serviceInfo),
+          advertizerConnection,
         );
 
         // ......................
-        // Stop master and client
-        stopMasterAndSlave(fake);
+        // Stop advertizer and client
+        stopAdvertizerAndScanner(fake);
 
         fake.flushMicrotasks();
       });
@@ -256,12 +257,12 @@ void main() {
       fakeAsync((fake) {
         init();
 
-        startMasterAndSlave(fake);
+        startAdvertizerAndScanner(fake);
 
         // .................
         // Service gets lost
 
-        // The connection object can be used to send data from slave to master
+        // The connection object can be used to send data from scanner to advertizer
 
         // We do not react to lost services yet.
         // This needs to be added later
@@ -271,63 +272,63 @@ void main() {
         // Broadcasting a service without an IP should create an error.
         mockDiscoverServicesWithoutIp();
         fake.flushMicrotasks();
-        expect(slave.loggedData.last,
+        expect(scanner.loggedData.last,
             'Service with name "Example Bonjour Service" has no IP address');
 
         // ......................
-        // Stop master and client
-        stopMasterAndSlave(fake);
+        // Stop advertizer and client
+        stopAdvertizerAndScanner(fake);
 
         fake.flushMicrotasks();
       });
     });
 
-    test('should behave correctly when slave disconnects', () {
+    test('should behave correctly when scanner disconnects', () {
       fakeAsync((fake) {
         init();
 
-        startMasterAndSlave(fake);
-        expect(slave.connections.value.length, 1);
-        expect(master.connections.value.length, 1);
+        startAdvertizerAndScanner(fake);
+        expect(scanner.connections.value.length, 1);
+        expect(advertizer.connections.value.length, 1);
 
         // ..............................
-        // Slave disconnects a connection
+        // Scanner disconnects a connection
 
-        slave.connections.value.first.disconnect();
+        scanner.connections.value.first.disconnect();
         fake.flushMicrotasks();
 
         // The connection should be removed from the array of connections
-        expect(slave.connections.value, isEmpty);
+        expect(scanner.connections.value, isEmpty);
 
-        // Also on master the connection should be disconnected
-        expect(master.connections.value, isEmpty);
+        // Also on advertizer the connection should be disconnected
+        expect(advertizer.connections.value, isEmpty);
 
         // ......................
-        // Stop master and client
-        stopMasterAndSlave(fake);
+        // Stop advertizer and client
+        stopAdvertizerAndScanner(fake);
       });
     });
 
-    test('should behave correctly when master disconnects', () {
+    test('should behave correctly when advertizer disconnects', () {
       fakeAsync((fake) {
         init();
 
-        startMasterAndSlave(fake);
-        expect(slave.connections.value.length, 1);
-        expect(master.connections.value.length, 1);
+        startAdvertizerAndScanner(fake);
+        expect(scanner.connections.value.length, 1);
+        expect(advertizer.connections.value.length, 1);
 
         // ...............................
-        // Master disconnects a connection
-        master.connections.value.first.disconnect();
+        // Advertizer disconnects a connection
+        advertizer.connections.value.first.disconnect();
         fake.flushMicrotasks();
 
         // On both sides: The connection should be removed
-        expect(slave.connections.value, isEmpty);
-        expect(master.connections.value, isEmpty);
+        expect(scanner.connections.value, isEmpty);
+        expect(advertizer.connections.value, isEmpty);
 
         // ......................
-        // Stop master and client
-        stopMasterAndSlave(fake);
+        // Stop advertizer and client
+        stopAdvertizerAndScanner(fake);
       });
     });
 
@@ -337,27 +338,27 @@ void main() {
 
         // .....
         // Start
-        startMasterAndSlave(fake);
-        expect(slave.connections.value.length, 1);
-        expect(master.connections.value.length, 1);
+        startAdvertizerAndScanner(fake);
+        expect(scanner.connections.value.length, 1);
+        expect(advertizer.connections.value.length, 1);
 
         // ....
         // Stop
-        stopMasterAndSlave(fake);
-        expect(slave.connections.value.length, 0);
-        expect(master.connections.value.length, 0);
+        stopAdvertizerAndScanner(fake);
+        expect(scanner.connections.value.length, 0);
+        expect(advertizer.connections.value.length, 0);
 
         // .....
         // Start
-        startMasterAndSlave(fake);
-        expect(slave.connections.value.length, 1);
-        expect(master.connections.value.length, 1);
+        startAdvertizerAndScanner(fake);
+        expect(scanner.connections.value.length, 1);
+        expect(advertizer.connections.value.length, 1);
 
         // ....
         // Stop
-        stopMasterAndSlave(fake);
-        expect(slave.connections.value.length, 0);
-        expect(master.connections.value.length, 0);
+        stopAdvertizerAndScanner(fake);
+        expect(scanner.connections.value.length, 0);
+        expect(advertizer.connections.value.length, 0);
       });
     });
 
@@ -367,9 +368,9 @@ void main() {
         // Setup socket to throw a socket exception next time
         MockSocket.failAtNextConnect = true;
 
-        // Start a slave service
+        // Start a scanner service
         init();
-        slave.start();
+        scanner.start();
         fake.flushMicrotasks();
 
         // Mock discovery of a bonjour service
@@ -377,8 +378,8 @@ void main() {
         fake.flushMicrotasks();
 
         // Connection should have failed.
-        expect(slave.connections.value.length, 0);
-        expect(slave.loggedData.last,
+        expect(scanner.connections.value.length, 0);
+        expect(scanner.loggedData.last,
             'SocketException: Connection refused, port = 12457');
       });
     });

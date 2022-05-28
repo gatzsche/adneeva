@@ -52,7 +52,7 @@ class DataRecorder {
   final EndpointRole role;
 
   // ######################
-  // Master
+  // Advertizer
   // ######################
 
   /// Listen to incoming acknowledgments and start next measurement cycle then
@@ -72,21 +72,21 @@ class DataRecorder {
 
   // ...........................................................................
   Future<void> record() async {
-    if (role == EndpointRole.master) {
-      await _sendDataToSlaveAndWaitForAcknowledgement();
+    if (role == EndpointRole.advertizer) {
+      await _sendDataToScannerAndWaitForAcknowledgement();
     } else {
-      await _listenToDataFromMasterAndAcknowledge();
+      await _listenToDataFromAdvertizerAndAcknowledge();
     }
   }
 
   // ...........................................................................
-  StreamSubscription? _listenToDataFromMasterSubscription;
+  StreamSubscription? _listenToDataFromAdvertizerSubscription;
   Completer? _listenToDataCompleter;
   int _receivedBytes = 0;
-  Future<void> _listenToDataFromMasterAndAcknowledge() {
+  Future<void> _listenToDataFromAdvertizerAndAcknowledge() {
     _listenToDataCompleter = Completer();
 
-    _listenToDataFromMasterSubscription = connection.receiveData.listen(
+    _listenToDataFromAdvertizerSubscription = connection.receiveData.listen(
       (data) {
         final str = data.string;
         _receivedBytes += data.lengthInBytes;
@@ -98,13 +98,13 @@ class DataRecorder {
       },
     );
 
-    _dispose.add(() => _listenToDataFromMasterSubscription?.cancel);
+    _dispose.add(() => _listenToDataFromAdvertizerSubscription?.cancel);
 
     return _listenToDataCompleter!.future;
   }
 
   // ...........................................................................
-  Future<void> _sendDataToSlaveAndWaitForAcknowledgement() async {
+  Future<void> _sendDataToScannerAndWaitForAcknowledgement() async {
     _stop = false;
 
     _isRunning = true;
@@ -123,7 +123,7 @@ class DataRecorder {
         _measurementCycles.add(iteration);
         _initBuffer(packageSize);
         _startTimeMeasurement();
-        _sendDataToSlave();
+        _sendDataToScanner();
         await _waitForAcknowledgement;
         _stopTimeMeasurement();
         _writeMeasuredTimes(packageSize);
@@ -147,8 +147,8 @@ class DataRecorder {
   // ...........................................................................
   void stop() {
     _stop = true;
-    _listenToDataFromMasterSubscription?.cancel();
-    _listenToDataFromMasterSubscription = null;
+    _listenToDataFromAdvertizerSubscription?.cancel();
+    _listenToDataFromAdvertizerSubscription = null;
     _listenToDataCompleter?.complete();
     _listenToDataCompleter = null;
   }
@@ -182,7 +182,7 @@ class DataRecorder {
   }
 
   // ...........................................................................
-  Future<void> _sendDataToSlave() async {
+  Future<void> _sendDataToScanner() async {
     log?.call('Sending buffer of size ${_buffer!.lengthInBytes}...');
     await connection.sendData(_buffer!);
   }
@@ -303,14 +303,15 @@ class DataRecorder {
 }
 
 // #############################################################################
-DataRecorder exampleMasterDataRecorder({Connection? connection}) =>
+DataRecorder exampleAdvertizerDataRecorder({Connection? connection}) =>
     DataRecorder(
       connection: connection ?? exampleConnection(),
-      role: EndpointRole.master,
+      role: EndpointRole.advertizer,
     );
 
 // #############################################################################
-DataRecorder exampleSlaveDataRecorder({Connection? connection}) => DataRecorder(
+DataRecorder exampleScannerDataRecorder({Connection? connection}) =>
+    DataRecorder(
       connection: connection ?? exampleConnection(),
-      role: EndpointRole.slave,
+      role: EndpointRole.scanner,
     );

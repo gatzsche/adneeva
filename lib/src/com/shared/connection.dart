@@ -82,7 +82,7 @@ Connection exampleConnection({
   DisconnectFunction? disconnect,
 }) {
   return Connection(
-    parentService: parentService ?? FakeService.master,
+    parentService: parentService ?? FakeService.advertizer,
     sendData: sendData ?? (data) async {},
     receiveData: receiveData ?? StreamController<Uint8List>.broadcast().stream,
     disconnect: disconnect ?? () async {},

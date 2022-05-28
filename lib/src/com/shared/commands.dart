@@ -71,7 +71,7 @@ class EndpointRoleCmd extends Command {
 // .............................................................................
 final exampleEndpointRoleCmd = EndpointRoleCmd(
   mode: MeasurementMode.btle,
-  role: EndpointRole.master,
+  role: EndpointRole.advertizer,
 );
 
 // #############################################################################

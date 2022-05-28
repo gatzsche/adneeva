@@ -51,12 +51,12 @@ class Application {
 
   // ...........................................................................
   Future<void> get waitUntilConnected async {
-    await _remoteControlService.master.firstConnection;
-    await _remoteControlService.slave.firstConnection;
+    await _remoteControlService.advertizer.firstConnection;
+    await _remoteControlService.scanner.firstConnection;
   }
 
   final mode = GgValue<MeasurementMode>(seed: MeasurementMode.tcp);
-  final role = GgValue<EndpointRole>(seed: EndpointRole.master);
+  final role = GgValue<EndpointRole>(seed: EndpointRole.advertizer);
 
   // ...........................................................................
   Measure get measure => _measure;
@@ -84,7 +84,7 @@ class Application {
 
   // ...........................................................................
   Future<void> startMeasurements() async {
-    role.value = EndpointRole.master;
+    role.value = EndpointRole.advertizer;
     _updateModeAtOtherSide();
     await _startMeasurements();
   }
@@ -120,13 +120,13 @@ class Application {
   // ...........................................................................
   static void fakeConnect(Application appA, Application appB) {
     NetworkService.fakeConnect(
-      appA.remoteControlService.master,
-      appB.remoteControlService.slave,
+      appA.remoteControlService.advertizer,
+      appB.remoteControlService.scanner,
     );
 
     NetworkService.fakeConnect(
-      appB.remoteControlService.master,
-      appA.remoteControlService.slave,
+      appB.remoteControlService.advertizer,
+      appA.remoteControlService.scanner,
     );
 
     appA.waitForConnections();
@@ -178,23 +178,23 @@ class Application {
       type: '_mobile_network_evaluator_remote_control._tcp',
     );
 
-    final master = BonjourService(
+    final advertizer = BonjourService(
       name: name,
-      role: EndpointRole.master,
+      role: EndpointRole.advertizer,
       service: info,
       log: log,
     );
 
-    final slave = BonjourService(
+    final scanner = BonjourService(
       name: name,
-      role: EndpointRole.slave,
+      role: EndpointRole.scanner,
       service: info,
       log: log,
     );
 
     _remoteControlService = BipolarService<BonjourService>(
-      master: master,
-      slave: slave,
+      advertizer: advertizer,
+      scanner: scanner,
     );
 
     _remoteControlService.start();
@@ -203,16 +203,16 @@ class Application {
 
   // ...........................................................................
   void _sendCommand(Command command) {
-    _remoteControlService.master.connections.value.first.sendString(
+    _remoteControlService.advertizer.connections.value.first.sendString(
       '${command.toJsonString()}\n',
     );
   }
 
   // ...........................................................................
   void _listenForCommands() {
-    _remoteControlService.slave.connections.value.first.receiveData.listen(
+    _remoteControlService.scanner.connections.value.first.receiveData.listen(
       (uint8List) {
-        // Only slaves receive commands currently
+        // Only scanners receive commands currently
         final string = String.fromCharCodes(uint8List);
         final commands = string.split('\n').where(
               (e) => e.isNotEmpty,
@@ -238,11 +238,11 @@ class Application {
 
   // ...........................................................................
   void _updateModeAtOtherSide() {
-    if (role.value == EndpointRole.master) {
+    if (role.value == EndpointRole.advertizer) {
       _sendCommand(
         EndpointRoleCmd(
           mode: mode.value,
-          role: EndpointRole.slave,
+          role: EndpointRole.scanner,
         ),
       );
     }
@@ -274,14 +274,14 @@ class Application {
 
   // ...........................................................................
   void _startMeasurementOnOtherSide() {
-    if (role.value == EndpointRole.master) {
+    if (role.value == EndpointRole.advertizer) {
       _sendCommand(StartMeasurementCmd());
     }
   }
 
   // ...........................................................................
   void _stopMeasurementOnOtherSide() {
-    if (role.value == EndpointRole.master) {
+    if (role.value == EndpointRole.advertizer) {
       _sendCommand(StopMeasurementCmd());
     }
   }

@@ -26,40 +26,40 @@ void main() {
 
   group('AdhocEndpoint', () {
     // #########################################################################
-    test('should initialize both, a master and a slave endpoint', () {
+    test('should initialize both, a advertizer and a scanner endpoint', () {
       fakeAsync((fake) {
         init(fake);
         expect(bipolarEndpoint, isNotNull);
-        expect(bipolarEndpoint.master, isNotNull);
-        expect(bipolarEndpoint.slave, isNotNull);
+        expect(bipolarEndpoint.advertizer, isNotNull);
+        expect(bipolarEndpoint.scanner, isNotNull);
 
         expect(
-          bipolarEndpoint.service(EndpointRole.master),
-          bipolarEndpoint.master,
+          bipolarEndpoint.service(EndpointRole.advertizer),
+          bipolarEndpoint.advertizer,
         );
         expect(
-          bipolarEndpoint.service(EndpointRole.slave),
-          bipolarEndpoint.slave,
+          bipolarEndpoint.service(EndpointRole.scanner),
+          bipolarEndpoint.scanner,
         );
 
         dispose(fake);
       });
     });
 
-    test('should start and stop both, a master and a slave endpoint', () {
+    test('should start and stop both, a advertizer and a scanner endpoint', () {
       fakeAsync((fake) {
         init(fake);
-        expect(bipolarEndpoint.master.isStarted, false);
-        expect(bipolarEndpoint.slave.isStarted, false);
+        expect(bipolarEndpoint.advertizer.isStarted, false);
+        expect(bipolarEndpoint.scanner.isStarted, false);
         bipolarEndpoint.start();
         fake.flushMicrotasks();
-        expect(bipolarEndpoint.master.isStarted, true);
-        expect(bipolarEndpoint.slave.isStarted, true);
+        expect(bipolarEndpoint.advertizer.isStarted, true);
+        expect(bipolarEndpoint.scanner.isStarted, true);
 
         bipolarEndpoint.stop();
         fake.flushMicrotasks();
-        expect(bipolarEndpoint.master.isStarted, false);
-        expect(bipolarEndpoint.slave.isStarted, false);
+        expect(bipolarEndpoint.advertizer.isStarted, false);
+        expect(bipolarEndpoint.scanner.isStarted, false);
         dispose(fake);
       });
     });

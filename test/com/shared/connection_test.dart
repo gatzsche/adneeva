@@ -36,7 +36,7 @@ void main() {
     receiveData = StreamController<Uint8List>.broadcast();
     isDisconnected = null;
     lastSentData = null;
-    fakeService = FakeService.master;
+    fakeService = FakeService.advertizer;
 
     connection = exampleConnection(
       sendData: sendData,

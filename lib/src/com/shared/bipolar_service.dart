@@ -9,12 +9,12 @@ import '../fake/fake_service.dart';
 import 'network_service.dart';
 
 class BipolarService<T extends NetworkService<dynamic, dynamic>> {
-  BipolarService({required this.master, required this.slave}) {
+  BipolarService({required this.advertizer, required this.scanner}) {
     _init();
   }
 
-  final T master;
-  final T slave;
+  final T advertizer;
+  final T scanner;
 
   // ...........................................................................
   void dispose() {
@@ -25,18 +25,19 @@ class BipolarService<T extends NetworkService<dynamic, dynamic>> {
 
   // ...........................................................................
   Future<void> start() async {
-    master.start();
-    slave.start();
+    advertizer.start();
+    scanner.start();
   }
 
   // ...........................................................................
   Future<void> stop() async {
-    master.stop();
-    slave.stop();
+    advertizer.stop();
+    scanner.stop();
   }
 
   // ...........................................................................
-  T service(EndpointRole role) => role == EndpointRole.master ? master : slave;
+  T service(EndpointRole role) =>
+      role == EndpointRole.advertizer ? advertizer : scanner;
 
   // ######################
   // Private
@@ -44,13 +45,13 @@ class BipolarService<T extends NetworkService<dynamic, dynamic>> {
 
   final List<Function()> _dispose = [];
   void _init() {
-    _dispose.add(master.dispose);
-    _dispose.add(slave.dispose);
+    _dispose.add(advertizer.dispose);
+    _dispose.add(scanner.dispose);
   }
 }
 
 // #############################################################################
 BipolarService<FakeService> exampleBipolarEndpoint() => BipolarService(
-      master: FakeService(slave: EndpointRole.master),
-      slave: FakeService(slave: EndpointRole.slave),
+      advertizer: FakeService(scanner: EndpointRole.advertizer),
+      scanner: FakeService(scanner: EndpointRole.scanner),
     );

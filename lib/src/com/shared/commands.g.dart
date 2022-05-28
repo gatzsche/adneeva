@@ -25,8 +25,8 @@ const _$MeasurementModeEnumMap = {
 };
 
 const _$EndpointRoleEnumMap = {
-  EndpointRole.master: 'master',
-  EndpointRole.slave: 'slave',
+  EndpointRole.advertizer: 'advertizer',
+  EndpointRole.scanner: 'scanner',
 };
 
 StartMeasurementCmd _$StartMeasurementCmdFromJson(Map<String, dynamic> json) =>

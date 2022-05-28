@@ -23,8 +23,8 @@ void main() {
     Finder startButton() => find.byKey(const Key('startButton'));
     Finder stopButton() => find.byKey(const Key('stopButton'));
     Finder measurementResults() => find.byKey(const Key('measurementResults'));
-    Finder slaveIsMeasuringWidget() =>
-        find.byKey(const Key('slaveIsMeasuringWidget'));
+    Finder scannerIsMeasuringWidget() =>
+        find.byKey(const Key('scannerIsMeasuringWidget'));
 
     // .........................................................................
     Future<void> setUp(WidgetTester tester) async {
@@ -47,7 +47,7 @@ void main() {
     }
 
     // .........................................................................
-    testWidgets('should work correctly on master side',
+    testWidgets('should work correctly on advertizer side',
         (WidgetTester tester) async {
       await setUp(tester);
 
@@ -96,7 +96,7 @@ void main() {
     });
 
     // .........................................................................
-    testWidgets('should work correctly on slave side',
+    testWidgets('should work correctly on scanner side',
         (WidgetTester tester) async {
       await setUp(tester);
 
@@ -117,7 +117,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
 
       // Now the local app should show an hint that currently recordings are made
-      expect(slaveIsMeasuringWidget(), findsOneWidget);
+      expect(scannerIsMeasuringWidget(), findsOneWidget);
 
       // Cleanup
       remoteApp.stopMeasurements();

@@ -65,7 +65,7 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
       a.device.deviceId == b.device.deviceId;
 
   // ######################
-  // Advertizing / Master
+  // Advertizing / Advertizer
   // ######################
 
   // ...........................................................................
@@ -98,7 +98,7 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
   Future<void> stopListeningForConnections() async {}
 
   // ######################
-  // Discovering / Slave
+  // Discovering / Scanner
   // ######################
 
   // ...........................................................................
@@ -172,7 +172,7 @@ class NbService extends NetworkService<NbServiceInfo, ResolvedNbServiceInfo> {
     _nearbyService = _d.newNearbyService();
     await _nearbyService.init(
       serviceType: 'mobile_network_evaluator_measure_nearby',
-      deviceName: role == EndpointRole.master ? 'Master' : 'Slave',
+      deviceName: role == EndpointRole.advertizer ? 'Advertizer' : 'Scanner',
       strategy: Strategy.P2P_CLUSTER,
       callback: (isRunning) async {
         if (isRunning) {

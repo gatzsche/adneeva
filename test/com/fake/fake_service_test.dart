@@ -12,21 +12,21 @@ import 'package:mobile_network_evaluator/src/com/shared/network_service.dart';
 import 'package:mobile_network_evaluator/src/utils/utils.dart';
 
 void main() {
-  late FakeService masterFakeService;
-  late FakeService slaveFakeService0;
-  late FakeService slaveFakeService1;
+  late FakeService advertizerFakeService;
+  late FakeService scannerFakeService0;
+  late FakeService scannerFakeService1;
 
   // ...........................................................................
   void init(FakeAsync fake) {
-    masterFakeService = FakeService.master;
-    slaveFakeService0 = FakeService.slave;
-    slaveFakeService1 = FakeService.slave;
+    advertizerFakeService = FakeService.advertizer;
+    scannerFakeService0 = FakeService.scanner;
+    scannerFakeService1 = FakeService.scanner;
     fake.flushMicrotasks();
   }
 
   // ...........................................................................
   void dispose(FakeAsync fake) {
-    masterFakeService.dispose();
+    advertizerFakeService.dispose();
     fake.flushMicrotasks();
   }
 
@@ -60,54 +60,54 @@ void main() {
       () {
         fakeAsync((fake) {
           init(fake);
-          expect(masterFakeService.connections.value, isEmpty);
-          expect(slaveFakeService0.connections.value, isEmpty);
+          expect(advertizerFakeService.connections.value, isEmpty);
+          expect(scannerFakeService0.connections.value, isEmpty);
           dispose(fake);
         });
       },
     );
 
     test('can be started and stopped', () {
-      masterFakeService.start();
-      masterFakeService.stop();
+      advertizerFakeService.start();
+      advertizerFakeService.stop();
 
-      slaveFakeService0.start();
-      slaveFakeService0.stop();
+      scannerFakeService0.start();
+      scannerFakeService0.stop();
     });
 
     test('can be connected to another fake services', () {
       fakeAsync((fake) {
         init(fake);
 
-        masterFakeService.start();
-        slaveFakeService0.start();
+        advertizerFakeService.start();
+        scannerFakeService0.start();
 
-        expect(masterFakeService.isConnected, false);
-        expect(slaveFakeService0.isConnected, false);
-        expect(slaveFakeService1.isConnected, false);
+        expect(advertizerFakeService.isConnected, false);
+        expect(scannerFakeService0.isConnected, false);
+        expect(scannerFakeService1.isConnected, false);
 
-        // Connect a slave fake service to a master fake service
-        NetworkService.fakeConnect(slaveFakeService0, masterFakeService);
+        // Connect a scanner fake service to a advertizer fake service
+        NetworkService.fakeConnect(scannerFakeService0, advertizerFakeService);
         fake.flushMicrotasks();
-        expect(masterFakeService.connections.value.length, 1);
-        expect(slaveFakeService0.connections.value.length, 1);
-        expect(slaveFakeService1.connections.value.length, 0);
-        expect(masterFakeService.isConnected, true);
-        expect(slaveFakeService0.isConnected, true);
-        expect(slaveFakeService1.isConnected, false);
+        expect(advertizerFakeService.connections.value.length, 1);
+        expect(scannerFakeService0.connections.value.length, 1);
+        expect(scannerFakeService1.connections.value.length, 0);
+        expect(advertizerFakeService.isConnected, true);
+        expect(scannerFakeService0.isConnected, true);
+        expect(scannerFakeService1.isConnected, false);
 
-        // Connect a slave fake service to a slave fake service
-        slaveFakeService1.start();
-        NetworkService.fakeConnect(slaveFakeService1, masterFakeService);
+        // Connect a scanner fake service to a scanner fake service
+        scannerFakeService1.start();
+        NetworkService.fakeConnect(scannerFakeService1, advertizerFakeService);
         fake.flushMicrotasks();
-        expect(masterFakeService.connections.value.length, 2);
-        expect(slaveFakeService1.connections.value.length, 1);
-        expect(slaveFakeService1.connections.value.length, 1);
-        expect(slaveFakeService0.isConnected, true);
-        expect(slaveFakeService1.isConnected, true);
+        expect(advertizerFakeService.connections.value.length, 2);
+        expect(scannerFakeService1.connections.value.length, 1);
+        expect(scannerFakeService1.connections.value.length, 1);
+        expect(scannerFakeService0.isConnected, true);
+        expect(scannerFakeService1.isConnected, true);
 
-        slaveFakeService0.stop();
-        masterFakeService.stop();
+        scannerFakeService0.stop();
+        advertizerFakeService.stop();
 
         dispose(fake);
       });
@@ -118,39 +118,39 @@ void main() {
         init(fake);
 
         // Listen to firstConnection
-        Connection? firstSlaveConnection;
-        Connection? firstMasterConnection;
-        slaveFakeService0.firstConnection.then(
-          (c) => firstSlaveConnection = c,
+        Connection? firstScannerConnection;
+        Connection? firstAdvertizerConnection;
+        scannerFakeService0.firstConnection.then(
+          (c) => firstScannerConnection = c,
         );
 
-        masterFakeService.firstConnection.then(
-          (value) => firstMasterConnection = value,
+        advertizerFakeService.firstConnection.then(
+          (value) => firstAdvertizerConnection = value,
         );
 
         // Initially it is still waiting
         fake.flushMicrotasks();
 
-        expect(firstSlaveConnection, isNull);
-        expect(firstMasterConnection, isNull);
+        expect(firstScannerConnection, isNull);
+        expect(firstAdvertizerConnection, isNull);
 
         // Now let's connect
-        slaveFakeService0.start();
-        masterFakeService.start();
+        scannerFakeService0.start();
+        advertizerFakeService.start();
 
-        NetworkService.fakeConnect(slaveFakeService0, masterFakeService);
+        NetworkService.fakeConnect(scannerFakeService0, advertizerFakeService);
         fake.flushMicrotasks();
 
-        expect(firstMasterConnection, isNotNull);
-        expect(firstSlaveConnection, isNotNull);
+        expect(firstAdvertizerConnection, isNotNull);
+        expect(firstScannerConnection, isNotNull);
 
         // Lets listen to first connection again
-        Connection? firstSlaveConnection2;
-        slaveFakeService0.firstConnection.then(
-          (c) => firstSlaveConnection2 = c,
+        Connection? firstScannerConnection2;
+        scannerFakeService0.firstConnection.then(
+          (c) => firstScannerConnection2 = c,
         );
         fake.flushMicrotasks();
-        expect(firstSlaveConnection2, isNotNull);
+        expect(firstScannerConnection2, isNotNull);
 
         dispose(fake);
       });
@@ -160,27 +160,28 @@ void main() {
       fakeAsync((fake) {
         init(fake);
 
-        // Connect a slave fake service to a master fake service
-        slaveFakeService0.start();
-        slaveFakeService1.start();
-        masterFakeService.start();
+        // Connect a scanner fake service to a advertizer fake service
+        scannerFakeService0.start();
+        scannerFakeService1.start();
+        advertizerFakeService.start();
 
-        NetworkService.fakeConnect(slaveFakeService0, masterFakeService);
-        NetworkService.fakeConnect(slaveFakeService1, masterFakeService);
+        NetworkService.fakeConnect(scannerFakeService0, advertizerFakeService);
+        NetworkService.fakeConnect(scannerFakeService1, advertizerFakeService);
         fake.flushMicrotasks();
 
         // Create a bunch of connections
-        final masterSlave0 = masterFakeService.connections.value.first;
+        final advertizerScanner0 =
+            advertizerFakeService.connections.value.first;
 
-        final masterSlave1 = masterFakeService.connections.value.last;
+        final advertizerScanner1 = advertizerFakeService.connections.value.last;
 
-        final slave0 = slaveFakeService0.connections.value.first;
-        final slave1 = slaveFakeService1.connections.value.first;
+        final scanner0 = scannerFakeService0.connections.value.first;
+        final scanner1 = scannerFakeService1.connections.value.first;
 
-        testSendingData(from: slave0, to: masterSlave0, fake: fake);
-        testSendingData(from: slave1, to: masterSlave1, fake: fake);
-        testSendingData(from: masterSlave0, to: slave0, fake: fake);
-        testSendingData(from: masterSlave1, to: slave1, fake: fake);
+        testSendingData(from: scanner0, to: advertizerScanner0, fake: fake);
+        testSendingData(from: scanner1, to: advertizerScanner1, fake: fake);
+        testSendingData(from: advertizerScanner0, to: scanner0, fake: fake);
+        testSendingData(from: advertizerScanner1, to: scanner1, fake: fake);
 
         dispose(fake);
       });
