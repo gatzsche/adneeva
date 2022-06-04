@@ -67,8 +67,7 @@ class BonjourService
     await _bonsoirBroadcast.ready;
 
     if (needsStart) {
-      await Future.delayed(const Duration(milliseconds: 1));
-      log?.call('Advertizing on port ${_bonsoirBroadcast.service.port}');
+      log?.call('Start advertizing on port ${_bonsoirBroadcast.service.port}');
       await _bonsoirBroadcast.start();
     }
   }
@@ -112,56 +111,19 @@ class BonjourService
   // ######################
   // Discovering / Scanner
   // ######################
+  Future<bool> isOwnService(ResolvedBonsoirService service) async {
+    bool isOwnIp = service.ip != null && await isOwnIpAddress(service.ip!);
+    if (isOwnIp && service.port == this.service.port) {
+      return true;
+    }
+    return false;
+  }
 
+  // ...........................................................................
   @override
   Future<void> startScanning() async {
-    bool needsStart = !_bonsoirDiscovery.isReady || _bonsoirDiscovery.isStopped;
-
-    if (!_bonsoirDiscovery.isReady) {
-      await _bonsoirDiscovery.ready;
-    }
-
-    if (needsStart) {
-      await _bonsoirDiscovery.start();
-    }
-
-    if (_discoverySubscription == null) {
-      _discoverySubscription =
-          _bonsoirDiscovery.eventStream?.listen((event) async {
-        if (event.type == BonsoirDiscoveryEventType.DISCOVERY_SERVICE_FOUND) {
-        } else if (event.type ==
-            BonsoirDiscoveryEventType.DISCOVERY_SERVICE_RESOLVED) {
-          final service = (event.service as ResolvedBonsoirService);
-          final ip = service.ip;
-          if (ip == null) {
-            log?.call('Service with name "${service.name}" has no IP address');
-            return;
-          }
-
-          // Ignore own service
-          bool isOwnIp = await isOwnIpAddress(ip);
-          if (isOwnIp && service.port == this.service.port) {
-            return;
-          }
-
-          log?.call('Resolved service on port ${service.port}');
-          onDiscoverService(service);
-        } else if (event.type ==
-            BonsoirDiscoveryEventType.DISCOVERY_SERVICE_LOST) {
-          log?.call(
-              'Lost service on port ${(event.service as ResolvedBonsoirService).port}');
-          onLooseService(event.service as ResolvedBonsoirService);
-        } else if (event.type ==
-            BonsoirDiscoveryEventType.DISCOVERY_SERVICE_RESOLVE_FAILED) {
-          log?.call('Resolving failed');
-        } else if (event.type == BonsoirDiscoveryEventType.DISCOVERY_STARTED) {
-          log?.call('Discovery sarted');
-        } else if (event.type == BonsoirDiscoveryEventType.DISCOVERY_STOPPED) {
-          log?.call('Discovery stopped');
-        }
-      });
-      _dispose.add(() => _discoverySubscription?.cancel);
-    }
+    _listenToDiscoveryEvents();
+    await _startDiscovery();
   }
 
   // ...........................................................................
@@ -251,5 +213,60 @@ class BonjourService
       disconnect: socket.close,
       serviceInfo: service,
     );
+  }
+
+  // ...........................................................................
+  void _listenToDiscoveryEvents() {
+    if (_discoverySubscription == null) {
+      _discoverySubscription =
+          _bonsoirDiscovery.eventStream?.listen((event) async {
+        if (event.type == BonsoirDiscoveryEventType.DISCOVERY_SERVICE_FOUND) {
+        } else if (event.type ==
+            BonsoirDiscoveryEventType.DISCOVERY_SERVICE_RESOLVED) {
+          final service = (event.service as ResolvedBonsoirService);
+          final ip = service.ip;
+          if (ip == null) {
+            log?.call('Service with name "${service.name}" has no IP address');
+            return;
+          }
+
+          // Ignore own service
+          if (await isOwnService(service)) {
+            return;
+          }
+
+          log?.call('Resolved service on port ${service.port}');
+          onDiscoverService(service);
+        } else if (event.type ==
+            BonsoirDiscoveryEventType.DISCOVERY_SERVICE_LOST) {
+          log?.call(
+              'Lost service on port ${(event.service as ResolvedBonsoirService).port}');
+          onLooseService(event.service as ResolvedBonsoirService);
+        } else if (event.type ==
+            BonsoirDiscoveryEventType.DISCOVERY_SERVICE_RESOLVE_FAILED) {
+          log?.call('Resolving failed');
+        } else if (event.type == BonsoirDiscoveryEventType.DISCOVERY_STARTED) {
+          log?.call('Discovery sarted');
+        } else if (event.type == BonsoirDiscoveryEventType.DISCOVERY_STOPPED) {
+          log?.call('Discovery stopped');
+        }
+      });
+      _dispose.add(() => _discoverySubscription?.cancel);
+    }
+  }
+
+  // ...........................................................................
+  Future<void> _startDiscovery() async {
+    bool needsStart = !_bonsoirDiscovery.isReady || _bonsoirDiscovery.isStopped;
+
+    if (!_bonsoirDiscovery.isReady) {
+      await _bonsoirDiscovery.ready;
+    }
+
+    if (needsStart) {
+      log?.call('Start discovery');
+      await _bonsoirDiscovery.start();
+      log?.call('Listen to event stream');
+    }
   }
 }
