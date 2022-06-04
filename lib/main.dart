@@ -343,7 +343,9 @@ class _GgRouterExampleState extends State<GgRouterExample>
           const fileName = 'measurement_result.csv';
           final targetPath = await _tmpPath(fileName);
           _writeDataToFile(measurementResults.last, targetPath);
-          Share.shareFiles([targetPath], text: 'Measurement results');
+          Share.shareFiles([targetPath],
+              text: 'Measurement results',
+              sharePositionOrigin: const Rect.fromLTRB(300, 300, 300, 0300));
         },
         child: const Text('Share'),
       );

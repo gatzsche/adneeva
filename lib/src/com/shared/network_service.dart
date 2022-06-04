@@ -48,7 +48,9 @@ abstract class NetworkService<ServiceInfo,
 
   // ...........................................................................
   Future<void> start() async {
-    assert(!_isStarted);
+    if (_isStarted) {
+      return;
+    }
     _isStarted = true;
 
     if (role == EndpointRole.advertizer) {

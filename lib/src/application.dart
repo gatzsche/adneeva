@@ -87,7 +87,7 @@ class Application {
     _initMeasurement();
     await _measure!.connect();
     await _measure!.measure();
-    _measurementResult.value = _measure!.measurementResults.value;
+
     await stopMeasurements();
   }
 
@@ -96,6 +96,7 @@ class Application {
     if (_measure == null) {
       return;
     }
+    _measurementResult.value = _measure!.measurementResults.value;
     _measure!.disconnect();
     _measure!.dispose();
     _measure = null;
