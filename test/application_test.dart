@@ -6,8 +6,8 @@
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobile_network_evaluator/src/application.dart';
-import 'package:mobile_network_evaluator/src/measure/types.dart';
+import 'package:adneeva/src/application.dart';
+import 'package:adneeva/src/measure/types.dart';
 
 void main() {
   late Application appA;

@@ -5,7 +5,7 @@
 // found in the LICENSE file in the root of this package.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobile_network_evaluator/src/measure/types.dart';
+import 'package:adneeva/src/measure/types.dart';
 
 void main() {
   group('EndpointRole', () {

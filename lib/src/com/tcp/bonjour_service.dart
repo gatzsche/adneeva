@@ -122,7 +122,7 @@ class BonjourService
   // ...........................................................................
   @override
   Future<void> startScanning() async {
-    _listenToDiscoveryEvents();
+    await _listenToDiscoveryEvents();
     await _startDiscovery();
   }
 
@@ -216,8 +216,16 @@ class BonjourService
   }
 
   // ...........................................................................
-  void _listenToDiscoveryEvents() {
+  Future<void> _listenToDiscoveryEvents() async {
+    _needsStart = !_bonsoirDiscovery.isReady || _bonsoirDiscovery.isStopped;
+
+    if (!_bonsoirDiscovery.isReady) {
+      await _bonsoirDiscovery.ready;
+    }
+
     if (_discoverySubscription == null) {
+      log?.call('Listen to event stream');
+
       _discoverySubscription =
           _bonsoirDiscovery.eventStream?.listen((event) async {
         if (event.type == BonsoirDiscoveryEventType.DISCOVERY_SERVICE_FOUND) {
@@ -246,7 +254,7 @@ class BonjourService
             BonsoirDiscoveryEventType.DISCOVERY_SERVICE_RESOLVE_FAILED) {
           log?.call('Resolving failed');
         } else if (event.type == BonsoirDiscoveryEventType.DISCOVERY_STARTED) {
-          log?.call('Discovery sarted');
+          log?.call('Discovery started');
         } else if (event.type == BonsoirDiscoveryEventType.DISCOVERY_STOPPED) {
           log?.call('Discovery stopped');
         }
@@ -256,17 +264,12 @@ class BonjourService
   }
 
   // ...........................................................................
+  var _needsStart = false;
+
   Future<void> _startDiscovery() async {
-    bool needsStart = !_bonsoirDiscovery.isReady || _bonsoirDiscovery.isStopped;
-
-    if (!_bonsoirDiscovery.isReady) {
-      await _bonsoirDiscovery.ready;
-    }
-
-    if (needsStart) {
+    if (_needsStart) {
       log?.call('Start discovery');
       await _bonsoirDiscovery.start();
-      log?.call('Listen to event stream');
     }
   }
 }

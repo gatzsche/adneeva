@@ -11,12 +11,12 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:mobile_network_evaluator/src/com/tcp/mocks/mock_bonjour_service.dart';
-import 'package:mobile_network_evaluator/src/com/tcp/mocks/mock_bonsoir_broadcast.dart';
-import 'package:mobile_network_evaluator/src/com/tcp/mocks/mock_bonsoir_discovery.dart';
-import 'package:mobile_network_evaluator/src/com/tcp/mocks/mock_server_socket.dart';
-import 'package:mobile_network_evaluator/src/com/tcp/mocks/mock_socket.dart';
-import 'package:mobile_network_evaluator/src/measure/types.dart';
+import 'package:adneeva/src/com/tcp/mocks/mock_bonjour_service.dart';
+import 'package:adneeva/src/com/tcp/mocks/mock_bonsoir_broadcast.dart';
+import 'package:adneeva/src/com/tcp/mocks/mock_bonsoir_discovery.dart';
+import 'package:adneeva/src/com/tcp/mocks/mock_server_socket.dart';
+import 'package:adneeva/src/com/tcp/mocks/mock_socket.dart';
+import 'package:adneeva/src/measure/types.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

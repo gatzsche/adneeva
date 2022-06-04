@@ -167,9 +167,9 @@ class Application {
   late AdHocService<BonjourService> _remoteControlService;
   Future<void> _initRemoteControlService() async {
     final info = BonsoirService(
-      name: 'Mobile Network Evaluator $port',
+      name: 'Adneeva $port',
       port: port,
-      type: '_mobile_network_evaluator_remote_control._tcp',
+      type: '_adneeva-rc._tcp',
     );
 
     final advertizer = BonjourService(

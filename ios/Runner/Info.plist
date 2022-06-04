@@ -5,7 +5,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>Mobile Network Evaluator</string>
+    <string>Adneeva</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>mobile_network_evaluator</string>
+    <string>adneeva</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -55,9 +55,9 @@
     <string>Looking for other instances to make QoS measurements</string>
     <key>NSBonjourServices</key>
     <array>
-      <string>_mobile_network_evaluator_remote_control._tcp</string>
-      <string>_mobile_network_evaluator_measure_tcp._tcp</string>
-      <string>_mne-measurenb._tcp</string>
+      <string>_adneeva-rc._tcp</string>
+      <string>_adneeva-tcp._tcp</string>
+      <string>_adneeva-nb._tcp</string>
       <string>_dartobservatory._tcp</string>
     </array>
   </dict>

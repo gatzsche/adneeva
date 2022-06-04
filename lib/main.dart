@@ -68,9 +68,10 @@ class _GgRouterExampleState extends State<GgRouterExample>
   void _initLog() {
     _logController = StreamController<String>.broadcast();
 
-    final s = _logController.stream.listen(
-      (event) => _logMessages.add(event),
-    );
+    final s = _logController.stream.listen((event) {
+      _logMessages.add(event);
+      print(event);
+    });
     _dispose.add(s.cancel);
     _dispose.add(_logController.close);
   }
@@ -115,7 +116,7 @@ class _GgRouterExampleState extends State<GgRouterExample>
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Mobile AdHoc Evaluator',
+      title: 'Adneeva',
       routerDelegate: GgRouterDelegate(
         child: _appContent,
         saveState: _saveState,
@@ -136,11 +137,11 @@ class _GgRouterExampleState extends State<GgRouterExample>
   Widget get _appContent {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mobile AdHoc Evaluator'),
+        title: const Text('Adneeva'),
         actions: <Widget>[
           _routeButton('TCP', MeasurementMode.tcp.string),
           _routeButton('Nearby', MeasurementMode.nearby.string),
-          _routeButton('BTLE', MeasurementMode.btle.string),
+          // _routeButton('BTLE', MeasurementMode.btle.string),
           Container(
             width: debugShowCheckedModeBanner ? 50 : 0,
           ),

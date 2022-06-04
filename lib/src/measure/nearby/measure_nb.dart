@@ -16,7 +16,7 @@ class MeasureNb extends Measure {
   }) : super(
           networkService: NbService(
             service: NbServiceInfo(
-              type: 'mne-measurenb',
+              type: 'adneeva-nb',
               deviceId: role == EndpointRole.advertizer
                   ? 'Advertizer ${randomPort()}'
                   : 'Scanner ${randomPort()}',

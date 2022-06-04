@@ -7,7 +7,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobile_network_evaluator/src/com/shared/commands.dart';
+import 'package:adneeva/src/com/shared/commands.dart';
 
 void main() {
   group('$EndpointRoleCmd', () {

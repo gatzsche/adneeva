@@ -1,4 +1,4 @@
-package com.example.mobile_network_evaluator
+package com.example.adneeva
 
 import io.flutter.embedding.android.FlutterActivity
 

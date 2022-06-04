@@ -11,11 +11,11 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobile_network_evaluator/src/com/nearby/mock_nb_service.dart';
-import 'package:mobile_network_evaluator/src/com/nearby/mock_nearby_service.dart';
-import 'package:mobile_network_evaluator/src/com/nearby/nb_service.dart';
-import 'package:mobile_network_evaluator/src/measure/types.dart';
-import 'package:mobile_network_evaluator/src/utils/utils.dart';
+import 'package:adneeva/src/com/nearby/mock_nb_service.dart';
+import 'package:adneeva/src/com/nearby/mock_nearby_service.dart';
+import 'package:adneeva/src/com/nearby/nb_service.dart';
+import 'package:adneeva/src/measure/types.dart';
+import 'package:adneeva/src/utils/utils.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

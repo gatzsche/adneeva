@@ -5,7 +5,7 @@
 // found in the LICENSE file in the root of this package.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobile_network_evaluator/src/measure/tcp/measure_tcp.dart';
+import 'package:adneeva/src/measure/tcp/measure_tcp.dart';
 
 void main() {
   late MeasureTcp measureTcp;

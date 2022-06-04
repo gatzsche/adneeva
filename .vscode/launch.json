@@ -26,18 +26,18 @@
       ],
     },
     {
-      "name": "mobile_network_evaluator",
+      "name": "adneeva",
       "request": "launch",
       "type": "dart"
     },
     {
-      "name": "mobile_network_evaluator (profile mode)",
+      "name": "adneeva (profile mode)",
       "request": "launch",
       "type": "dart",
       "flutterMode": "profile"
     },
     {
-      "name": "mobile_network_evaluator (release mode)",
+      "name": "adneeva (release mode)",
       "request": "launch",
       "type": "dart",
       "flutterMode": "release"

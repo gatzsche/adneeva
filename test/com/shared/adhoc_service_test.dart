@@ -6,9 +6,9 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fake_async/fake_async.dart';
-import 'package:mobile_network_evaluator/src/com/fake/fake_service.dart';
-import 'package:mobile_network_evaluator/src/com/shared/adHoc_service.dart';
-import 'package:mobile_network_evaluator/src/measure/types.dart';
+import 'package:adneeva/src/com/fake/fake_service.dart';
+import 'package:adneeva/src/com/shared/adHoc_service.dart';
+import 'package:adneeva/src/measure/types.dart';
 
 void main() {
   late AdHocService<FakeService> adHocEndpoint;

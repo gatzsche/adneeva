@@ -9,9 +9,9 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fake_async/fake_async.dart';
-import 'package:mobile_network_evaluator/src/com/fake/fake_service.dart';
-import 'package:mobile_network_evaluator/src/com/shared/endpoint.dart';
-import 'package:mobile_network_evaluator/src/utils/utils.dart';
+import 'package:adneeva/src/com/fake/fake_service.dart';
+import 'package:adneeva/src/com/shared/endpoint.dart';
+import 'package:adneeva/src/utils/utils.dart';
 
 void main() {
   late Endpoint connection;

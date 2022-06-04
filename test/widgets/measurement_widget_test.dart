@@ -7,9 +7,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gg_easy_widget_test/gg_easy_widget_test.dart';
-import 'package:mobile_network_evaluator/src/application.dart';
-import 'package:mobile_network_evaluator/src/measure/data_recorder.dart';
-import 'package:mobile_network_evaluator/src/widgets/measurement_widget.dart';
+import 'package:adneeva/src/application.dart';
+import 'package:adneeva/src/measure/data_recorder.dart';
+import 'package:adneeva/src/widgets/measurement_widget.dart';
 
 void main() {
   group('MeasurementWidget', () {

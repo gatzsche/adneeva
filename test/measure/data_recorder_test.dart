@@ -5,11 +5,11 @@
 // found in the LICENSE file in the root of this package.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobile_network_evaluator/src/com/fake/fake_service.dart';
-import 'package:mobile_network_evaluator/src/com/shared/network_service.dart';
-import 'package:mobile_network_evaluator/src/measure/data_recorder.dart';
-import 'package:mobile_network_evaluator/src/measure/types.dart';
-import 'package:mobile_network_evaluator/src/utils/utils.dart';
+import 'package:adneeva/src/com/fake/fake_service.dart';
+import 'package:adneeva/src/com/shared/network_service.dart';
+import 'package:adneeva/src/measure/data_recorder.dart';
+import 'package:adneeva/src/measure/types.dart';
+import 'package:adneeva/src/utils/utils.dart';
 
 void main() {
   late DataRecorder advertizerDataRecorder;

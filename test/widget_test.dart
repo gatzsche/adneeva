@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gg_easy_widget_test/gg_easy_widget_test.dart';
 import 'package:gg_router/gg_router.dart';
-import 'package:mobile_network_evaluator/main.dart';
+import 'package:adneeva/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

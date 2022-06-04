@@ -20,7 +20,7 @@ class MeasureTcp extends Measure {
             service: BonsoirService(
               name: 'Measure TCP ${randomPort()}',
               port: randomPort(),
-              type: '_mobile_network_evaluator_measure_tcp._tcp',
+              type: '_adneeva-tcp._tcp',
             ),
             role: role == EndpointRole.advertizer
                 ? EndpointRole.advertizer

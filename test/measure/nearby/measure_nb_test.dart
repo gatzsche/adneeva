@@ -5,7 +5,7 @@
 // found in the LICENSE file in the root of this package.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobile_network_evaluator/src/measure/nearby/measure_nb.dart';
+import 'package:adneeva/src/measure/nearby/measure_nb.dart';
 
 void main() {
   late MeasureNb measureNearby;
