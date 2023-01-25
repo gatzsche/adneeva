@@ -29,7 +29,7 @@ class DataRecorder {
     required this.connection,
     required this.role,
     this.log,
-    this.maxNumMeasurements = 2,
+    this.maxNumMeasurements = 10,
     this.packageSizes = const [_oneKb, _oneMb, _tenMb],
   }) {
     _initMeasurementCycles();

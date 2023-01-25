@@ -200,7 +200,8 @@ class BonjourService
   // ...........................................................................
   Future<Socket> _connectClientSocket(
       {required String ip, required int port}) async {
-    final socket = await _d.connectSocket(ip, port);
+    final socket =
+        await _d.connectSocket(ip, port, timeout: const Duration(seconds: 3));
     return socket;
   }
 
